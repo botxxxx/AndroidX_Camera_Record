@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SensorsActivity">
+
+    <ScrollView
+        android:id="@+id/sensors_scroller"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_constraintLeft_creator="1"
+        tools:layout_constraintTop_creator="1">
+
+        <ViewFlipper
+            android:id="@+id/sensors_flipper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:measureAllChildren="false">
+
+            <!-- child id: 0 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:background="@color/colorPrimary"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="@string/sensors_title"
+                        android:textSize="36sp" />
+                </LinearLayout>
+
+                <!-- Pressure -->
+                <LinearLayout
+                    android:id="@+id/sensors_pressure"
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:onClick="getPressure"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/ScrollViewBoxTitle"
+                        android:text="@string/pressure" />
+                </LinearLayout>
+
+                <!-- Biosensor -->
+                <TextView
+                    android:id="@+id/sensors_biosensor"
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:onClick="getBiosensor"
+                    android:paddingStart="10dp"
+                    android:text="@string/biosensor" />
+
+                <!-- GPS -->
+                <TextView
+                    android:id="@+id/sensor_gps"
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:onClick="getGPS"
+                    android:paddingStart="10dp"
+                    android:text="@string/gps" />
+
+                <!-- G sensor -->
+                <TextView
+                    android:id="@+id/sensor_gsensor"
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:onClick="getGsensor"
+                    android:paddingStart="10dp"
+                    android:text="@string/g_sensor" />
+
+                <!-- Gyroscope -->
+                <TextView
+                    android:id="@+id/sensor_gyroscope"
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:onClick="getGyroscope"
+                    android:paddingStart="10dp"
+                    android:text="@string/gyroscope" />
+
+                <!-- Pedometer -->
+                <TextView
+                    android:id="@+id/sensor_pedometer"
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:onClick="getPedometer"
+                    android:paddingStart="10dp"
+                    android:text="@string/pedometer" />
+            </LinearLayout>
+
+            <!-- child id: 1 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:background="@color/colorPrimary"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/pressure_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="@string/pressure"
+                        android:textSize="36sp" />
+                </LinearLayout>
+
+                <!-- pressure value -->
+                <LinearLayout
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/ScrollViewBoxTitle"
+                        android:text="@string/sensor_value" />
+
+                    <TextView
+                        android:id="@+id/pressure_value"
+                        style="@style/ScrollViewBoxText"
+                        android:text="" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- child id: 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:background="@color/colorPrimary"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/biosensor_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="@string/biosensor"
+                        android:textSize="36sp" />
+                </LinearLayout>
+
+                <!-- biosensor value -->
+                <LinearLayout
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/ScrollViewBoxTitle"
+                        android:text="@string/sensor_value" />
+
+                    <TextView
+                        android:id="@+id/biosensor_value"
+                        style="@style/ScrollViewBoxText"
+                        android:text="" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- child id: 3 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:background="@color/colorPrimary"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/gps_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="@string/gps"
+                        android:textSize="36sp" />
+                </LinearLayout>
+
+                <!-- gps value -->
+                <LinearLayout
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/ScrollViewBoxTitle"
+                        android:text="@string/sensor_value" />
+
+                    <TextView
+                        android:id="@+id/gps_value"
+                        style="@style/ScrollViewBoxText"
+                        android:text="" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- child id: 4 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:background="@color/colorPrimary"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/g_sensor_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="@string/g_sensor"
+                        android:textSize="36sp" />
+                </LinearLayout>
+
+                <!-- G sensor value -->
+                <LinearLayout
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/ScrollViewBoxTitle"
+                        android:text="@string/sensor_value" />
+
+                    <TextView
+                        android:id="@+id/gsensor_value"
+                        style="@style/ScrollViewBoxText"
+                        android:text="" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- child id: 5 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:background="@color/colorPrimary"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/gyroscope_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="@string/gyroscope"
+                        android:textSize="36sp" />
+                </LinearLayout>
+
+                <!-- Gyroscope value -->
+                <LinearLayout
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/ScrollViewBoxTitle"
+                        android:text="@string/sensor_value" />
+
+                    <TextView
+                        android:id="@+id/gyroscope_value"
+                        style="@style/ScrollViewBoxText"
+                        android:text="" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- child id: 6 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:background="@color/colorPrimary"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/pedometer_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="@string/pedometer"
+                        android:textSize="36sp" />
+                </LinearLayout>
+
+                <!-- Pedometer value -->
+                <LinearLayout
+                    style="@style/ScrollViewBoxes"
+                    android:clickable="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/ScrollViewBoxTitle"
+                        android:text="@string/sensor_value" />
+
+                    <TextView
+                        android:id="@+id/pedometer_value"
+                        style="@style/ScrollViewBoxText"
+                        android:text="" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </ViewFlipper>
+
+    </ScrollView>
+
+</android.support.constraint.ConstraintLayout>

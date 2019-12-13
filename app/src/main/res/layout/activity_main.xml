@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="320dp"
+    android:layout_height="320dp"
+    tools:context=".MainActivity"
+    tools:ignore="MissingConstraints">
+
+    <TextView
+        android:layout_width="320dp"
+        android:layout_height="320dp"
+        android:background="@drawable/bg_turbo_n" />
+
+
+    <ImageView
+        android:id="@+id/locked_view"
+        style="@style/ClockScreenStatusIcon"
+        android:visibility="visible" />
+
+    <ViewFlipper
+        android:id="@+id/clock_view"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <include layout="@layout/activity_main_page1" />
+
+        <include layout="@layout/activity_main_page2" />
+
+        <include layout="@layout/activity_main_page3" />
+
+        <include layout="@layout/activity_main_page4" />
+    </ViewFlipper>
+
+
+    <!--    <com.askey.widget.LoopViewPager-->
+    <!--        android:id="@+id/main_loop_viewpager"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="match_parent" />-->
+
+
+</android.support.constraint.ConstraintLayout>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="controlCenterBackground">#dadada</color>
+    <color name="popupBackground">#2b2b2b</color>
+    <color name="popupText">#c9ffbe</color>
+    <color name="viewBlock">#fff</color>
+    <color name="viewBlockPressed">#ff9858</color>
+    <color name="scrollBlockTitleText">#000</color>
+    <color name="colorActiveMain">#FF4081</color>
+    <color name="colorActiveSub">#ffff99bb</color>
+    <color name="colorDisactiveMain">#ffdadada</color>
+    <color name="colorDisactiveSub">#ffdadada</color>
+    <color name="activeHighlight">#00b9b3</color>
+    <color name="clockTextWhite">#fff</color>
+    <color name="clockTextYellow">#fff200</color>
+    <color name="black_overlay">#66000000</color>
+    <color name="heartRateText">#FF4500</color>
+    <color name="walkText">#00ffff</color>
+    <color name="colorLightGreen">#00ECB2</color>
+    <color name="gone">#00000000</color>
+</resources>

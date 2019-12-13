@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="MissingConstraints">
+
+    <com.askey.askeylaunchers.TimeClock
+        android:id="@+id/time_clock"
+        style="@style/TimeClock"
+        android:translationZ="1dp" />
+
+    <TextView
+        android:id="@+id/digital_clock"
+        style="@style/DigitalClock" />
+
+    <LinearLayout
+        android:layout_width="320dp"
+        android:layout_height="320dp">
+
+        <RelativeLayout
+            android:id="@+id/heartRateInfo"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:visibility="invisible">
+
+            <ImageView
+                android:id="@+id/heartRate_view"
+                style="@style/AnalogClockScreenInfoIcon"
+                android:src="@drawable/heart_rate" />
+
+            <TextView
+                android:id="@+id/heartRate_text"
+                style="@style/AnalogClockScreenInfoValue"
+                android:layout_below="@id/heartRate_view"
+                android:textColor="@color/heartRateText" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/walkInfo"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:visibility="invisible">
+
+            <ImageView
+                android:id="@+id/walk_view"
+                style="@style/AnalogClockScreenInfoIcon"
+                android:src="@drawable/walk" />
+
+            <TextView
+                android:id="@+id/walk_text"
+                style="@style/AnalogClockScreenInfoValue"
+                android:layout_below="@id/walk_view"
+                android:textColor="@color/walkText" />
+        </RelativeLayout>
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

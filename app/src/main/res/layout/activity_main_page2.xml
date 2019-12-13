@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.askey.askeylaunchers.DigitalClock
+        android:id="@+id/digitalclockformat12_24"
+        style="@style/DigitalClock12_24HourFormat"
+        app:customFont="SF-Pro-Display-Medium.ttf"
+        app:customID="DigitalClock12_24HourFormat"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.askey.askeylaunchers.DigitalClock
+        android:id="@+id/digitalclockHour"
+        style="@style/DigitalClockHour"
+        app:customFont="SF-Pro-Display-Ultralight.ttf"
+        app:customID="DigitalClockHour"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.askey.askeylaunchers.DigitalClock
+        android:id="@+id/digitalclockMins"
+        style="@style/DigitalClockMins"
+        app:customFont="SF-Pro-Display-Ultralight.ttf"
+        app:customID="DigitalClockMins"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.askey.askeylaunchers.DigitalClock
+        android:id="@+id/digitalclockDate"
+        style="@style/DigitalClockDate"
+        app:customFont="SF-Pro-Display-BoldItalic.ttf"
+        app:customID="DigitalClockDate"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.askey.askeylaunchers.DigitalClock
+        android:id="@+id/digitalclockWeek"
+        style="@style/DigitalClockWeek"
+        app:customFont="SF-Pro-Display-BoldItalic.ttf"
+        app:customID="DigitalClockWeek"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</android.support.constraint.ConstraintLayout>

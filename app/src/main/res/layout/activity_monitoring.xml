@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MonitoringActivity">
+
+    <ScrollView
+        android:id="@+id/settings_scroller"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_constraintLeft_creator="1"
+        tools:layout_constraintTop_creator="1">
+
+        <ViewFlipper
+            android:id="@+id/settings_flipper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:measureAllChildren="false">
+
+            <!-- child id: 0 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:background="@color/colorPrimary"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/monitoring_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="@string/monitoring_title"
+                        android:textSize="36sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/ScrollViewBoxes"
+                    android:orientation="vertical">
+                    <!-- heart rate -->
+                    <CheckBox
+                        android:id="@+id/heart_rate_checkbox"
+                        style="@style/ScrollViewSensorTitle"
+                        android:text="@string/heart_rate" />
+
+                    <RelativeLayout
+                        android:id="@+id/heartRate_initial_layout"
+                        style="@style/SensorSettingsLayout"
+                        android:visibility="gone">
+                        <!-- normal range -->
+                        <TextView
+                            android:id="@+id/heartRate_normalrange_item"
+                            style="@style/SensorSettingsTxtView"
+                            android:text="@string/heartRate_normalrange_item" />
+
+                        <com.askey.widget.RangeSeekBar
+                            android:id="@+id/heartRate_normalrange_rsb"
+                            android:layout_width="wrap_content"
+                            android:layout_height="44dip"
+                            android:layout_below="@+id/heartRate_normalrange_item"
+                            app:cells="8"
+                            app:max="200"
+                            app:min="40" />
+                    </RelativeLayout>
+
+                    <!-- walk -->
+                    <CheckBox
+                        android:id="@+id/walk_checkbox"
+                        style="@style/ScrollViewSensorTitle"
+                        android:text="@string/walk" />
+
+                    <RelativeLayout
+                        android:id="@+id/walk_initial_layout"
+                        style="@style/SensorSettingsLayout"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/walk_initial_item"
+                            style="@style/SensorSettingsTxtView"
+                            android:text="@string/walk_initial_item" />
+
+                        <EditText
+                            android:id="@+id/walk_initial_value"
+                            style="@style/SensorSettingsEdtView"
+                            android:layout_toRightOf="@+id/walk_initial_item" />
+                    </RelativeLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </ViewFlipper>
+
+    </ScrollView>
+
+</android.support.constraint.ConstraintLayout>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="300dp"
+    android:translationX="20dp"
+    android:translationY="18dp">
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageButton
+            android:id="@+id/album"
+            style="@style/ControlCenterBtn"
+            android:onClick="album"
+            android:src="@drawable/btn_app_album_n" />
+
+        <ImageButton
+            android:id="@+id/calculator"
+            style="@style/ControlCenterBtn"
+            android:onClick="calculator"
+            android:src="@drawable/btn_app_calcu_n" />
+
+        <ImageButton
+            android:id="@+id/clock"
+            style="@style/ControlCenterBtn"
+            android:onClick="clock"
+            android:src="@drawable/btn_app_clock_n" />
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageButton
+            android:id="@+id/calendar"
+            style="@style/ControlCenterBtn"
+            android:onClick="calendar"
+            android:src="@drawable/btn_app_calen_n" />
+
+        <ImageButton
+            android:id="@+id/fileManager"
+            style="@style/ControlCenterBtn"
+            android:onClick="fileManager"
+            android:src="@drawable/btn_app_file_n" />
+
+        <ImageButton
+            android:id="@+id/recorder"
+            style="@style/ControlCenterBtn"
+            android:onClick="recorder"
+            android:src="@drawable/btn_app_record_n" />
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageButton
+            android:id="@+id/scanner"
+            style="@style/ControlCenterBtn"
+            android:onClick="scanner"
+            android:src="@drawable/btn_app_scan_n" />
+
+        <ImageButton
+            android:id="@+id/settings"
+            style="@style/ControlCenterBtn"
+            android:onClick="settings"
+            android:src="@drawable/btn_app_setting_n" />
+
+        <ImageButton
+            android:id="@+id/camera"
+            style="@style/ControlCenterBtn"
+            android:onClick="camera"
+            android:src="@drawable/btn_app_camera_n" />
+    </TableRow>
+</TableLayout>
+

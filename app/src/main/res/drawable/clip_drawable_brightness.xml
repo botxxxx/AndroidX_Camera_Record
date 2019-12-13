@@ -1,0 +1,4 @@
+<clip xmlns:android="http://schemas.android.com/apk/res/android"
+    android:clipOrientation="vertical"
+    android:drawable="@drawable/btn_bright_100"
+    android:gravity="bottom"></clip>
