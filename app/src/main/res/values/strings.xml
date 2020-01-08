@@ -1,63 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="app_name">AskeyLauncher</string>
-    <string name="notification_listener_name">AskeyNotification</string>
+    <string name="app_name">CDR9020_QTR(v1)</string>
 
-    <!-- for MainActivity.java -->
-    <string name="launcher_package_name">com.qualcomm.qti.launcher</string>
+    <string name="title_activity_video_record">VideoRecordActivity</string>
 
-    <!-- for ControlCenterActivity.java -->
-    <string name="calculator2_package_name">com.android.calculator2</string>
-    <string name="deskclock_package_name">com.android.deskclock</string>
-    <string name="calendar_package_name">com.android.calendar</string>
-    <string name="documentsui_package_name">com.android.documentsui</string>
-    <string name="watchsettings_package_name">com.qualcomm.qti.watchsettings</string>
-    <string name="recorder_package_name">com.android.soundrecorder</string>
-    <string name="honeywellscanner_package_name">com.honeywell.honeywellscanner</string>
-    <string-array name="batteryInfoItem">
-        <item>Level</item>
-        <item>Voltage</item>
-        <item>INST current</item>
-        <item>Temperature</item>
-        <item>Technology</item>
-        <item>Status</item>
-        <item>Health</item>
-        <item>Plugged</item>
-    </string-array>
-    <string-array name="batteryStatusContents">
-        <item>Unknown</item>
-        <item>Charging</item>
-        <item>Discharging</item>
-        <item>Not charging</item>
-        <item>Full</item>
-    </string-array>
-    <string-array name="batteryHealthContents">
-        <item>Unknown</item>
-        <item>Good</item>
-        <item>Overheat</item>
-        <item>Voltage</item>
-        <item>Unspecified failure</item>
-    </string-array>
-    <string-array name="batteryPluggedContents">
-        <item>Plugged AC</item>
-        <item>Plugged DC</item>
-    </string-array>
-
-    <!-- for activity_sensors.xml -->
-    <string name="sensors_title">Sensors</string>
-    <string name="pressure">Pressure</string>
-    <string name="biosensor">Biosensor</string>
-    <string name="gps">GPS</string>
-    <string name="g_sensor">G sensor</string>
-    <string name="gyroscope">Gyroscope</string>
-    <string name="pedometer">Pedometer</string>
-    <string name="sensor_value">Value</string>
-
-    <!-- for activity_monitoring.xml -->
-    <string name="monitoring_title">Monitoring</string>
-    <string name="heart_rate">Heart rate</string>
-    <string name="heartRate_measurementtime_item">Measurement time(s): </string>
-    <string name="heartRate_breaktime_item">Break time(s): </string>
-    <string name="heartRate_normalrange_item">Normal range(bpm): </string>
-    <string name="walk">Walk</string>
-    <string name="walk_initial_item">Initial value: </string>
 </resources>
