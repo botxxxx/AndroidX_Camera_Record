@@ -96,7 +96,7 @@ public class VideoRecordActivity extends Activity {
             "total_test_minute = 1\r\n", "\r\n", "\r\n",
             "#Start application with adb command\r\n",
             "adb shell am start -n com.askey.record/.VideoRecordActivity\r\n", "\r\n",
-            "#Start test record (no audio)\r\n",
+            "#Start test record (no audio with 5s.)\r\n",
             "adb shell am broadcast -a com.askey.record.t\r\n", "\r\n",
             "#Start record (default is 10 min)\r\n",
             "adb shell am broadcast -a com.askey.record.s\r\n", "\r\n",
@@ -619,7 +619,7 @@ public class VideoRecordActivity extends Activity {
 
             for (LogMsg logs : videoLogList) {
                 String time = logs.time.format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-                        + " run:" + logs.runTime + " ->";
+                        + " run:" + logs.runTime + " -> ";
                 logString += (time + logs.msg + "\r\n");
             }
             try {
@@ -832,7 +832,7 @@ public class VideoRecordActivity extends Activity {
         } else {
             failed++;
         }
-        videoLogList.add(new LogMsg("CheckFile:" + path.split("/")[3] + " framerate:" + framerate +
+        videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] + " framerate:" + framerate +
                 " duration:" + convertMinutes + ":" + convertSeconds +
                 " success:" + getSuccessful() + " fail:" + getFailed(), mLog.i));
         runOnUiThread(() -> setAdapter());
@@ -914,7 +914,7 @@ public class VideoRecordActivity extends Activity {
 
                         @Override
                         public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
-                            toast("Camera " + cameraId + " Record onConfigureFailed", mLog.e);
+                            toast("Camera " + cameraId + " Record onConfigureFailed.", mLog.e);
                         }
                     }, backgroundHandler);
         } catch (CameraAccessException e) {
@@ -965,7 +965,7 @@ public class VideoRecordActivity extends Activity {
             File video = new File(path);
             if (video.exists()) {
                 fileCheck(path);
-                videoLogList.add(new LogMsg("delete:" + path.split("/")[3], mLog.w));
+                videoLogList.add(new LogMsg("Delete: " + path.split("/")[3], mLog.w));
                 runOnUiThread(() -> setAdapter());
                 video.delete();
             } else {
@@ -988,30 +988,33 @@ public class VideoRecordActivity extends Activity {
                 * stat.getBlockSizeLong();
         int gigaAvailable = (int) (sdAvailSize / 1073741824);
         // toast("SD Free Space:" + gigaAvailable);
-        if (gigaAvailable < 3) {
+        if (gigaAvailable < 3) { //TODO need 3GB Available
             toast("SD Card(" + gigaAvailable + "gb) is Full.");
 //            runOnUiThread(() -> stopRecord(false));
-//            ArrayList<String> tmp = new ArrayList();
-//            File[] fileList = new File(filePath).listFiles();
-//            for (int i = 0; i < fileList.length; i++) {
-//                // Recursive call if it's a directory
-//                File file = fileList[i];
-//                if (!fileList[i].isDirectory()) {
-//                    if (file.toString().split("/")[3].split(".mp")[1].equals("4")) {
-//                        tmp.add(file.toString());
-//                    }
-//                }
-//            }
-//            if (tmp.size() > 2) {
-//                for (int j = 0; j < 2; j++)
-//                    delete(tmp.get(j));
-//                checkSdCardFromFileList(filePath);
-//            } else {
-            videoLogList.add(new LogMsg("#error: Record need more than 3GB free space, please check your SD card.", mLog.e));
-//            runOnUiThread(() -> setAdapter());
-            new Handler().post(() -> saveLog());
-            new Handler().post(() -> finish());
-//            }
+            ArrayList<String> tmp = new ArrayList();
+            File[] fileList = new File(filePath).listFiles();
+            for (int i = 0; i < fileList.length; i++) {
+                // Recursive call if it's a directory
+                File file = fileList[i];
+                if (!fileList[i].isDirectory()) {
+                    if (getFileExtension(file.toString()).equals("mp4"))
+                        tmp.add(file.toString());
+                }
+            }
+            if (tmp.size() >= 2) {
+                runOnUiThread(() -> setAdapter());
+                Object[] tmps = tmp.toArray();
+                Arrays.sort(tmps);
+                delete((String) tmps[0]);
+                delete((String) tmps[1]);
+                runOnUiThread(() -> setAdapter());
+                new Handler().post(() -> saveLog());
+                checkSdCardFromFileList(filePath);
+            } else {
+                videoLogList.add(new LogMsg("#error: At least 3Gb memory needs to be available, please check your SD card free space.", mLog.e));
+                new Handler().post(() -> saveLog());
+                new Handler().post(() -> finish());
+            }
         }
     }
 
@@ -1040,6 +1043,12 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
+    private String getFileExtension(String fullName) {
+        String fileName = new File(fullName).getName();
+        int dotIndex = fileName.lastIndexOf('.');
+        return (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1);
+    }
+
     private long dirSize(File dir) {
         if (dir.exists()) {
             long result = 0;
@@ -1064,7 +1073,7 @@ public class VideoRecordActivity extends Activity {
         CamcorderProfile profile_720 = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
         CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
         String file = filePath + getCalendarTime(cameraId) + ".mp4";
-        runOnUiThread(() -> videoLogList.add(new LogMsg("create:" + file.split("/")[3], mLog.w)));
+        runOnUiThread(() -> videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w)));
         (isCameraOne(cameraId) ? firstFilePath : secondFilePath).add(file);
         MediaRecorder mediaRecorder = new MediaRecorder();
         if (isCameraOne(cameraId))
@@ -1110,7 +1119,7 @@ public class VideoRecordActivity extends Activity {
 
     protected void takePreview(String cameraId) {
         Log.d(TAG, "takePreview");
-        videoLogList.add(new LogMsg("Preview " + cameraId + " Camera", mLog.i));
+        videoLogList.add(new LogMsg("Preview " + cameraId + " Camera.", mLog.i));
 
         SurfaceTexture texture = isCameraOne(cameraId) ? mTextureView0.getSurfaceTexture() : mTextureView1.getSurfaceTexture();
         if (null == texture) {
