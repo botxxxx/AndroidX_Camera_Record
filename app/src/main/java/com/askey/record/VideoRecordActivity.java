@@ -41,6 +41,7 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.askey.widget.CommandUtil;
 import com.askey.widget.CustomPageTransformer;
 import com.askey.widget.CustomTextView;
 import com.askey.widget.LogMsg;
@@ -64,7 +65,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class VideoRecordActivity extends Activity {
-    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+
     private static final String COMMAND_VIDEO_RECORD_TEST = "com.askey.record.t";
     private static final String COMMAND_VIDEO_RECORD_START = "com.askey.record.s";
     private static final String COMMAND_VIDEO_RECORD_STOP = "com.askey.record.p";
@@ -73,8 +74,7 @@ public class VideoRecordActivity extends Activity {
     private static final String COMMAND_VIDEO_RECORD_STARTa = "com.askey.record.S";
     private static final String COMMAND_VIDEO_RECORD_STOPa = "com.askey.record.P";
     private static final String COMMAND_VIDEO_RECORD_FINISHa = "com.askey.record.F";
-    private static int isRun = 0, successful = 0, failed = 0;
-    private static String TAG = "VideoRecord";
+    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -83,6 +83,9 @@ public class VideoRecordActivity extends Activity {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
+    private static int isRun = 0, successful = 0, failed = 0;
+    private static String TAG = "VideoRecord";
+    private final String frameskip = "persist.vendor.camera.frameskip";
     private final String fileName = "VideoRecordConfig.ini";
     private final String logName = "VideoRecordLog.ini";
     private final String firstCamera = "0";
@@ -104,6 +107,8 @@ public class VideoRecordActivity extends Activity {
             "adb shell am broadcast -a com.askey.record.p\r\n", "\r\n",
             "#Stop and finish record \r\n",
             "adb shell am broadcast -a com.askey.record.f\r\n", "\r\n",
+            "#At least 3.5Gb memory needs to be available to record, \r\n",
+            "#Please check your SD card.\r\n", "\r\n",
     };
     private int isFinish = 1, delayTime = 600000, isFrame = 0, isQuality = 0;
     private boolean isReady = false, isRecord = false, isLoop = false;
@@ -136,7 +141,7 @@ public class VideoRecordActivity extends Activity {
                 if (isReady)
                     if (!isRecord) {
                         isFinish = 0;
-                        takeRecord(5000, false); // 5s
+                        takeRecord(20000, false); // 5s
                     } else toast("Is testing record now.");
                 else toast("Not Ready to Record.");
             }
@@ -296,9 +301,14 @@ public class VideoRecordActivity extends Activity {
         if (checkPermission()) {
             showPermission();
         } else {
-            if (checkConfigFile())
+            if (checkConfigFile()) {
+                //TODO  THIS LINE setprop
+                CommandUtil.executed("setprop persist.vendor.camera.frameskip 5");
+                String getprop = "getprop:" + CommandUtil.execute("getprop persist.vendor.camera.frameskip").get(0);
+                videoLogList.add(new LogMsg(getprop, mLog.e));
+                Log.e(TAG, getprop);
                 setStart();
-            else finish();
+            } else finish();
         }
     }
 
@@ -472,9 +482,9 @@ public class VideoRecordActivity extends Activity {
     private void initial() {
         ArrayList<View> items_frame = new ArrayList();
         ArrayList<View> items_quality = new ArrayList();
-        List tmp = Arrays.asList(new String[]{"14fps", "28fps"});
+        List tmp = Arrays.asList(new String[]{"27.5fps", "13.75fps"});
         ArrayList<String> rowFrameRate = new ArrayList(tmp);
-        tmp = Arrays.asList(new String[]{"720p", "1080p"});
+        tmp = Arrays.asList(new String[]{"1080p", "720p"});
         ArrayList<String> rowQuality = new ArrayList(tmp);
 
         for (String frame : rowFrameRate) {
@@ -545,9 +555,10 @@ public class VideoRecordActivity extends Activity {
         mTextureView1.setSurfaceTextureListener(mSurfaceTextureListener1);
         AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
+            Log.d("VideoRecord", "finish");
             isFinish = 0;
             isLoop = true;
-            stopRecord(false);
+            runOnUiThread(() -> stopRecord(false));
         });
         findViewById(R.id.volume_down).setOnClickListener((View v) ->
                 runOnUiThread(() -> audio.adjustStreamVolume(AudioManager.STREAM_MUSIC,
@@ -593,6 +604,7 @@ public class VideoRecordActivity extends Activity {
         new Thread(() -> startRecord(firstCamera)).start();
         new Thread(() -> startRecord(secondCamera)).start();
         runOnUiThread(() -> setAdapter());
+        new Handler().post(() -> saveLog());
         new Handler().postDelayed(() -> stopRecord(preview), delayMillis);
     }
 
@@ -664,7 +676,6 @@ public class VideoRecordActivity extends Activity {
 
     private String getSDCardPath() {
         String path = "";
-        ArrayList<String> list = new ArrayList<>();
         try {
             String cmd = "ls /storage";
             Runtime run = Runtime.getRuntime();
@@ -672,8 +683,6 @@ public class VideoRecordActivity extends Activity {
             BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
             String line;
             while ((line = buf.readLine()) != null) {
-                list.add("/storage/" + line);
-                Log.d("Lewis", ">>/storage/" + line);
                 if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
                     path = "/storage/" + line + "/";
                     Log.d("Lewis", "sdpath = " + path);
@@ -776,12 +785,12 @@ public class VideoRecordActivity extends Activity {
                 deleteALL();
                 isRun++;
                 new Handler().post(() -> saveLog());
-                if (firstFilePath.size() != 1) {
+                if (firstFilePath.size() > 1) {
                     String first = firstFilePath.get(firstFilePath.size() - 1);
                     firstFilePath.clear();
                     firstFilePath.add(first);
                 }
-                if (secondFilePath.size() != 1) {
+                if (secondFilePath.size() > 1) {
                     String second = secondFilePath.get(secondFilePath.size() - 1);
                     secondFilePath.clear();
                     secondFilePath.add(second);
@@ -791,6 +800,12 @@ public class VideoRecordActivity extends Activity {
                 if (isRun < isFinish) {
                     takeRecord(delayTime, false);
                 } else {
+                    if (mMediaPlayer != null) {
+                        if (mMediaPlayer.isPlaying()) {
+                            mMediaPlayer.stop();
+                            toast("MediaPlay is Stop.");
+                        }
+                    }
                     for (String f : firstFilePath)
                         fileCheck(f);
                     for (String s : secondFilePath)
@@ -960,11 +975,13 @@ public class VideoRecordActivity extends Activity {
         return frameRate;
     }
 
-    private void delete(String path) {
+    private void delete(String path, boolean check) {
         if (path != "") {
             File video = new File(path);
             if (video.exists()) {
-                fileCheck(path);
+                if (check) {
+                    fileCheck(path);
+                }
                 videoLogList.add(new LogMsg("Delete: " + path.split("/")[3], mLog.w));
                 runOnUiThread(() -> setAdapter());
                 video.delete();
@@ -977,18 +994,18 @@ public class VideoRecordActivity extends Activity {
 
     private void deleteALL() {
         for (int f = 0; f < firstFilePath.size() - 1; f++)
-            delete(firstFilePath.get(f));
+            delete(firstFilePath.get(f), true);
         for (int s = 0; s < secondFilePath.size() - 1; s++)
-            delete(secondFilePath.get(s));
+            delete(secondFilePath.get(s), true);
     }
 
     private void checkSdCardFromFileList(String filePath) {
         StatFs stat = new StatFs(filePath);
         long sdAvailSize = stat.getAvailableBlocksLong()
                 * stat.getBlockSizeLong();
-        int gigaAvailable = (int) (sdAvailSize / 1073741824);
+        double gigaAvailable = (sdAvailSize / 1073741824);
         // toast("SD Free Space:" + gigaAvailable);
-        if (gigaAvailable < 3) { //TODO need 3GB Available
+        if (gigaAvailable < 3.5) { //TODO need 3.5Gb
             toast("SD Card(" + gigaAvailable + "gb) is Full.");
 //            runOnUiThread(() -> stopRecord(false));
             ArrayList<String> tmp = new ArrayList();
@@ -1005,13 +1022,13 @@ public class VideoRecordActivity extends Activity {
                 runOnUiThread(() -> setAdapter());
                 Object[] tmps = tmp.toArray();
                 Arrays.sort(tmps);
-                delete((String) tmps[0]);
-                delete((String) tmps[1]);
+                delete((String) tmps[0], false);
+                delete((String) tmps[1], false);
                 runOnUiThread(() -> setAdapter());
                 new Handler().post(() -> saveLog());
                 checkSdCardFromFileList(filePath);
             } else {
-                videoLogList.add(new LogMsg("#error: At least 3Gb memory needs to be available, please check your SD card free space.", mLog.e));
+                videoLogList.add(new LogMsg("#error: At least 3.5Gb memory needs to be available to record, please check your SD Card free space.", mLog.e));
                 new Handler().post(() -> saveLog());
                 new Handler().post(() -> finish());
             }
@@ -1028,8 +1045,8 @@ public class VideoRecordActivity extends Activity {
             toast("SD Card(" + gigaAvailable + "gb) is Full.");
             runOnUiThread(() -> stopRecord(false));
             ArrayList<String> tmp = new ArrayList();
-            delete(firstFilePath.get(0));
-            delete(secondFilePath.get(0));
+            delete(firstFilePath.get(0), false);
+            delete(secondFilePath.get(0), false);
             for (int i = 1; i < firstFilePath.size(); i++)
                 tmp.add(firstFilePath.get(i));
             firstFilePath.clear();
@@ -1069,7 +1086,7 @@ public class VideoRecordActivity extends Activity {
     }
 
     private MediaRecorder setUpMediaRecorder(String cameraId) {
-        /*TODO CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 720p, 1080p
+        /*TODO CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 1080p, 720p
         CamcorderProfile profile_720 = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
         CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
         String file = filePath + getCalendarTime(cameraId) + ".mp4";
@@ -1081,8 +1098,8 @@ public class VideoRecordActivity extends Activity {
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         /*设置要捕获的视频的帧速率*/
-        mediaRecorder.setVideoFrameRate(isFrame == 0 ? 14 : profile_720.videoFrameRate); // 14, 28
-        CamcorderProfile profile = isQuality == 0 ? profile_720 : profile_1080;
+        mediaRecorder.setVideoFrameRate(isFrame == 0 ? 27 : 13); // 27.5 or 13.75
+        CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
         mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
         profile = profile_720;
         /*设置编码比特率*/
