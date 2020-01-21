@@ -17,6 +17,7 @@
         move function to Utils.class
     [v1.1.1]
         fix some error
+        add auto change camera device with config.ini
     -->
 
     <string name="title_activity_video_record">VideoRecordActivity</string>
