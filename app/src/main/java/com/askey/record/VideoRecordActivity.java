@@ -69,7 +69,6 @@ import static com.askey.record.Utils.TAG;
 import static com.askey.record.Utils.config;
 import static com.askey.record.Utils.failed;
 import static com.askey.record.Utils.fileName;
-import static com.askey.record.Utils.firstCamera;
 import static com.askey.record.Utils.getCalendarTime;
 import static com.askey.record.Utils.getFrameRate;
 import static com.askey.record.Utils.getSDCardPath;
@@ -78,12 +77,15 @@ import static com.askey.record.Utils.isInteger;
 import static com.askey.record.Utils.isRun;
 import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.readConfigFile;
-import static com.askey.record.Utils.secondCamera;
 import static com.askey.record.Utils.successful;
 import static com.askey.record.Utils.writeConfigFile;
 
 public class VideoRecordActivity extends Activity {
 
+    public static String firstCamera = "0";
+    public static String secondCamera = "1";
+    public static String lastfirstCamera = "0";
+    public static String lastsecondCamera = "1";
     private int isFinish = 1, delayTime = 600000, isFrame = 0, isQuality = 0;
     private boolean isReady = false, isRecord = false, isLoop = false, isError = false;
     private String filePath = "/sdcard/";
@@ -233,7 +235,7 @@ public class VideoRecordActivity extends Activity {
         if (isReady)
             if (!isLoop) {
                 // ReCheckConfig
-                checkConfigFile(new File(filePath, fileName));
+                checkConfigFile(new File(filePath, fileName), false);
                 isRun = 0;
                 isLoop = true;
                 firstFilePath.clear();
@@ -252,7 +254,7 @@ public class VideoRecordActivity extends Activity {
         if (checkPermission()) {
             showPermission();
         } else {
-            if (checkConfigFile()) {
+            if (checkConfigFile(true)) {
                 //TODO SETPROP
                 // -> adb shell su 0 getprop persist.our.camera.frameskip
 //                OurSystemProperties.set(FRAMESKIP, "0"); //*lib(com.our.sdk).jar
@@ -273,7 +275,7 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private boolean checkConfigFile() {
+    private boolean checkConfigFile(boolean first) {
         videoLogList.add(new LogMsg("#checkConfigFile", mLog.v));
         if (!"".equals(getSDCardPath())) {
             File file = new File(getSDCardPath(), fileName);
@@ -287,7 +289,7 @@ public class VideoRecordActivity extends Activity {
                 writeConfigFile(file, config);
             } else {
                 if (!isRecord) toast("Find the config file.", mLog.d);
-                checkConfigFile(new File(getSDCardPath(), fileName));
+                checkConfigFile(new File(getSDCardPath(), fileName), first);
             }
             return true;
         } else {
@@ -296,7 +298,7 @@ public class VideoRecordActivity extends Activity {
         return false;
     }
 
-    private void checkConfigFile(File file) {
+    private void checkConfigFile(File file, boolean firstOne) {
         String input = readConfigFile(file);
         if (input.length() > 0) {
             List<String> read = Arrays.asList(input.split("\r\n"));
@@ -332,6 +334,8 @@ public class VideoRecordActivity extends Activity {
                 boolean reformat = false;
                 if (!first.equals(second)) {
                     if (isCameraID(first.split("\n")[0], second.split("\n")[0])) {
+                        lastfirstCamera = firstOne ? first : firstCamera;
+                        lastsecondCamera = firstOne ? second : secondCamera;
                         firstCamera = first;
                         secondCamera = second;
                     } else reformat = true;
@@ -555,7 +559,8 @@ public class VideoRecordActivity extends Activity {
         String getFrameSkip = PropertyUtils.get(FRAMESKIP);
         if (null != getFrameSkip) {
             if (isInteger(getFrameSkip, false)) {
-                if (Integer.parseInt(getFrameSkip) != isFrame) {
+                //if frameskip is chehe or lastcamera != cameraid, delay 5s to change camera devices
+                if ((Integer.parseInt(getFrameSkip) != isFrame) || lastfirstCamera != firstCamera || lastsecondCamera != secondCamera) {
                     SystemProperties.set(FRAMESKIP, isFrame == 1 ? "1" : "0");
                     videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
                     runOnUiThread(() -> setAdapter());
@@ -563,7 +568,7 @@ public class VideoRecordActivity extends Activity {
                     mStateCallback1.onDisconnected(mCameraDevice1);
                     new Handler().post(() -> openCamera(firstCamera));
                     new Handler().post(() -> openCamera(secondCamera));
-                    delay = 6000;
+                    delay = 5000;
                 }
             } else {
                 toast("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e);

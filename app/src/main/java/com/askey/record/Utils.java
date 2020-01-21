@@ -57,8 +57,6 @@ public class Utils {
     };
     public static int isRun = 0, successful = 0, failed = 0;
     public static String TAG = "VideoRecord";
-    public static String firstCamera = "0";
-    public static String secondCamera = "1";
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
