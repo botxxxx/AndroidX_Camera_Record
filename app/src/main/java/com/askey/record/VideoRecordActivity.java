@@ -778,6 +778,11 @@ public class VideoRecordActivity extends Activity {
                     toast("MediaPlay is Stop.");
                 }
             }
+            for (String f : firstFilePath)
+                fileCheck(f);
+            for (String s : secondFilePath)
+                fileCheck(s);
+            toast("Record is completed.");
             takePreview();
         }
     }
