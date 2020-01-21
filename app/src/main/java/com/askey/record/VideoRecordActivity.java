@@ -70,7 +70,6 @@ import static com.askey.record.Utils.config;
 import static com.askey.record.Utils.failed;
 import static com.askey.record.Utils.fileName;
 import static com.askey.record.Utils.firstCamera;
-import static com.askey.record.Utils.fullScreenCall;
 import static com.askey.record.Utils.getCalendarTime;
 import static com.askey.record.Utils.getFrameRate;
 import static com.askey.record.Utils.getSDCardPath;
@@ -197,6 +196,7 @@ public class VideoRecordActivity extends Activity {
             }
             if (action.equals(COMMAND_VIDEO_RECORD_STOP) || action.equals(COMMAND_VIDEO_RECORD_STOPa)) {
                 Log.d("VideoRecord", "stop");
+                isFinish = 0;
                 runOnUiThread(() -> stopRecord(true));
             }
             if (action.equals(COMMAND_VIDEO_RECORD_FINISH) || action.equals(COMMAND_VIDEO_RECORD_FINISHa)) {
@@ -207,6 +207,15 @@ public class VideoRecordActivity extends Activity {
             }
         }
     };
+
+    private void fullScreenCall() {
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+    }
 
     public static int getRunTime() {
         return isRun;
@@ -440,7 +449,7 @@ public class VideoRecordActivity extends Activity {
     @SuppressLint("InflateParams")
     private void setStart() {
         setContentView(R.layout.activity_video_record);
-        fullScreenCall(this);
+        fullScreenCall();
         initial();
     }
 
@@ -483,6 +492,7 @@ public class VideoRecordActivity extends Activity {
         mTextureView1 = findViewById(R.id.surfaceView1);
         mTextureView1.setSurfaceTextureListener(new mSurfaceTextureListener(secondCamera));
         AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        findViewById(R.id.surfaceBackground).setOnClickListener((View v) -> fullScreenCall());
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
             Log.d("VideoRecord", "finish");
             isFinish = 0;
