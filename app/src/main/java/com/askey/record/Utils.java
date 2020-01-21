@@ -114,7 +114,7 @@ public class Utils {
         }
     }
 
-    public static String getCalendarTime(String cameraId, boolean isCameraOne) {
+    public static String getCalendarTime(boolean isCameraOne) {
         String d, h, i, s;
         Calendar calendar = Calendar.getInstance();
         d = String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH));

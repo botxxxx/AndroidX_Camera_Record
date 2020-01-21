@@ -240,7 +240,10 @@ public class VideoRecordActivity extends Activity {
                 secondFilePath.clear();
                 soundHandler.post(sound);
                 takeRecord(delayTime, false);
-            } else toast("Not Ready to Record.", mLog.e);
+            } else {
+                isFinish = 0;
+                runOnUiThread(() -> stopRecord(true));
+            }
     }
 
     protected void onResume() {
@@ -554,7 +557,7 @@ public class VideoRecordActivity extends Activity {
             if (isInteger(getFrameSkip, false)) {
                 if (Integer.parseInt(getFrameSkip) != isFrame) {
                     SystemProperties.set(FRAMESKIP, isFrame == 1 ? "1" : "0");
-                    videoLogList.add(new LogMsg(getFrameSkip, mLog.e));
+                    videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
                     runOnUiThread(() -> setAdapter());
                     mStateCallback0.onDisconnected(mCameraDevice0);
                     mStateCallback1.onDisconnected(mCameraDevice1);
@@ -976,7 +979,7 @@ public class VideoRecordActivity extends Activity {
         /*TODO CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 1080p, 720p
         CamcorderProfile profile_720 = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
         CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
-        String file = filePath + getCalendarTime(cameraId, isCameraOne(cameraId)) + ".mp4";
+        String file = filePath + getCalendarTime(isCameraOne(cameraId)) + ".mp4";
         runOnUiThread(() -> videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w)));
         (isCameraOne(cameraId) ? firstFilePath : secondFilePath).add(file);
         // Step 1: Unlock and set camera to MediaRecorder
