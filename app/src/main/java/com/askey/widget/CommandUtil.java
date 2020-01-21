@@ -23,6 +23,7 @@ public class CommandUtil {
      * @return
      */
     public static List<String> execute(String command) {
+        //CommandUtil.execute("getprop " + FRAMESKIP).get(0);
         return execute(new String[]{command});
     }
 
@@ -106,6 +107,7 @@ public class CommandUtil {
     }
 
     public static void executed(String command) {
+        //CommandUtil.executed("setprop " + FRAMESKIP + " 0");
         executed(new String[]{command});
     }
 

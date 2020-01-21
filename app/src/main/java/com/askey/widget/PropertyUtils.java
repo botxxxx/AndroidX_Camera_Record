@@ -3,7 +3,8 @@ package com.askey.widget;
 import java.lang.reflect.Method;
 
 public class PropertyUtils {
-
+    //Use the reflection invoke SystemProperites.
+    //https://gist.github.com/crossle/5046538
     public static String get(String key) {
         String value = "";
         try {
