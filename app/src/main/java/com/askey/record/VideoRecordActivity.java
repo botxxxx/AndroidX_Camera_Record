@@ -784,6 +784,8 @@ public class VideoRecordActivity extends Activity {
                 fileCheck(s);
             toast("Record is completed.");
             takePreview();
+            new Handler().post(() -> saveLog());
+            isLoop = false;
         }
     }
 
