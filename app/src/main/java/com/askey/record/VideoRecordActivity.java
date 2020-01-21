@@ -21,11 +21,8 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.AudioManager;
 import android.media.CamcorderProfile;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.StatFs;
@@ -33,7 +30,6 @@ import android.os.SystemProperties;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.util.Size;
-import android.util.SparseIntArray;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -51,68 +47,44 @@ import com.askey.widget.mListAdapter;
 import com.askey.widget.mLog;
 import com.askey.widget.mPagerAdapter;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_FINISH;
+import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_FINISHa;
+import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_START;
+import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_STARTa;
+import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_STOP;
+import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_STOPa;
+import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_TEST;
+import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_TESTa;
+import static com.askey.record.Utils.FRAMESKIP;
+import static com.askey.record.Utils.TAG;
+import static com.askey.record.Utils.config;
+import static com.askey.record.Utils.failed;
+import static com.askey.record.Utils.fileName;
+import static com.askey.record.Utils.firstCamera;
+import static com.askey.record.Utils.fullScreenCall;
+import static com.askey.record.Utils.getCalendarTime;
+import static com.askey.record.Utils.getFrameRate;
+import static com.askey.record.Utils.getSDCardPath;
+import static com.askey.record.Utils.getVideo;
+import static com.askey.record.Utils.isInteger;
+import static com.askey.record.Utils.isRun;
+import static com.askey.record.Utils.logName;
+import static com.askey.record.Utils.readConfigFile;
+import static com.askey.record.Utils.secondCamera;
+import static com.askey.record.Utils.successful;
+import static com.askey.record.Utils.writeConfigFile;
+
 public class VideoRecordActivity extends Activity {
-    private static final String FRAMESKIP = "persist.our.camera.frameskip";
-    private static final String COMMAND_VIDEO_RECORD_TEST = "com.askey.record.t";
-    private static final String COMMAND_VIDEO_RECORD_START = "com.askey.record.s";
-    private static final String COMMAND_VIDEO_RECORD_STOP = "com.askey.record.p";
-    private static final String COMMAND_VIDEO_RECORD_FINISH = "com.askey.record.f";
-    private static final String COMMAND_VIDEO_RECORD_TESTa = "com.askey.record.T";
-    private static final String COMMAND_VIDEO_RECORD_STARTa = "com.askey.record.S";
-    private static final String COMMAND_VIDEO_RECORD_STOPa = "com.askey.record.P";
-    private static final String COMMAND_VIDEO_RECORD_FINISHa = "com.askey.record.F";
-    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
-    static {
-        ORIENTATIONS.append(Surface.ROTATION_0, 90);
-        ORIENTATIONS.append(Surface.ROTATION_90, 0);
-        ORIENTATIONS.append(Surface.ROTATION_180, 270);
-        ORIENTATIONS.append(Surface.ROTATION_270, 180);
-    }
-
-    private static int isRun = 0, successful = 0, failed = 0;
-    private static String TAG = "VideoRecord";
-    private final String fileName = "VideoRecordConfig.ini";
-    private final String logName = "VideoRecordLog.ini";
-    private final String[] config = {
-            "[VIDEO_RECORD_TESTING]\r\n",
-            "#CameraID(0:BACK, 1:FRONT, 2:EXTERNAL)\r\n",
-            "firstCameraID = 0\r\n",
-            "secondCameraID = 1\r\n", "\r\n",
-            "#Play video path(can't change video path)\r\n",
-            "video1_path = /sdcard/(ddhhmmss)f.mp4\r\n",
-            "video2_path = /sdcard/(ddhhmmss)b.mp4\r\n", "\r\n",
-            "#Camera Device total minute: one day has minutes(*10) = 144\r\n",
-            "total_test_minute = 1\r\n", "\r\n",
-            "#Start application with adb command\r\n",
-            "adb shell am start -n com.askey.record/.VideoRecordActivity\r\n", "\r\n",
-            "#Start test record(no audio with 5s)\r\n",
-            "adb shell am broadcast -a com.askey.record.t\r\n", "\r\n",
-            "#Start record(default is 10 min)\r\n",
-            "adb shell am broadcast -a com.askey.record.s\r\n", "\r\n",
-            "#Stop  record \r\n",
-            "adb shell am broadcast -a com.askey.record.p\r\n", "\r\n",
-            "#Stop and finish record \r\n",
-            "adb shell am broadcast -a com.askey.record.f\r\n", "\r\n",
-            "#At least 3.5Gb memory needs to be available to record, \r\n",
-            "#Please check the SD card.\r\n", "\r\n"
-    };
-    private String firstCamera = "0";
-    private String secondCamera = "1";
     private int isFinish = 1, delayTime = 600000, isFrame = 0, isQuality = 0;
     private boolean isReady = false, isRecord = false, isLoop = false, isError = false;
     private String filePath = "/sdcard/";
@@ -128,7 +100,7 @@ public class VideoRecordActivity extends Activity {
     private MediaPlayer mMediaPlayer;
     private Handler mainHandler, backgroundHandler, soundHandler, demoHandler;
     private Runnable sound = new Runnable() {
-        @Override
+
         public void run() {
             if (isLoop && isRun < isFinish) {
                 playMusic(R.raw.scanner_beep);
@@ -137,7 +109,7 @@ public class VideoRecordActivity extends Activity {
         }
     };
     private CameraDevice.StateCallback mStateCallback0 = new CameraDevice.StateCallback() {
-        @Override
+
         public void onOpened(CameraDevice camera) {
             if (!isReady) {
                 // 打开摄像头
@@ -149,7 +121,6 @@ public class VideoRecordActivity extends Activity {
             takePreview(firstCamera);
         }
 
-        @Override
         public void onDisconnected(CameraDevice camera) {
             camera.close();
             // 关闭摄像头
@@ -161,7 +132,6 @@ public class VideoRecordActivity extends Activity {
             }
         }
 
-        @Override
         public void onError(CameraDevice camera, int error) {
             onDisconnected(camera);
             // 前鏡頭開啟失敗
@@ -171,7 +141,7 @@ public class VideoRecordActivity extends Activity {
         }
     };
     private CameraDevice.StateCallback mStateCallback1 = new CameraDevice.StateCallback() {
-        @Override
+
         public void onOpened(CameraDevice camera) {
             if (!isReady) {
                 // 打开摄像头
@@ -192,7 +162,6 @@ public class VideoRecordActivity extends Activity {
             }
         }
 
-        @Override
         public void onDisconnected(CameraDevice camera) {
             camera.close();
             // 关闭摄像头
@@ -204,7 +173,6 @@ public class VideoRecordActivity extends Activity {
             }
         }
 
-        @Override
         public void onError(CameraDevice camera, int error) {
             onDisconnected(camera);
             // 前鏡頭開啟失敗
@@ -237,44 +205,6 @@ public class VideoRecordActivity extends Activity {
                 isLoop = true;
                 runOnUiThread(() -> stopRecord(false));
             }
-        }
-    };
-    private TextureView.SurfaceTextureListener mSurfaceTextureListener0 = new TextureView.SurfaceTextureListener() {
-        @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            openCamera(firstCamera);
-        }
-
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            return false;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-        }
-    };
-    private TextureView.SurfaceTextureListener mSurfaceTextureListener1 = new TextureView.SurfaceTextureListener() {
-        @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            openCamera(secondCamera);
-        }
-
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            return false;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
         }
     };
 
@@ -458,20 +388,6 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private boolean isInteger(String s, boolean zero) {
-        try {
-            if (Integer.parseInt(s) <= (zero ? 0 : -1)) {
-                toast("The test time must be a positive number.", mLog.e);
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            return false;
-        } catch (NullPointerException e) {
-            return false;
-        }
-        return true;
-    }
-
     private void reformatConfigFile(File file, String[] message) {
         firstCamera = "0";
         secondCamera = "1";
@@ -479,40 +395,6 @@ public class VideoRecordActivity extends Activity {
         toast("Config file error.", mLog.e);
         writeConfigFile(file, message);
         toast("Reformat the file.", mLog.e);
-    }
-
-    private String readConfigFile(File file) {
-        String tmp = "";
-        try {
-            FileInputStream input = new FileInputStream(file);
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = input.read(buffer)) != -1) {
-                bytes.write(buffer, 0, length);
-            }
-            tmp += bytes.toString();
-            bytes.close();
-            input.close();
-        } catch (IOException e) {
-            Log.e(TAG, " read failed: \" + e.toString()");
-            toast("read failed.", mLog.e);
-        }
-        return tmp;
-    }
-
-    private void writeConfigFile(File file, String[] str) {
-        String tmp = "";
-        for (String s : str)
-            tmp += s;
-        try {
-            FileOutputStream output = new FileOutputStream(file);
-            output.write(tmp.getBytes());
-            output.close();
-        } catch (IOException e) {
-            Log.e(TAG, " write failed: \" + e.toString()");
-            toast("write failed.", mLog.e);
-        }
     }
 
     private boolean checkPermission() {
@@ -558,24 +440,13 @@ public class VideoRecordActivity extends Activity {
     @SuppressLint("InflateParams")
     private void setStart() {
         setContentView(R.layout.activity_video_record);
-        fullScreenCall();
+        fullScreenCall(this);
         initial();
-    }
-
-    public void fullScreenCall() {
-        int mUIFlag = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-        getWindow().getDecorView().setSystemUiVisibility(mUIFlag);
     }
 
     private void initial() {
         ArrayList<View> items_frame = new ArrayList();
         ArrayList<View> items_quality = new ArrayList();
-
         for (String frame : new ArrayList<>(Arrays.asList(new String[]{"27.5fps", "13.7fps"}))) {
             View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
             CustomTextView item = vi.findViewById(R.id.customTextView);
@@ -588,44 +459,13 @@ public class VideoRecordActivity extends Activity {
             item.setText(quality);
             items_quality.add(vi);
         }
-
         VerticalViewPager pager_Frame = findViewById(R.id.pager1);
-        pager_Frame.addOnPageChangeListener(
-                new VerticalViewPager.OnPageChangeListener() {
-                    @Override
-                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                    }
-
-                    @Override
-                    public void onPageSelected(int position) {
-                        isFrame = position;
-                    }
-
-                    @Override
-                    public void onPageScrollStateChanged(int state) {
-                    }
-                }
-        );
+        pager_Frame.addOnPageChangeListener(new mOnPageChangeListener(isFrame));
         pager_Frame.setAdapter(new mPagerAdapter(items_frame));
         pager_Frame.setPageTransformer(true, new CustomPageTransformer());
 
         VerticalViewPager pager_Quality = findViewById(R.id.pager2);
-        pager_Quality.addOnPageChangeListener(
-                new VerticalViewPager.OnPageChangeListener() {
-                    @Override
-                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                    }
-
-                    @Override
-                    public void onPageSelected(int position) {
-                        isQuality = position;
-                    }
-
-                    @Override
-                    public void onPageScrollStateChanged(int state) {
-                    }
-                }
-        );
+        pager_Quality.addOnPageChangeListener(new mOnPageChangeListener(isQuality));
         pager_Quality.setAdapter(new mPagerAdapter(items_quality));
         pager_Quality.setPageTransformer(true, new CustomPageTransformer());
 
@@ -639,9 +479,9 @@ public class VideoRecordActivity extends Activity {
         mainHandler = new Handler(getMainLooper());
         soundHandler = new Handler();
         mTextureView0 = findViewById(R.id.surfaceView0);
-        mTextureView0.setSurfaceTextureListener(mSurfaceTextureListener0);
+        mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
         mTextureView1 = findViewById(R.id.surfaceView1);
-        mTextureView1.setSurfaceTextureListener(mSurfaceTextureListener1);
+        mTextureView1.setSurfaceTextureListener(new mSurfaceTextureListener(secondCamera));
         AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
             Log.d("VideoRecord", "finish");
@@ -696,7 +536,6 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void takeRecord(int delayMillis, boolean preview) {
-
         videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")", mLog.v));
         //TODO SETPROP
         int delay = 0;
@@ -795,26 +634,6 @@ public class VideoRecordActivity extends Activity {
         super.onDestroy();
     }
 
-    private String getSDCardPath() {
-        String path = "";
-        try {
-            String cmd = "ls /storage";
-            Runtime run = Runtime.getRuntime();
-            Process pr = run.exec(cmd);
-            BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            String line;
-            while ((line = buf.readLine()) != null) {
-                if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
-                    path = "/storage/" + line + "/";
-                    Log.d("Lewis", "sdpath = " + path);
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return path;
-    }
 
     private void playMusic(int resources) {
         if (mMediaPlayer != null) {
@@ -955,8 +774,8 @@ public class VideoRecordActivity extends Activity {
         int framerate = 0, duration = 0;
         String convertMinutes = "00", convertSeconds = "00";
         if (video.exists()) {
-            framerate = getFrameRate(path);
-            duration = getVideo(path);
+            framerate = getFrameRate(path, mMediaPlayer);
+            duration = getVideo(this, path);
             convertMinutes = String.format("%02d", TimeUnit.MILLISECONDS.toMinutes(duration) -
                     TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)));
             convertSeconds = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(duration) -
@@ -1058,43 +877,6 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private int getVideo(String path) {
-        int duration = 0;
-        try {
-            MediaPlayer mp = MediaPlayer.create(this, Uri.parse(path));
-            duration = mp.getDuration();
-            mp.release();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return duration;
-    }
-
-    private int getFrameRate(String path) {
-        int frameRate = 0;
-
-        try {
-            MediaExtractor extractor = new MediaExtractor();
-            FileInputStream fis = new FileInputStream(new File(path));
-            extractor.setDataSource(fis.getFD());
-            int numTracks = extractor.getTrackCount();
-            for (int i = 0; i < numTracks; i++) {
-                MediaFormat format = extractor.getTrackFormat(i);
-                if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
-                    frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
-                }
-            }
-            extractor.release();
-            if (fis != null) fis.close();
-        } catch (IOException e) {
-            videoLogList.add(new LogMsg("#getFrameRate.error", mLog.e));
-            runOnUiThread(() -> setAdapter());
-            mMediaPlayer.release();
-            e.printStackTrace();
-        }
-        return frameRate;
-    }
-
     private void delete(String path, boolean check) {
         if (path != "") {
             File video = new File(path);
@@ -1134,7 +916,7 @@ public class VideoRecordActivity extends Activity {
                 // Recursive call if it's a directory
                 File file = fileList[i];
                 if (!fileList[i].isDirectory()) {
-                    if (getFileExtension(file.toString()).equals("mp4"))
+                    if (Utils.getFileExtension(file.toString()).equals("mp4"))
                         tmp.add(file.toString());
                 }
             }
@@ -1180,36 +962,11 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private String getFileExtension(String fullName) {
-        String fileName = new File(fullName).getName();
-        int dotIndex = fileName.lastIndexOf('.');
-        return (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1);
-    }
-
-    private long dirSize(File dir) {
-        if (dir.exists()) {
-            long result = 0;
-            File[] fileList = dir.listFiles();
-            for (int i = 0; i < fileList.length; i++) {
-                // Recursive call if it's a directory
-                File file = fileList[i];
-                if (file.isDirectory()) {
-                    result += dirSize(file);
-                } else {
-                    // Sum the file size in bytes
-                    result += fileList[i].length();
-                }
-            }
-            return result; // return the file size
-        }
-        return 0;
-    }
-
     private MediaRecorder setUpMediaRecorder(String cameraId) {
         /*TODO CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 1080p, 720p
         CamcorderProfile profile_720 = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
         CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
-        String file = filePath + getCalendarTime(cameraId) + ".mp4";
+        String file = filePath + getCalendarTime(cameraId, isCameraOne(cameraId)) + ".mp4";
         runOnUiThread(() -> videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w)));
         (isCameraOne(cameraId) ? firstFilePath : secondFilePath).add(file);
         // Step 1: Unlock and set camera to MediaRecorder
@@ -1318,17 +1075,6 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private String getCalendarTime(String cameraId) {
-        String d, h, i, s;
-        Calendar calendar = Calendar.getInstance();
-        d = String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH));
-        h = String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY));
-        i = String.format("%02d", calendar.get(Calendar.MINUTE));
-        s = String.format("%02d", calendar.get(Calendar.SECOND));
-
-        return "v" + d + h + i + s + (isCameraOne(cameraId) ? "b" : "f");
-    }
-
     private void toast(String t, mLog type) {
         videoLogList.add(new LogMsg(t, type));
         runOnUiThread(() -> Toast.makeText(this, t + "", Toast.LENGTH_SHORT).show());
@@ -1348,5 +1094,49 @@ public class VideoRecordActivity extends Activity {
 
     private boolean isCameraOne(String cameraId) {
         return cameraId.equals(firstCamera);
+    }
+
+    private class mSurfaceTextureListener implements TextureView.SurfaceTextureListener {
+        String CameraID;
+
+        public mSurfaceTextureListener(String CameraID) {
+            this.CameraID = CameraID;
+        }
+
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+            openCamera(CameraID);
+        }
+
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+
+        }
+
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+            return false;
+        }
+
+        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+
+        }
+    }
+
+    private class mOnPageChangeListener implements VerticalViewPager.OnPageChangeListener {
+        int pos;
+
+        public mOnPageChangeListener(int pos) {
+            this.pos = pos;
+        }
+
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+        }
+
+        public void onPageSelected(int position) {
+
+        }
+
+        public void onPageScrollStateChanged(int state) {
+
+        }
     }
 }
