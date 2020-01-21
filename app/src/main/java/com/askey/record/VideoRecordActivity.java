@@ -469,12 +469,12 @@ public class VideoRecordActivity extends Activity {
             items_quality.add(vi);
         }
         VerticalViewPager pager_Frame = findViewById(R.id.pager1);
-        pager_Frame.addOnPageChangeListener(new mOnPageChangeListener(isFrame));
+        pager_Frame.addOnPageChangeListener(new mOnPageChangeListener(0));
         pager_Frame.setAdapter(new mPagerAdapter(items_frame));
         pager_Frame.setPageTransformer(true, new CustomPageTransformer());
 
         VerticalViewPager pager_Quality = findViewById(R.id.pager2);
-        pager_Quality.addOnPageChangeListener(new mOnPageChangeListener(isQuality));
+        pager_Quality.addOnPageChangeListener(new mOnPageChangeListener(1));
         pager_Quality.setAdapter(new mPagerAdapter(items_quality));
         pager_Quality.setPageTransformer(true, new CustomPageTransformer());
 
@@ -1142,7 +1142,16 @@ public class VideoRecordActivity extends Activity {
         }
 
         public void onPageSelected(int position) {
-
+            switch (pos) {
+                case 0:
+                    isFrame = position;
+                    break;
+                case 1:
+                    isQuality = position;
+                    break;
+                default:
+                    break;
+            }
         }
 
         public void onPageScrollStateChanged(int state) {
