@@ -23,11 +23,9 @@ public class Utils {
     public static final String FRAMESKIP = "persist.our.camera.frameskip";
     public static final String COMMAND_VIDEO_RECORD_TEST = "com.askey.record.t";
     public static final String COMMAND_VIDEO_RECORD_START = "com.askey.record.s";
-    public static final String COMMAND_VIDEO_RECORD_STOP = "com.askey.record.p";
     public static final String COMMAND_VIDEO_RECORD_FINISH = "com.askey.record.f";
     public static final String COMMAND_VIDEO_RECORD_TESTa = "com.askey.record.T";
     public static final String COMMAND_VIDEO_RECORD_STARTa = "com.askey.record.S";
-    public static final String COMMAND_VIDEO_RECORD_STOPa = "com.askey.record.P";
     public static final String COMMAND_VIDEO_RECORD_FINISHa = "com.askey.record.F";
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String fileName = "VideoRecordConfig.ini";
@@ -42,15 +40,13 @@ public class Utils {
             "video2_path = /sdcard/(ddhhmmss)b.mp4\r\n", "\r\n",
             "#Camera Device total minute: one day has minutes(*10) = 144\r\n",
             "total_test_minute = 1\r\n", "\r\n",
-            "#Start application with adb command\r\n",
+            "#Start application\r\n",
             "adb shell am start -n com.askey.record/.VideoRecordActivity\r\n", "\r\n",
             "#Start test record(no audio with 5s)\r\n",
             "adb shell am broadcast -a com.askey.record.t\r\n", "\r\n",
-            "#Start record(default is 10 min)\r\n",
+            "#Start/Stop record(default is 10 min)\r\n",
             "adb shell am broadcast -a com.askey.record.s\r\n", "\r\n",
-            "#Stop  record \r\n",
-            "adb shell am broadcast -a com.askey.record.p\r\n", "\r\n",
-            "#Stop and finish record \r\n",
+            "#Finish applcation\r\n",
             "adb shell am broadcast -a com.askey.record.f\r\n", "\r\n",
             "#At least 3.5Gb memory needs to be available to record, \r\n",
             "#Please check the SD card.\r\n", "\r\n"

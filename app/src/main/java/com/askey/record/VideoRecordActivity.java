@@ -60,8 +60,6 @@ import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_FINISH;
 import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_FINISHa;
 import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_START;
 import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_STARTa;
-import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_STOP;
-import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_STOPa;
 import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_TEST;
 import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_TESTa;
 import static com.askey.record.Utils.FRAMESKIP;
@@ -204,11 +202,6 @@ public class VideoRecordActivity extends Activity {
             }
             if (action.equals(COMMAND_VIDEO_RECORD_START) || action.equals(COMMAND_VIDEO_RECORD_STARTa)) {
                 runLoop();
-            }
-            if (action.equals(COMMAND_VIDEO_RECORD_STOP) || action.equals(COMMAND_VIDEO_RECORD_STOPa)) {
-                Log.d("VideoRecord", "stop");
-                isFinish = 0;
-                runOnUiThread(() -> stopRecord(true));
             }
             if (action.equals(COMMAND_VIDEO_RECORD_FINISH) || action.equals(COMMAND_VIDEO_RECORD_FINISHa)) {
                 Log.d("VideoRecord", "finish");
@@ -529,11 +522,9 @@ public class VideoRecordActivity extends Activity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(COMMAND_VIDEO_RECORD_TEST);
         filter.addAction(COMMAND_VIDEO_RECORD_START);
-        filter.addAction(COMMAND_VIDEO_RECORD_STOP);
         filter.addAction(COMMAND_VIDEO_RECORD_FINISH);
         filter.addAction(COMMAND_VIDEO_RECORD_TESTa);
         filter.addAction(COMMAND_VIDEO_RECORD_STARTa);
-        filter.addAction(COMMAND_VIDEO_RECORD_STOPa);
         filter.addAction(COMMAND_VIDEO_RECORD_FINISHa);
         registerReceiver(myReceiver, filter);
         videoLogList.add(new LogMsg("#initial complete", mLog.v));
