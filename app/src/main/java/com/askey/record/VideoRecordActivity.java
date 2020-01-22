@@ -540,7 +540,7 @@ public class VideoRecordActivity extends Activity {
                 new Handler().postDelayed(() -> pager_Quality.setCurrentItem(0), 700);
                 new Handler().postDelayed(r, 900);
                 new Handler().postDelayed(r, 1200);
-                new Handler().post(() -> checkSdCardFromFileList(filePath));
+                new Handler().postDelayed(() -> checkSdCardFromFileList(getSDCardPath()), 1500);
                 new Handler().postDelayed(() -> {
                     if (isError) {
                         isFinish = 0;
