@@ -186,12 +186,21 @@ public class VideoRecordActivity extends Activity {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(COMMAND_VIDEO_RECORD_TEST) || action.equals(COMMAND_VIDEO_RECORD_TESTa)) {
-                if (isReady)
-                    if (!isRecord) {
+                if (isReady) {
+                    if (!isLoop) {
+                        // ReCheckConfig
+                        checkConfigFile(new File(filePath, fileName), false);
                         isFinish = 0;
-                        takeRecord(5000, false); // 5s
-                    } else toast("Is testing record now.");
-                else toast("Not Ready to Record.");
+                        // isLoop = true;
+                        firstFilePath.clear();
+                        secondFilePath.clear();
+                        soundHandler.post(sound);
+                        takeRecord(5000, false);
+                    } else {
+                        isFinish = 0;
+                        runOnUiThread(() -> stopRecord(true));
+                    }
+                } else toast("Not Ready to Record.");
             }
             if (action.equals(COMMAND_VIDEO_RECORD_START) || action.equals(COMMAND_VIDEO_RECORD_STARTa)) {
                 runLoop();
@@ -534,12 +543,12 @@ public class VideoRecordActivity extends Activity {
             public void handleMessage(android.os.Message msg) {
                 Runnable r = () -> playMusic(R.raw.scanner_beep);
                 new Handler().post(r);
-                new Handler().postDelayed(() -> pager_Frame.setCurrentItem(1), 500);
-                new Handler().postDelayed(() -> pager_Quality.setCurrentItem(1), 1000);
-                new Handler().postDelayed(() -> pager_Frame.setCurrentItem(0), 2000);
-                new Handler().postDelayed(() -> pager_Quality.setCurrentItem(0), 2500);
-                new Handler().postDelayed(r, 2600);
-                new Handler().postDelayed(r, 3000);
+                new Handler().postDelayed(() -> pager_Frame.setCurrentItem(1), 100);
+                new Handler().postDelayed(() -> pager_Quality.setCurrentItem(1), 300);
+                new Handler().postDelayed(() -> pager_Frame.setCurrentItem(0), 500);
+                new Handler().postDelayed(() -> pager_Quality.setCurrentItem(0), 700);
+                new Handler().postDelayed(r, 900);
+                new Handler().postDelayed(r, 1200);
                 new Handler().post(() -> checkSdCardFromFileList(filePath));
                 new Handler().postDelayed(() -> {
                     if (isError) {
@@ -547,7 +556,7 @@ public class VideoRecordActivity extends Activity {
                         isLoop = true;
                         runOnUiThread(() -> stopRecord(false));
                     }
-                }, 5000);
+                }, 1500);
             }
         };
     }
@@ -568,7 +577,7 @@ public class VideoRecordActivity extends Activity {
                     mStateCallback1.onDisconnected(mCameraDevice1);
                     new Handler().post(() -> openCamera(firstCamera));
                     new Handler().post(() -> openCamera(secondCamera));
-                    delay = 5000;
+                    delay = 2000;
                 }
             } else {
                 toast("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e);
