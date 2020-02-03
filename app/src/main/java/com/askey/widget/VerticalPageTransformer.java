@@ -23,7 +23,7 @@ public class VerticalPageTransformer implements VerticalViewPager.PageTransforme
         } else if (position < 1) {
             view.setAlpha(1f - 0.5f * position);
             view.setScaleX(-0.2f * position + 1);
-            customTextView.setTextColor(view.getResources().getColor(R.color.green));
+            customTextView.setTextColor(view.getResources().getColor(R.color.orange));
         } else {
             view.setAlpha(1f - 0.5f * position);
             view.setScaleX(-0.2f * position + 1);

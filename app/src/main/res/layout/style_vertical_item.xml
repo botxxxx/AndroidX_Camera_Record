@@ -14,7 +14,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="2019"
-            android:textColor="@color/green"
+            android:textColor="@color/orange"
             android:textSize="60dp"
             app:customFont="SF-Pro-Display-Regular.ttf" />
     </RelativeLayout>

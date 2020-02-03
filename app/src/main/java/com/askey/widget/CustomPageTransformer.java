@@ -23,7 +23,7 @@ public class CustomPageTransformer implements VerticalViewPager.PageTransformer 
         } else if (position < 1) {
             view.setAlpha(1f - 0.3f * position);
             item_timezone.setScaleX(-0.2f * position + 1);
-            item_timezone.setTextColor(view.getResources().getColor(R.color.green));
+            item_timezone.setTextColor(view.getResources().getColor(R.color.orange));
         } else {
             view.setAlpha(1f - 0.3f * position);
             item_timezone.setScaleX(-0.2f * position + 1);

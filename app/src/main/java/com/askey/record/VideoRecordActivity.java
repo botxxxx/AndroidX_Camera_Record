@@ -308,30 +308,32 @@ public class VideoRecordActivity extends Activity {
             int t;
             String code = "total_test_minute = ";
             String first = "firstCameraID = ", second = "secondCameraID = ";
-            for (String s : read)
-                if (s.indexOf(code) != -1) {
-                    target = true;
-                    t = s.indexOf(code) + code.length();
-                    code = s.substring(t);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(first) != -1) {
-                    target = true;
-                    t = s.indexOf(first) + first.length();
-                    first = s.substring(t);
-                    toast("firstCameraID: " + first);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(second) != -1) {
-                    target = true;
-                    t = s.indexOf(second) + second.length();
-                    second = s.substring(t);
-                    toast("secondCameraID: " + second);
-                    break;
-                }
-
+//            for (String s : read)
+            String s = read.get(2);
+            if (s.indexOf(first) != -1) {
+                target = true;
+                t = s.indexOf(first) + first.length();
+                first = s.substring(t);
+                toast("firstCameraID: " + first);
+//                    break;
+            }
+            s = read.get(3);
+//            for (String s : read)
+            if (s.indexOf(second) != -1) {
+                target = true;
+                t = s.indexOf(second) + second.length();
+                second = s.substring(t);
+                toast("secondCameraID: " + second);
+//                    break;
+            }
+            s = read.get(6);
+//            for (String s : read)
+            if (s.indexOf(code) != -1) {
+                target = true;
+                t = s.indexOf(code) + code.length();
+                code = s.substring(t);
+//                    break;
+            }
             if (target) {
                 boolean reformat = false;
                 if (!first.equals(second)) {
@@ -465,7 +467,8 @@ public class VideoRecordActivity extends Activity {
     private void initial() {
         ArrayList<View> items_frame = new ArrayList();
         ArrayList<View> items_quality = new ArrayList();
-        for (String frame : new ArrayList<>(Arrays.asList(new String[]{"27.5fps", "13.7fps"}))) {
+        for (String frame : new ArrayList<>(Arrays.asList( // or "3.9fps", "3.4fps", "1.7fps", "0.8fps"
+                new String[]{"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"}))) {
             View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
             CustomTextView item = vi.findViewById(R.id.customTextView);
             item.setText(frame);
@@ -488,6 +491,7 @@ public class VideoRecordActivity extends Activity {
         pager_Quality.setPageTransformer(true, new CustomPageTransformer());
 
         // TODO findViewById
+        setloading(false);
         mListView = findViewById(R.id.list);
         mListView.setEnabled(false);
         toast("Initial now.", mLog.v);
@@ -516,6 +520,7 @@ public class VideoRecordActivity extends Activity {
         findViewById(R.id.volume_up).setOnClickListener((View v) ->
                 runOnUiThread(() -> audio.adjustStreamVolume(AudioManager.STREAM_MUSIC,
                         AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI)));
+        findViewById(R.id.loadingView).setVisibility(View.INVISIBLE);
         filePath = getSDCardPath();
         firstFilePath = new ArrayList();
         secondFilePath = new ArrayList();
@@ -534,10 +539,6 @@ public class VideoRecordActivity extends Activity {
             public void handleMessage(android.os.Message msg) {
                 Runnable r = () -> playMusic(R.raw.scanner_beep);
                 new Handler().post(r);
-                new Handler().postDelayed(() -> pager_Frame.setCurrentItem(1), 100);
-                new Handler().postDelayed(() -> pager_Quality.setCurrentItem(1), 300);
-                new Handler().postDelayed(() -> pager_Frame.setCurrentItem(0), 500);
-                new Handler().postDelayed(() -> pager_Quality.setCurrentItem(0), 700);
                 new Handler().postDelayed(r, 900);
                 new Handler().postDelayed(r, 1200);
                 new Handler().postDelayed(() -> checkSdCardFromFileList(getSDCardPath()), 1500);
@@ -552,31 +553,20 @@ public class VideoRecordActivity extends Activity {
         };
     }
 
+    private void setloading(boolean visible) {
+        runOnUiThread(() -> findViewById(R.id.loadingView).setVisibility(visible ? View.VISIBLE : View.INVISIBLE));
+    }
+
     private void takeRecord(int delayMillis, boolean preview) {
         videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")", mLog.v));
         //TODO SETPROP
         int delay = 0;
-        String getFrameSkip = PropertyUtils.get(FRAMESKIP);
-        if (null != getFrameSkip) {
-            if (isInteger(getFrameSkip, false)) {
-                //if frameskip is chehe or lastcamera != cameraid, delay 5s to change camera devices
-                if ((Integer.parseInt(getFrameSkip) != isFrame) || lastfirstCamera != firstCamera || lastsecondCamera != secondCamera) {
-                    SystemProperties.set(FRAMESKIP, isFrame == 1 ? "1" : "0");
-                    videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
-                    runOnUiThread(() -> setAdapter());
-                    mStateCallback0.onDisconnected(mCameraDevice0);
-                    mStateCallback1.onDisconnected(mCameraDevice1);
-                    new Handler().post(() -> openCamera(firstCamera));
-                    new Handler().post(() -> openCamera(secondCamera));
-                    delay = 2000;
-                }
-            } else {
-                toast("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e);
-                runOnUiThread(() -> setAdapter());
-            }
-        } else {
-            toast("getFrameSkip error, fs == null.", mLog.e);
-            runOnUiThread(() -> setAdapter());
+        if (lastfirstCamera != firstCamera || lastsecondCamera != secondCamera) {
+            mStateCallback0.onDisconnected(mCameraDevice0);
+            mStateCallback1.onDisconnected(mCameraDevice1);
+            new Handler().post(() -> openCamera(firstCamera));
+            new Handler().post(() -> openCamera(secondCamera));
+            delay = 1500;
         }
 
         new Handler().postDelayed(() -> new Thread(() -> startRecord(firstCamera)).start(), delay);
@@ -1160,6 +1150,27 @@ public class VideoRecordActivity extends Activity {
             switch (pos) {
                 case 0:
                     isFrame = position;
+                    setloading(true);
+                    new Handler().post(() -> {
+                        String getFrameSkip = PropertyUtils.get(FRAMESKIP);
+                        if (null != getFrameSkip) {
+                            if (isInteger(getFrameSkip, false)) {
+                                //if frameskip is chehe or lastcamera != cameraid, delay 3s to change camera devices
+                                SystemProperties.set(FRAMESKIP, String.valueOf(isFrame));
+                                videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
+                                runOnUiThread(() -> setAdapter());
+                                mStateCallback0.onDisconnected(mCameraDevice0);
+                                mStateCallback1.onDisconnected(mCameraDevice1);
+                                new Handler().post(() -> openCamera(firstCamera));
+                                new Handler().post(() -> openCamera(secondCamera));
+                            } else {
+                                toast("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e);
+                            }
+                        } else {
+                            toast("getFrameSkip error, fs == null.", mLog.e);
+                        }
+                        setloading(false);
+                    });
                     break;
                 case 1:
                     isQuality = position;

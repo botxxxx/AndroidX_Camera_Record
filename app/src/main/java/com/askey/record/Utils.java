@@ -35,11 +35,11 @@ public class Utils {
             "#CameraID(0:BACK, 1:FRONT, 2:EXTERNAL)\r\n",
             "firstCameraID = 0\r\n",
             "secondCameraID = 1\r\n", "\r\n",
+            "#Camera Device total minute: one day has minutes(*10) = 144\r\n",
+            "total_test_minute = 1\r\n", "\r\n",
             "#Play video path(can't change video path)\r\n",
             "video1_path = /sdcard/(ddhhmmss)f.mp4\r\n",
             "video2_path = /sdcard/(ddhhmmss)b.mp4\r\n", "\r\n",
-            "#Camera Device total minute: one day has minutes(*10) = 144\r\n",
-            "total_test_minute = 1\r\n", "\r\n",
             "#Start application\r\n",
             "adb shell am start -n com.askey.record/.VideoRecordActivity\r\n", "\r\n",
             "#Start test record(no audio with 5s)\r\n",
@@ -49,7 +49,8 @@ public class Utils {
             "#Finish applcation\r\n",
             "adb shell am broadcast -a com.askey.record.f\r\n", "\r\n",
             "#At least 3.5Gb memory needs to be available to record, \r\n",
-            "#Please check the SD card.\r\n", "\r\n"
+            "#Please check the SD card.\r\n",
+            "#Frame rate switch will delay 3s to restart the camera device. \r\n", "\r\n"
     };
     public static int isRun = 0, successful = 0, failed = 0;
     public static String TAG = "VideoRecord";

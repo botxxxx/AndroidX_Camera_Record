@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-    <color name="green">#15EA67</color>
+    <color name="orange">#FF6C3F</color>
     <color name="green_dark">#009D3C</color>
     <color name="gray_dark">#707070</color>
     <color name="gray_light">#D1D1D1</color>
     <color name="white">#FFFFFF</color>
+    <color name="white_gone">#8AFFFFFF</color>
     <color name="black">#000000</color>
     <color name="gone">#00000000</color>
 </resources>
