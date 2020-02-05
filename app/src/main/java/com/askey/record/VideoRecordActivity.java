@@ -166,9 +166,11 @@ public class VideoRecordActivity extends Activity {
         if (isReady)
             if (!isLoop) {
                 // ReCheckConfig
+                isLoop = true;
                 checkConfigFile(new File(filePath, fileName), false);
                 isRun = 0;
-                isLoop = true;
+                successful = 0;
+                failed = 0;
                 firstFilePath.clear();
                 secondFilePath.clear();
                 soundHandler.post(sound);
@@ -219,7 +221,10 @@ public class VideoRecordActivity extends Activity {
                 toast("Create the config file.", mLog.w);
                 writeConfigFile(file, config);
             } else {
-                if (!isRecord) toast("Find the config file.", mLog.d);
+                if (!isRecord) {
+                    toast("Find the config file.", mLog.d);
+                    videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
+                }
                 checkConfigFile(new File(getSDCardPath(), fileName), first);
             }
             return true;
@@ -489,6 +494,7 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void takeRecord(int delayMillis, boolean preview) {
+        videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
         videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")", mLog.v));
         //TODO SETPROP
         int delay = 0;
@@ -663,35 +669,25 @@ public class VideoRecordActivity extends Activity {
                 }
             } else {
 //                checkSdCardFromArrayList(filePath);
-                deleteALL();
+                deleteAndLeftTwo();
                 isRun++;
                 new Handler().post(() -> saveLog());
-                if (firstFilePath.size() > 1) {
-                    String first = firstFilePath.get(firstFilePath.size() - 1);
-                    firstFilePath.clear();
-                    firstFilePath.add(first);
-                }
-                if (secondFilePath.size() > 1) {
-                    String second = secondFilePath.get(secondFilePath.size() - 1);
-                    secondFilePath.clear();
-                    secondFilePath.add(second);
-                }
-
                 runOnUiThread(() -> setAdapter());
                 if (isRun < isFinish) {
                     takeRecord(delayTime, false);
                 } else {
-                    if (mMediaPlayer != null) {
-                        if (mMediaPlayer.isPlaying()) {
-                            mMediaPlayer.stop();
-                            toast("MediaPlay is Stop.");
-                        }
-                    }
+                    videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
+                    toast("#completed");
                     for (String f : firstFilePath)
                         fileCheck(f);
                     for (String s : secondFilePath)
                         fileCheck(s);
-                    toast("Record is completed.");
+                    if (isFinish > 1) {
+                        delete(firstFilePath.get(1), false);
+                        delete(secondFilePath.get(1), false);
+                    }
+                    firstFilePath.clear();
+                    secondFilePath.clear();
                     takePreview();
                     toast("#finish");
                     new Handler().post(() -> saveLog());
@@ -700,12 +696,6 @@ public class VideoRecordActivity extends Activity {
                 }
             }
         } else {
-            if (mMediaPlayer != null) {
-                if (mMediaPlayer.isPlaying()) {
-                    mMediaPlayer.stop();
-                    toast("MediaPlay is Stop.");
-                }
-            }
             for (String f : firstFilePath)
                 fileCheck(f);
             for (String s : secondFilePath)
@@ -855,11 +845,28 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private void deleteALL() {
-        for (int f = 0; f < firstFilePath.size() - 1; f++)
-            delete(firstFilePath.get(f), true);
-        for (int s = 0; s < secondFilePath.size() - 1; s++)
-            delete(secondFilePath.get(s), true);
+    private void deleteAndLeftTwo() {
+        ArrayList<String> filepath = new ArrayList();
+        if (firstFilePath.size() == 3) {
+            delete(firstFilePath.get(0), true);
+            for (int f = 1; f < firstFilePath.size(); f++) {
+                filepath.add(firstFilePath.get(f));
+            }
+            firstFilePath.clear();
+            for (String s : filepath)
+                firstFilePath.add(s);
+            filepath.clear();
+        }
+        if (secondFilePath.size() == 3) {
+            delete(secondFilePath.get(0), true);
+            for (int f = 1; f < secondFilePath.size(); f++) {
+                filepath.add(secondFilePath.get(f));
+            }
+            secondFilePath.clear();
+            for (String s : filepath)
+                secondFilePath.add(s);
+            filepath.clear();
+        }
     }
 
     private void checkSdCardFromFileList(String filePath) {
