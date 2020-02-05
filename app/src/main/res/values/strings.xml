@@ -8,22 +8,22 @@
         3.可讀取VideoRecordConfig.ini 設定測試時間(每一單位10分鐘)
         4.可寫入VideoRecordLog.ini 記錄Log資訊及影片測試結果
         5.可設定影像尺寸 1080p or 720p(鏡頭解析度最高為720p)
-        6.可設定影像FPS  27.5 or 16 // 可設定之FPS為27.5, 24, 20, 16, 12(目前無法設定為14需待SIMON 修改IMAGE後可以)
+        6.可設定影像FPS  27.5 or 16 // 可設定之FPS為27.5, 24, 20, 16, 12
         7.SD Card空間小於3.5G自動移除影片
         8.VideoRecordConfig.ini 解析失敗或檔案不存在時重置檔案
         9.VideoRecordLog.ini 不存在時重置檔案
     [v1.1.0]
-        add setProp, getProp
-        move function to Utils.class
+        1.add setProp, getProp
+        2.move function to Utils.class
     [v1.1.1]
-        fix some error
-        add auto change camera device with config.ini
+        1.fix some error
+        2.add auto change camera device with config.ini
     [v1.2.0]
-        optimize user experience on takerecord function
-        fix reset framerate change error
-        add framerate switch options
-        the framerate switch will update on camera preview
-        show loadingView on framerate switch
+        1.optimize user experience on takerecord function
+        2.fix reset framerate change error
+        3.add framerate switch options
+        4.the framerate switch will update on camera preview
+        5.show loadingView on framerate switch
     -->
 
     <string name="title_activity_video_record">VideoRecordActivity</string>
