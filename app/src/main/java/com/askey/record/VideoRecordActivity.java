@@ -561,7 +561,9 @@ public class VideoRecordActivity extends Activity {
         videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")", mLog.v));
         //TODO SETPROP
         int delay = 0;
-        if (lastfirstCamera != firstCamera || lastsecondCamera != secondCamera) {
+        if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera)) {
+            lastfirstCamera = firstCamera; // String
+            lastsecondCamera = secondCamera;
             mStateCallback0.onDisconnected(mCameraDevice0);
             mStateCallback1.onDisconnected(mCameraDevice1);
             new Handler().post(() -> openCamera(firstCamera));
@@ -795,7 +797,20 @@ public class VideoRecordActivity extends Activity {
                     TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)));
             convertSeconds = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(duration) -
                     TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
-            if (duration > 10 && framerate > 10)
+            double[] range = new double[]{27.5, 13.7, 9.1, 6.8, 5.5, 4.5};
+            boolean check = false;
+            if (duration > 10) {
+                if (framerate >= range[isFrame]) {
+                    if (framerate <= range[isFrame] + 1) {
+                        check = true;
+                    }
+                } else if (framerate < range[isFrame]) {
+                    if (framerate >= range[isFrame] - 1) {
+                        check = true;
+                    }
+                }
+            }
+            if (check)
                 successful++;
             else
                 failed++;
