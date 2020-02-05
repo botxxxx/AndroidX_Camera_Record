@@ -93,11 +93,12 @@ public class VideoRecordActivity extends Activity {
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
     private CameraCaptureSession mPreviewSession0, mPreviewSession1;
+    private CameraDevice.StateCallback mStateCallback0, mStateCallback1;
     private CaptureRequest.Builder mPreviewBuilder0, mPreviewBuilder1;
-    private ListView mListView;
     private MediaRecorder mMediaRecorder0, mMediaRecorder1;
-    private MediaPlayer mMediaPlayer;
+    private ListView mListView;
     private Handler mainHandler, backgroundHandler, soundHandler, demoHandler;
+    private MediaPlayer mMediaPlayer;
     private Runnable sound = new Runnable() {
 
         public void run() {
@@ -105,78 +106,6 @@ public class VideoRecordActivity extends Activity {
                 playMusic(R.raw.scanner_beep);
                 soundHandler.postDelayed(this, 10000);
             }
-        }
-    };
-    private CameraDevice.StateCallback mStateCallback0 = new CameraDevice.StateCallback() {
-
-        public void onOpened(CameraDevice camera) {
-            if (!isReady) {
-                // 打开摄像头
-                Log.e(TAG, "onOpened");
-                toast("Camera " + firstCamera + " is opened.", mLog.i);
-            }
-            mCameraDevice0 = camera;
-            // 开启预览
-            takePreview(firstCamera);
-        }
-
-        public void onDisconnected(CameraDevice camera) {
-            camera.close();
-            // 关闭摄像头
-            Log.e(TAG, "onDisconnected");
-            toast("Camera " + firstCamera + " is disconnected.", mLog.w);
-            if (null != mCameraDevice0) {
-                mCameraDevice0.close();
-                mCameraDevice0 = null;
-            }
-        }
-
-        public void onError(CameraDevice camera, int error) {
-            onDisconnected(camera);
-            // 前鏡頭開啟失敗
-            Log.e(TAG, "onError");
-            toast("Open Camera " + firstCamera + " error.", mLog.e);
-            isError = true;
-        }
-    };
-    private CameraDevice.StateCallback mStateCallback1 = new CameraDevice.StateCallback() {
-
-        public void onOpened(CameraDevice camera) {
-            if (!isReady) {
-                // 打开摄像头
-                Log.e(TAG, "onOpened");
-                toast("Camera " + secondCamera + " is opened.", mLog.i);
-            }
-            mCameraDevice1 = camera;
-            // 开启预览
-            takePreview(secondCamera);
-            if (!isReady) {
-                isReady = true;
-                demoHandler.obtainMessage().sendToTarget(); // playDEMO
-                if (isError) {
-                    isFinish = 0;
-                    isLoop = true;
-                    runOnUiThread(() -> stopRecord(false));
-                }
-            }
-        }
-
-        public void onDisconnected(CameraDevice camera) {
-            camera.close();
-            // 关闭摄像头
-            Log.e(TAG, "onDisconnected");
-            toast("Camera " + secondCamera + " is disconnected.", mLog.w);
-            if (null != mCameraDevice1) {
-                mCameraDevice1.close();
-                mCameraDevice1 = null;
-            }
-        }
-
-        public void onError(CameraDevice camera, int error) {
-            onDisconnected(camera);
-            // 前鏡頭開啟失敗
-            Log.e(TAG, "onError");
-            toast("Open Camera " + secondCamera + " error.", mLog.e);
         }
     };
     private final BroadcastReceiver myReceiver = new BroadcastReceiver() {
@@ -500,6 +429,8 @@ public class VideoRecordActivity extends Activity {
         backgroundHandler = new Handler(thread.getLooper());
         mainHandler = new Handler(getMainLooper());
         soundHandler = new Handler();
+        mStateCallback0 = new mCameraDeviceStatic(firstCamera);
+        mStateCallback1 = new mCameraDeviceStatic(secondCamera);
         mTextureView0 = findViewById(R.id.surfaceView0);
         mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
         mTextureView1 = findViewById(R.id.surfaceView1);
@@ -1124,6 +1055,60 @@ public class VideoRecordActivity extends Activity {
 
     private boolean isCameraOne(String cameraId) {
         return cameraId.equals(firstCamera);
+    }
+
+    private class mCameraDeviceStatic extends CameraDevice.StateCallback {
+
+        private String mCameraID;
+
+        public mCameraDeviceStatic(String mCameraID) {
+            this.mCameraID = mCameraID;
+        }
+
+        public void onOpened(CameraDevice camera) {
+            if (!isReady) {
+                // 打开摄像头
+                Log.e(TAG, "onOpened");
+                toast("Camera " + mCameraID + " is opened.", mLog.i);
+            }
+            if (isCameraOne(mCameraID))
+                mCameraDevice0 = camera;
+            else
+                mCameraDevice1 = camera;
+            // 开启预览
+            takePreview(mCameraID);
+            if (!isCameraOne(mCameraID) && !isReady) {
+                isReady = true;
+                demoHandler.obtainMessage().sendToTarget(); // playDEMO
+                if (isError) {
+                    isFinish = 0;
+                    isLoop = true;
+                    runOnUiThread(() -> stopRecord(false));
+                }
+            }
+        }
+
+        public void onDisconnected(CameraDevice camera) {
+            camera.close();
+            // 关闭摄像头
+            Log.e(TAG, "onDisconnected");
+            toast("Camera " + mCameraID + " is disconnected.", mLog.w);
+            if (null != (isCameraOne(mCameraID) ? mCameraDevice0 : mCameraDevice1)) {
+                (isCameraOne(mCameraID) ? mCameraDevice0 : mCameraDevice1).close();
+                if (isCameraOne(mCameraID))
+                    mCameraDevice0 = null;
+                else
+                    mCameraDevice1 = null;
+            }
+        }
+
+        public void onError(CameraDevice camera, int error) {
+            onDisconnected(camera);
+            // 前鏡頭開啟失敗
+            Log.e(TAG, "onError");
+            toast("Open Camera " + mCameraID + " error.", mLog.e);
+            isError = true;
+        }
     }
 
     private class mSurfaceTextureListener implements TextureView.SurfaceTextureListener {
