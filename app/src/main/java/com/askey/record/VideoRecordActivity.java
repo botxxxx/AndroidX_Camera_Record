@@ -501,16 +501,16 @@ public class VideoRecordActivity extends Activity {
         videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")", mLog.v));
         //TODO SETPROP
         int delay = 0;
+
         if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera)) {
             lastfirstCamera = firstCamera; // String
             lastsecondCamera = secondCamera;
+            runOnUiThread(() -> setAdapter());
             mStateCallback0.onDisconnected(mCameraDevice0);
             mStateCallback1.onDisconnected(mCameraDevice1);
-            new Handler().post(() -> {
-                openCamera(firstCamera);
-                openCamera(secondCamera);
-            });
-            delay = 1500;
+            new Handler().post(() -> openCamera(firstCamera));
+            new Handler().post(() -> openCamera(secondCamera));
+            delay = 5000;
         }
 
         new Handler().postDelayed(() -> {
@@ -679,7 +679,7 @@ public class VideoRecordActivity extends Activity {
                 deleteAndLeftTwo();
                 new Handler().post(() -> saveLog());
                 runOnUiThread(() -> setAdapter());
-                if (isRun <= isFinish) {
+                if (isFinish != 0 && isRun <= isFinish) {
                     takeRecord(delayTime, false);
                 } else {
                     videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
