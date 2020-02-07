@@ -50,7 +50,7 @@ public class Utils {
             "adb shell am broadcast -a com.askey.record.f\r\n", "\r\n",
             "#At least 3.5Gb memory needs to be available to record, \r\n",
             "#Please check the SD card.\r\n",
-            "#Frame rate switch will delay 3s to restart the camera device. \r\n", "\r\n"
+//            "#Frame rate switch will delay 3s to restart the camera device. \r\n", "\r\n"
     };
     public static int isRun = 0, successful = 0, failed = 0;
     public static String TAG = "VideoRecord";

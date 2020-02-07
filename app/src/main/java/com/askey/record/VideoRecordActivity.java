@@ -85,7 +85,7 @@ public class VideoRecordActivity extends Activity {
     public static String lastfirstCamera = "0";
     public static String lastsecondCamera = "1";
     private int isFinish = 1, delayTime = 600000, isFrame = 0, isQuality = 0;
-    private boolean isReady = false, isRecord = false, isLoop = false, isError = false;
+    private boolean isReady = false, isRecord = false, isLoop = false, isError = false, isDefault = true;
     private String filePath = "/sdcard/";
     private ArrayList<String> firstFilePath, secondFilePath;
     private ArrayList<LogMsg> videoLogList;
@@ -193,7 +193,7 @@ public class VideoRecordActivity extends Activity {
                 // -> adb shell su 0 getprop persist.our.camera.frameskip
 //                OurSystemProperties.set(FRAMESKIP, "0"); //*lib(com.our.sdk).jar
 //                SystemProperties.set(FRAMESKIP, "0"); //*lib(layoutlib).jar
-                PropertyUtils.set(FRAMESKIP, "0"); //*reflection invoke
+                if (!isDefault) PropertyUtils.set(FRAMESKIP, "0"); //*reflection invoke
 //                CommandUtil.executed("setprop "+FRAMESKIP+" 0"); //*not work
                 setStart();
             } else finish();
@@ -403,7 +403,8 @@ public class VideoRecordActivity extends Activity {
         ArrayList<View> items_frame = new ArrayList();
         ArrayList<View> items_quality = new ArrayList();
         for (String frame : new ArrayList<>(Arrays.asList( // or "3.9fps", "3.4fps", "1.7fps", "0.8fps"
-                new String[]{"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"}))) {
+                isDefault ? new String[]{"27.5fps", "16fps"} :
+                        new String[]{"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"}))) {
             View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
             CustomTextView item = vi.findViewById(R.id.customTextView);
             item.setText(frame);
@@ -723,7 +724,7 @@ public class VideoRecordActivity extends Activity {
                     TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)));
             convertSeconds = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(duration) -
                     TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
-            double[] range = new double[]{27.5, 13.7, 9.1, 6.8, 5.5, 4.5};
+            double[] range = isDefault ? new double[]{27.5, 16} : new double[]{27.5, 13.7, 9.1, 6.8, 5.5, 4.5};
             boolean check = false;
             if (duration != 0) {
                 if (framerate >= range[isFrame]) {
@@ -965,7 +966,7 @@ public class VideoRecordActivity extends Activity {
             mediaRecorder.setAudioSamplingRate(profile.audioSampleRate);
         }
         /*设置要捕获的视频的帧速率*/ // default is 24.6
-        mediaRecorder.setVideoFrameRate(27); // 1 -> 12fps, 10 -> 16fps
+        mediaRecorder.setVideoFrameRate(isFrame == 1 && isDefault ? 10 : 27); // 1 -> 12fps, 10 -> 16fps
         // Step 4: Set output file
         mediaRecorder.setOutputFile(file);
         // Step 5: Prepare configured MediaRecorder
@@ -1162,27 +1163,29 @@ public class VideoRecordActivity extends Activity {
             switch (pos) {
                 case 0:
                     isFrame = position;
-                    setloading(true);
-                    new Handler().post(() -> {
-                        String getFrameSkip = PropertyUtils.get(FRAMESKIP);
-                        if (null != getFrameSkip) {
-                            if (isInteger(getFrameSkip, false)) {
-                                //if frameskip is chehe or lastcamera != cameraid, delay 3s to change camera devices
-                                SystemProperties.set(FRAMESKIP, String.valueOf(isFrame));
-                                videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
-                                runOnUiThread(() -> setAdapter());
-                                mStateCallback0.onDisconnected(mCameraDevice0);
-                                mStateCallback1.onDisconnected(mCameraDevice1);
-                                new Handler().post(() -> openCamera(firstCamera));
-                                new Handler().post(() -> openCamera(secondCamera));
+                    if (!isDefault) {
+                        setloading(true);
+                        new Handler().post(() -> {
+                            String getFrameSkip = PropertyUtils.get(FRAMESKIP);
+                            if (null != getFrameSkip) {
+                                if (isInteger(getFrameSkip, false)) {
+                                    //if frameskip is chehe or lastcamera != cameraid, delay 3s to change camera devices
+                                    SystemProperties.set(FRAMESKIP, String.valueOf(isFrame));
+                                    videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
+                                    runOnUiThread(() -> setAdapter());
+                                    mStateCallback0.onDisconnected(mCameraDevice0);
+                                    mStateCallback1.onDisconnected(mCameraDevice1);
+                                    new Handler().post(() -> openCamera(firstCamera));
+                                    new Handler().post(() -> openCamera(secondCamera));
+                                } else {
+                                    toast("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e);
+                                }
                             } else {
-                                toast("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e);
+                                toast("getFrameSkip error, fs == null.", mLog.e);
                             }
-                        } else {
-                            toast("getFrameSkip error, fs == null.", mLog.e);
-                        }
-                        setloading(false);
-                    });
+                            setloading(false);
+                        });
+                    }
                     break;
                 case 1:
                     isQuality = position;
