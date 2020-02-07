@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="app_name">CDR9020_QTR(v1.2.1)</string>
+    <string name="app_name">CDR9020_QTR(v1.2.2)</string>
 
     <!--
     [CDR9020_QTR_v1.0.0]
@@ -26,6 +26,8 @@
         5.show loadingView on framerate switch
     [v1.2.1]
         1.fix deletefile and checkfile error
+    [v1.2.2]
+        1.disable setprop function for the default devices
     -->
 
     <string name="title_activity_video_record">VideoRecordActivity</string>
