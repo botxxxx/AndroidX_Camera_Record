@@ -102,7 +102,7 @@ public class VideoRecordActivity extends Activity {
     private Runnable sound = new Runnable() {
 
         public void run() {
-            if (isLoop && isRun < isFinish) {
+            if (isLoop && isRun <= isFinish) {
                 playMusic(R.raw.scanner_beep);
                 soundHandler.postDelayed(this, 10000);
             }
@@ -183,6 +183,7 @@ public class VideoRecordActivity extends Activity {
 
     protected void onResume() {
         super.onResume();
+        isRun = 0;
         videoLogList = new ArrayList();
         if (checkPermission()) {
             showPermission();
@@ -242,32 +243,32 @@ public class VideoRecordActivity extends Activity {
             int t;
             String code = "total_test_minute = ";
             String first = "firstCameraID = ", second = "secondCameraID = ";
-//            for (String s : read)
-            String s = read.get(2);
-            if (s.indexOf(first) != -1) {
-                target = true;
-                t = s.indexOf(first) + first.length();
-                first = s.substring(t);
-                toast("firstCameraID: " + first);
-//                    break;
-            }
-            s = read.get(3);
-//            for (String s : read)
-            if (s.indexOf(second) != -1) {
-                target = true;
-                t = s.indexOf(second) + second.length();
-                second = s.substring(t);
-                toast("secondCameraID: " + second);
-//                    break;
-            }
-            s = read.get(6);
-//            for (String s : read)
-            if (s.indexOf(code) != -1) {
-                target = true;
-                t = s.indexOf(code) + code.length();
-                code = s.substring(t);
-//                    break;
-            }
+//            String s = read.get(2);
+            for (String s : read)
+                if (s.indexOf(first) != -1) {
+                    target = true;
+                    t = s.indexOf(first) + first.length();
+                    first = s.substring(t);
+                    toast("firstCameraID: " + first);
+                    break;
+                }
+//            s = read.get(3);
+            for (String s : read)
+                if (s.indexOf(second) != -1) {
+                    target = true;
+                    t = s.indexOf(second) + second.length();
+                    second = s.substring(t);
+                    toast("secondCameraID: " + second);
+                    break;
+                }
+//            s = read.get(6);
+            for (String s : read)
+                if (s.indexOf(code) != -1) {
+                    target = true;
+                    t = s.indexOf(code) + code.length();
+                    code = s.substring(t);
+                    break;
+                }
             if (target) {
                 boolean reformat = false;
                 if (!first.equals(second)) {
@@ -494,6 +495,7 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void takeRecord(int delayMillis, boolean preview) {
+        isRun++;
         videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
         videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")", mLog.v));
         //TODO SETPROP
@@ -503,15 +505,19 @@ public class VideoRecordActivity extends Activity {
             lastsecondCamera = secondCamera;
             mStateCallback0.onDisconnected(mCameraDevice0);
             mStateCallback1.onDisconnected(mCameraDevice1);
-            new Handler().post(() -> openCamera(firstCamera));
-            new Handler().post(() -> openCamera(secondCamera));
+            new Handler().post(() -> {
+                openCamera(firstCamera);
+                openCamera(secondCamera);
+            });
             delay = 1500;
         }
 
-        new Handler().postDelayed(() -> new Thread(() -> startRecord(firstCamera)).start(), delay);
-        new Handler().postDelayed(() -> new Thread(() -> startRecord(secondCamera)).start(), delay);
-        new Handler().postDelayed(() -> runOnUiThread(() -> setAdapter()), delay);
-        new Handler().postDelayed(() -> saveLog(), delay);
+        new Handler().postDelayed(() -> {
+            new Thread(() -> startRecord(firstCamera)).start();
+            new Thread(() -> startRecord(secondCamera)).start();
+            runOnUiThread(() -> setAdapter());
+            saveLog();
+        }, delay);
         new Handler().postDelayed(() -> stopRecord(preview), delay + delayMillis);
     }
 
@@ -670,10 +676,9 @@ public class VideoRecordActivity extends Activity {
             } else {
 //                checkSdCardFromArrayList(filePath);
                 deleteAndLeftTwo();
-                isRun++;
                 new Handler().post(() -> saveLog());
                 runOnUiThread(() -> setAdapter());
-                if (isRun < isFinish) {
+                if (isRun <= isFinish) {
                     takeRecord(delayTime, false);
                 } else {
                     videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
@@ -720,13 +725,13 @@ public class VideoRecordActivity extends Activity {
                     TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
             double[] range = new double[]{27.5, 13.7, 9.1, 6.8, 5.5, 4.5};
             boolean check = false;
-            if (duration > 10) {
+            if (duration != 0) {
                 if (framerate >= range[isFrame]) {
-                    if (framerate <= range[isFrame] + 1) {
+                    if (framerate <= range[isFrame] + 3) {
                         check = true;
                     }
                 } else if (framerate < range[isFrame]) {
-                    if (framerate >= range[isFrame] - 1) {
+                    if (framerate >= range[isFrame] - 3) {
                         check = true;
                     }
                 }
