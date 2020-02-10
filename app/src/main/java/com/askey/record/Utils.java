@@ -1,5 +1,6 @@
 package com.askey.record;
 
+import android.app.Activity;
 import android.content.Context;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
@@ -8,6 +9,10 @@ import android.net.Uri;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Surface;
+import android.widget.Toast;
+
+import com.askey.widget.LogMsg;
+import com.askey.widget.mLog;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -16,7 +21,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 
 public class Utils {
 
@@ -54,12 +62,42 @@ public class Utils {
     };
     public static int isRun = 0, successful = 0, failed = 0;
     public static String TAG = "VideoRecord";
+    public static String firstCamera = "0";
+    public static String secondCamera = "1";
+    public static String lastfirstCamera = "0";
+    public static String lastsecondCamera = "1";
+    public static ArrayList<String> firstFilePath, secondFilePath;
+    public static ArrayList<LogMsg> videoLogList;
+    public static int isFinish = 1, delayTime = 600000, isFrame = 0, isQuality = 0;
+    public static boolean isReady = false, isRecord = false, isLoop = false, isError = false, isDefault = true;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
+    }
+
+    public static void toast(Context context, String t, mLog type) {
+        videoLogList.add(new LogMsg(t, type));
+        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
+    }
+
+    public static void toast(Context context, String t) {
+        videoLogList.add(new LogMsg(t, mLog.i));
+        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
+    }
+
+    public static int getSuccessful() {
+        return successful;
+    }
+
+    public static int getFailed() {
+        return failed;
+    }
+
+    public static int getIsRun() {
+        return isRun;
     }
 
     public static boolean isInteger(String s, boolean zero) {
@@ -75,7 +113,160 @@ public class Utils {
         return true;
     }
 
-    public static String readConfigFile(File file) {
+
+    public static void setTestTime(Context context, int min) {
+        if (min > 0) {
+            isFinish = min;
+            toast(context, "setRecord time: " + min + "0 min.");
+        } else {
+            toast(context, "The test time must be a positive number.", mLog.e);
+        }
+    }
+
+    public static boolean checkConfigFile(Context context, boolean first) {
+        videoLogList.add(new LogMsg("#checkConfigFile", mLog.v));
+        if (!"".equals(getSDCardPath())) {
+            File file = new File(getSDCardPath(), fileName);
+            if (!file.exists()) {
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                toast(context, "Create the config file.", mLog.w);
+                writeConfigFile(context, file, config);
+            } else {
+                if (!isRecord) {
+                    toast(context, "Find the config file.", mLog.d);
+                    videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
+                }
+                checkConfigFile(context, new File(getSDCardPath(), fileName), first);
+            }
+            return true;
+        } else {
+            toast(context, "Please check the SD card.", mLog.e);
+        }
+        return false;
+    }
+
+    public static void checkConfigFile(Context context, File file, boolean firstOne) {
+        String input = readConfigFile(context, file);
+        if (input.length() > 0) {
+            List<String> read = Arrays.asList(input.split("\r\n"));
+            boolean target = false;
+            int t;
+            String code = "total_test_minute = ";
+            String first = "firstCameraID = ", second = "secondCameraID = ";
+//            String s = read.get(2);
+            for (String s : read)
+                if (s.indexOf(first) != -1) {
+                    target = true;
+                    t = s.indexOf(first) + first.length();
+                    first = s.substring(t);
+                    toast(context, "firstCameraID: " + first);
+                    break;
+                }
+//            s = read.get(3);
+            for (String s : read)
+                if (s.indexOf(second) != -1) {
+                    target = true;
+                    t = s.indexOf(second) + second.length();
+                    second = s.substring(t);
+                    toast(context, "secondCameraID: " + second);
+                    break;
+                }
+//            s = read.get(6);
+            for (String s : read)
+                if (s.indexOf(code) != -1) {
+                    target = true;
+                    t = s.indexOf(code) + code.length();
+                    code = s.substring(t);
+                    break;
+                }
+            if (target) {
+                boolean reformat = false;
+                if (!first.equals(second)) {
+                    if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {
+                        lastfirstCamera = firstOne ? first : firstCamera;
+                        lastsecondCamera = firstOne ? second : secondCamera;
+                        firstCamera = first;
+                        secondCamera = second;
+                    } else reformat = true;
+                } else {
+                    toast(context, "Cannot use the same Camera ID.", mLog.e);
+                    reformat = true;
+                }
+                if (isInteger(code.split("\n")[0], true)) {
+                    int min = Integer.parseInt(code.split("\n")[0]);
+                    setTestTime(context, min);
+                } else reformat = true;
+                if (reformat) {
+                    reformatConfigFile(context, file, config);
+                }
+            } else reformatConfigFile(context, file, config);
+        } else reformatConfigFile(context, file, config);
+    }
+
+    public static boolean isCameraID(Context context, String f, String b) {
+        try {
+            if (Integer.parseInt(f) <= -1) {
+                toast(context, "The Camera ID must be a positive number.", mLog.e);
+                return false;
+            } else {
+                boolean cameraID;
+                switch (Integer.parseInt(f)) {
+                    case 0:
+                    case 1:
+                    case 2:
+                        cameraID = true;
+                        break;
+                    default:
+                        cameraID = false;
+                        break;
+                }
+                if (!cameraID) {
+                    toast(context, "The Camera ID is unknown.", mLog.e);
+                    return false;
+                }
+            }
+            if (Integer.parseInt(b) <= -1) {
+                toast(context, "The Camera ID must be a positive number.", mLog.e);
+                return false;
+            } else {
+                boolean cameraID;
+                switch (Integer.parseInt(b)) {
+                    case 0:
+                    case 1:
+                    case 2:
+                        cameraID = true;
+                        break;
+                    default:
+                        cameraID = false;
+                        break;
+                }
+                if (!cameraID) {
+                    toast(context, "The Camera ID is unknown.", mLog.e);
+                    return false;
+                }
+            }
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        } catch (NullPointerException e) {
+            return false;
+        }
+    }
+
+    public static void reformatConfigFile(Context context, File file, String[] message) {
+        firstCamera = "0";
+        secondCamera = "1";
+        isFinish = 1;
+        toast(context, "Config file error.", mLog.e);
+        writeConfigFile(context, file, message);
+        toast(context, "Reformat the file.", mLog.e);
+    }
+
+    public static String readConfigFile(Context context, File file) {
         String tmp = "";
         try {
             FileInputStream input = new FileInputStream(file);
@@ -89,13 +280,13 @@ public class Utils {
             bytes.close();
             input.close();
         } catch (IOException e) {
-//            Log.e(TAG, " read failed: \" + e.toString()");
-//            toast("read failed.", mLog.e);
+            Log.e(TAG, " read failed: \" + e.toString()");
+            toast(context, "read failed.", mLog.e);
         }
         return tmp;
     }
 
-    public static void writeConfigFile(File file, String[] str) {
+    public static void writeConfigFile(Context context, File file, String[] str) {
         String tmp = "";
         for (String s : str)
             tmp += s;
@@ -104,8 +295,8 @@ public class Utils {
             output.write(tmp.getBytes());
             output.close();
         } catch (IOException e) {
-//            Log.e(TAG, " write failed: \" + e.toString()");
-//            toast("write failed.", mLog.e);
+            Log.e(TAG, " write failed: \" + e.toString()");
+            toast(context, "write failed.", mLog.e);
         }
     }
 

@@ -36,7 +36,6 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.askey.widget.CustomPageTransformer;
 import com.askey.widget.CustomTextView;
@@ -64,31 +63,40 @@ import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_TEST;
 import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_TESTa;
 import static com.askey.record.Utils.FRAMESKIP;
 import static com.askey.record.Utils.TAG;
-import static com.askey.record.Utils.config;
+import static com.askey.record.Utils.checkConfigFile;
+import static com.askey.record.Utils.delayTime;
 import static com.askey.record.Utils.failed;
 import static com.askey.record.Utils.fileName;
+import static com.askey.record.Utils.firstCamera;
+import static com.askey.record.Utils.firstFilePath;
 import static com.askey.record.Utils.getCalendarTime;
+import static com.askey.record.Utils.getFailed;
 import static com.askey.record.Utils.getFrameRate;
 import static com.askey.record.Utils.getSDCardPath;
+import static com.askey.record.Utils.getSuccessful;
 import static com.askey.record.Utils.getVideo;
+import static com.askey.record.Utils.isDefault;
+import static com.askey.record.Utils.isError;
+import static com.askey.record.Utils.isFinish;
+import static com.askey.record.Utils.isFrame;
 import static com.askey.record.Utils.isInteger;
+import static com.askey.record.Utils.isLoop;
+import static com.askey.record.Utils.isQuality;
+import static com.askey.record.Utils.isReady;
+import static com.askey.record.Utils.isRecord;
 import static com.askey.record.Utils.isRun;
+import static com.askey.record.Utils.lastfirstCamera;
+import static com.askey.record.Utils.lastsecondCamera;
 import static com.askey.record.Utils.logName;
-import static com.askey.record.Utils.readConfigFile;
+import static com.askey.record.Utils.secondCamera;
+import static com.askey.record.Utils.secondFilePath;
 import static com.askey.record.Utils.successful;
-import static com.askey.record.Utils.writeConfigFile;
+import static com.askey.record.Utils.toast;
+import static com.askey.record.Utils.videoLogList;
 
 public class VideoRecordActivity extends Activity {
 
-    public static String firstCamera = "0";
-    public static String secondCamera = "1";
-    public static String lastfirstCamera = "0";
-    public static String lastsecondCamera = "1";
-    private int isFinish = 1, delayTime = 600000, isFrame = 0, isQuality = 0;
-    private boolean isReady = false, isRecord = false, isLoop = false, isError = false, isDefault = true;
     private String filePath = "/sdcard/";
-    private ArrayList<String> firstFilePath, secondFilePath;
-    private ArrayList<LogMsg> videoLogList;
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
@@ -116,7 +124,7 @@ public class VideoRecordActivity extends Activity {
                 if (isReady) {
                     if (!isLoop) {
                         // ReCheckConfig
-                        checkConfigFile(new File(filePath, fileName), false);
+                        checkConfigFile(VideoRecordActivity.this, new File(filePath, fileName), false);
                         isFinish = 0;
                         // isLoop = true;
                         firstFilePath.clear();
@@ -127,7 +135,7 @@ public class VideoRecordActivity extends Activity {
                         isFinish = 0;
                         runOnUiThread(() -> stopRecord(true));
                     }
-                } else toast("Not Ready to Record.");
+                } else toast(VideoRecordActivity.this, "Not Ready to Record.");
             }
             if (action.equals(COMMAND_VIDEO_RECORD_START) || action.equals(COMMAND_VIDEO_RECORD_STARTa)) {
                 runLoop();
@@ -150,24 +158,12 @@ public class VideoRecordActivity extends Activity {
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
 
-    public static int getRunTime() {
-        return isRun;
-    }
-
-    public static int getSuccessful() {
-        return successful;
-    }
-
-    public static int getFailed() {
-        return failed;
-    }
-
     private void runLoop() {
         if (isReady)
             if (!isLoop) {
                 // ReCheckConfig
                 isLoop = true;
-                checkConfigFile(new File(filePath, fileName), false);
+                checkConfigFile(this, new File(filePath, fileName), false);
                 isRun = 0;
                 successful = 0;
                 failed = 0;
@@ -188,7 +184,7 @@ public class VideoRecordActivity extends Activity {
         if (checkPermission()) {
             showPermission();
         } else {
-            if (checkConfigFile(true)) {
+            if (checkConfigFile(this, true)) {
                 //TODO SETPROP
                 // -> adb shell su 0 getprop persist.our.camera.frameskip
 //                OurSystemProperties.set(FRAMESKIP, "0"); //*lib(com.our.sdk).jar
@@ -198,158 +194,6 @@ public class VideoRecordActivity extends Activity {
                 setStart();
             } else finish();
         }
-    }
-
-    private void setTestTime(int min) {
-        if (min > 0) {
-            isFinish = min;
-            toast("setRecord time: " + min + "0 min.");
-        } else {
-            toast("The test time must be a positive number.", mLog.e);
-        }
-    }
-
-    private boolean checkConfigFile(boolean first) {
-        videoLogList.add(new LogMsg("#checkConfigFile", mLog.v));
-        if (!"".equals(getSDCardPath())) {
-            File file = new File(getSDCardPath(), fileName);
-            if (!file.exists()) {
-                try {
-                    file.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                toast("Create the config file.", mLog.w);
-                writeConfigFile(file, config);
-            } else {
-                if (!isRecord) {
-                    toast("Find the config file.", mLog.d);
-                    videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
-                }
-                checkConfigFile(new File(getSDCardPath(), fileName), first);
-            }
-            return true;
-        } else {
-            toast("Please check the SD card.", mLog.e);
-        }
-        return false;
-    }
-
-    private void checkConfigFile(File file, boolean firstOne) {
-        String input = readConfigFile(file);
-        if (input.length() > 0) {
-            List<String> read = Arrays.asList(input.split("\r\n"));
-            boolean target = false;
-            int t;
-            String code = "total_test_minute = ";
-            String first = "firstCameraID = ", second = "secondCameraID = ";
-//            String s = read.get(2);
-            for (String s : read)
-                if (s.indexOf(first) != -1) {
-                    target = true;
-                    t = s.indexOf(first) + first.length();
-                    first = s.substring(t);
-                    toast("firstCameraID: " + first);
-                    break;
-                }
-//            s = read.get(3);
-            for (String s : read)
-                if (s.indexOf(second) != -1) {
-                    target = true;
-                    t = s.indexOf(second) + second.length();
-                    second = s.substring(t);
-                    toast("secondCameraID: " + second);
-                    break;
-                }
-//            s = read.get(6);
-            for (String s : read)
-                if (s.indexOf(code) != -1) {
-                    target = true;
-                    t = s.indexOf(code) + code.length();
-                    code = s.substring(t);
-                    break;
-                }
-            if (target) {
-                boolean reformat = false;
-                if (!first.equals(second)) {
-                    if (isCameraID(first.split("\n")[0], second.split("\n")[0])) {
-                        lastfirstCamera = firstOne ? first : firstCamera;
-                        lastsecondCamera = firstOne ? second : secondCamera;
-                        firstCamera = first;
-                        secondCamera = second;
-                    } else reformat = true;
-                } else {
-                    toast("Cannot use the same Camera ID.", mLog.e);
-                    reformat = true;
-                }
-                if (isInteger(code.split("\n")[0], true)) {
-                    int min = Integer.parseInt(code.split("\n")[0]);
-                    setTestTime(min);
-                } else reformat = true;
-                if (reformat) {
-                    reformatConfigFile(file, config);
-                }
-            } else reformatConfigFile(file, config);
-        } else reformatConfigFile(file, config);
-    }
-
-    private boolean isCameraID(String f, String b) {
-        try {
-            if (Integer.parseInt(f) <= -1) {
-                toast("The Camera ID must be a positive number.", mLog.e);
-                return false;
-            } else {
-                boolean cameraID;
-                switch (Integer.parseInt(f)) {
-                    case 0:
-                    case 1:
-                    case 2:
-                        cameraID = true;
-                        break;
-                    default:
-                        cameraID = false;
-                        break;
-                }
-                if (!cameraID) {
-                    toast("The Camera ID is unknown.", mLog.e);
-                    return false;
-                }
-            }
-            if (Integer.parseInt(b) <= -1) {
-                toast("The Camera ID must be a positive number.", mLog.e);
-                return false;
-            } else {
-                boolean cameraID;
-                switch (Integer.parseInt(b)) {
-                    case 0:
-                    case 1:
-                    case 2:
-                        cameraID = true;
-                        break;
-                    default:
-                        cameraID = false;
-                        break;
-                }
-                if (!cameraID) {
-                    toast("The Camera ID is unknown.", mLog.e);
-                    return false;
-                }
-            }
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        } catch (NullPointerException e) {
-            return false;
-        }
-    }
-
-    private void reformatConfigFile(File file, String[] message) {
-        firstCamera = "0";
-        secondCamera = "1";
-        isFinish = 1;
-        toast("Config file error.", mLog.e);
-        writeConfigFile(file, message);
-        toast("Reformat the file.", mLog.e);
     }
 
     private boolean checkPermission() {
@@ -380,7 +224,7 @@ public class VideoRecordActivity extends Activity {
                     // 沒有權限
                     showPermission();
                     videoLogList.add(new LogMsg("#no permissions!", mLog.e));
-                    toast("No permissions!");
+                    toast(VideoRecordActivity.this, "No permissions!");
                 }
                 break;
             default:
@@ -430,14 +274,84 @@ public class VideoRecordActivity extends Activity {
         setloading(false);
         mListView = findViewById(R.id.list);
         mListView.setEnabled(false);
-        toast("Initial now.", mLog.v);
+        toast(VideoRecordActivity.this, "Initial now.", mLog.v);
         HandlerThread thread = new HandlerThread("CameraPreview");
         thread.start();
         backgroundHandler = new Handler(thread.getLooper());
         mainHandler = new Handler(getMainLooper());
         soundHandler = new Handler();
-        mStateCallback0 = new mCameraDeviceStatic(firstCamera);
-        mStateCallback1 = new mCameraDeviceStatic(secondCamera);
+        mStateCallback0 = new CameraDevice.StateCallback() {
+
+            public void onOpened(CameraDevice camera) {
+                if (!isReady) {
+                    // 打开摄像头
+                    Log.e(TAG, "onOpened");
+                    toast(VideoRecordActivity.this, "Camera " + firstCamera + " is opened.", mLog.i);
+                }
+                mCameraDevice0 = camera;
+                // 开启预览
+                takePreview(firstCamera);
+            }
+
+            public void onDisconnected(CameraDevice camera) {
+                camera.close();
+                // 关闭摄像头
+                Log.e(TAG, "onDisconnected");
+                toast(VideoRecordActivity.this, "Camera " + firstCamera + " is disconnected.", mLog.w);
+                if (null != mCameraDevice0) {
+                    mCameraDevice0.close();
+                    mCameraDevice0 = null;
+                }
+            }
+
+            public void onError(CameraDevice camera, int error) {
+                onDisconnected(camera);
+                // 前鏡頭開啟失敗
+                Log.e(TAG, "onError");
+                toast(VideoRecordActivity.this, "Open Camera " + firstCamera + " error.", mLog.e);
+                isError = true;
+            }
+        };
+        mStateCallback1 = new CameraDevice.StateCallback() {
+
+            public void onOpened(CameraDevice camera) {
+                if (!isReady) {
+                    // 打开摄像头
+                    Log.e(TAG, "onOpened");
+                    toast(VideoRecordActivity.this, "Camera " + secondCamera + " is opened.", mLog.i);
+                }
+                mCameraDevice1 = camera;
+                // 开启预览
+                takePreview(secondCamera);
+                if (!isReady) {
+                    isReady = true;
+                    demoHandler.obtainMessage().sendToTarget(); // playDEMO
+                    if (isError) {
+                        isFinish = 0;
+                        isLoop = true;
+                        runOnUiThread(() -> stopRecord(false));
+                    }
+                }
+            }
+
+            public void onDisconnected(CameraDevice camera) {
+                camera.close();
+                // 关闭摄像头
+                Log.e(TAG, "onDisconnected");
+                toast(VideoRecordActivity.this, "Camera " + secondCamera + " is disconnected.", mLog.w);
+                if (null != mCameraDevice1) {
+                    mCameraDevice1.close();
+                    mCameraDevice1 = null;
+                }
+            }
+
+            public void onError(CameraDevice camera, int error) {
+                onDisconnected(camera);
+                // 前鏡頭開啟失敗
+                Log.e(TAG, "onError");
+                toast(VideoRecordActivity.this, "Open Camera " + secondCamera + " error.", mLog.e);
+            }
+        };
         mTextureView0 = findViewById(R.id.surfaceView0);
         mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
         mTextureView1 = findViewById(R.id.surfaceView1);
@@ -499,7 +413,6 @@ public class VideoRecordActivity extends Activity {
         isRun++;
         videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
         videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")", mLog.v));
-        //TODO SETPROP
         int delay = 0;
 
         if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera)) {
@@ -508,14 +421,14 @@ public class VideoRecordActivity extends Activity {
             runOnUiThread(() -> setAdapter());
             mStateCallback0.onDisconnected(mCameraDevice0);
             mStateCallback1.onDisconnected(mCameraDevice1);
-            new Handler().post(() -> openCamera(firstCamera));
-            new Handler().post(() -> openCamera(secondCamera));
-            delay = 5000;
+            new Handler().postDelayed(() -> openCamera(firstCamera), delay);
+            new Handler().postDelayed(() -> openCamera(secondCamera), delay);
+            delay = 3000;
         }
 
+        new Handler().postDelayed(() -> new Thread(() -> startRecord(firstCamera)).start(), delay);
+        new Handler().postDelayed(() -> new Thread(() -> startRecord(secondCamera)).start(), delay);
         new Handler().postDelayed(() -> {
-            new Thread(() -> startRecord(firstCamera)).start();
-            new Thread(() -> startRecord(secondCamera)).start();
             runOnUiThread(() -> setAdapter());
             saveLog();
         }, delay);
@@ -534,13 +447,13 @@ public class VideoRecordActivity extends Activity {
             if (!file.exists()) {
                 try {
                     file.createNewFile();
-                    toast("Create the log file.", mLog.w);
+                    toast(VideoRecordActivity.this, "Create the log file.", mLog.w);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             } else {
                 logString = "";
-                //toast("Find the log file.", mLog.d);
+                //toast(VideoRecordActivity.this,"Find the log file.", mLog.d);
             }
 
             for (LogMsg logs : videoLogList) {
@@ -555,10 +468,10 @@ public class VideoRecordActivity extends Activity {
 
                 videoLogList.clear();
             } catch (IOException e) {
-                toast("write failed.", mLog.e);
+                toast(VideoRecordActivity.this, "write failed.", mLog.e);
             }
         } else {
-            toast("Please check the SD card.", mLog.e);
+            toast(VideoRecordActivity.this, "Please check the SD card.", mLog.e);
         }
     }
 
@@ -569,18 +482,18 @@ public class VideoRecordActivity extends Activity {
             mMediaRecorder0.stop();
             mMediaRecorder0.reset();
             mMediaRecorder0 = null;
-            toast("Record " + firstCamera + " finish.");
+            toast(VideoRecordActivity.this, "Record " + firstCamera + " finish.");
         }
         if (mMediaRecorder1 != null) {
             mMediaRecorder1.stop();
             mMediaRecorder1.reset();
             mMediaRecorder1 = null;
-            toast("Record " + secondCamera + " finish.");
+            toast(VideoRecordActivity.this, "Record " + secondCamera + " finish.");
         }
         if (mMediaPlayer != null) {
             if (mMediaPlayer.isPlaying()) {
                 mMediaPlayer.stop();
-                toast("MediaPlay is Stop.");
+                toast(VideoRecordActivity.this, "MediaPlay is Stop.");
             }
         }
         new Handler().post(() -> saveLog());
@@ -616,7 +529,7 @@ public class VideoRecordActivity extends Activity {
                 e.printStackTrace();
             }
         } else {
-            toast("playMusic not find.");
+            toast(VideoRecordActivity.this, "playMusic not find.");
             runOnUiThread(() -> setAdapter());
         }
     }
@@ -656,13 +569,13 @@ public class VideoRecordActivity extends Activity {
             mMediaRecorder0.reset();   // You can reuse the object by going back to setAudioSource() step
             //mMediaRecorder.release(); // Now the object cannot be reused
             mMediaRecorder0 = null;
-            toast("Record " + firstCamera + " finish.");
+            toast(VideoRecordActivity.this, "Record " + firstCamera + " finish.");
         }
         if (mMediaRecorder1 != null) {
             mMediaRecorder1.stop();
             mMediaRecorder1.reset();
             mMediaRecorder1 = null;
-            toast("Record " + secondCamera + " finish.");
+            toast(VideoRecordActivity.this, "Record " + secondCamera + " finish.");
         }
         if (!preview) {
             if (!isLoop) {
@@ -671,7 +584,7 @@ public class VideoRecordActivity extends Activity {
                 if (mMediaPlayer != null) {
                     if (mMediaPlayer.isPlaying()) {
                         mMediaPlayer.stop();
-                        toast("MediaPlay is Stop.");
+                        toast(VideoRecordActivity.this, "MediaPlay is Stop.");
                     }
                 }
             } else {
@@ -683,7 +596,7 @@ public class VideoRecordActivity extends Activity {
                     takeRecord(delayTime, false);
                 } else {
                     videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
-                    toast("#completed");
+                    toast(VideoRecordActivity.this, "#completed");
                     for (String f : firstFilePath)
                         fileCheck(f);
                     for (String s : secondFilePath)
@@ -695,7 +608,7 @@ public class VideoRecordActivity extends Activity {
                     firstFilePath.clear();
                     secondFilePath.clear();
                     takePreview();
-                    toast("#finish");
+                    toast(VideoRecordActivity.this, "#finish");
                     new Handler().post(() -> saveLog());
                     isLoop = false;
                     finish();
@@ -706,7 +619,7 @@ public class VideoRecordActivity extends Activity {
                 fileCheck(f);
             for (String s : secondFilePath)
                 fileCheck(s);
-            toast("Record is completed.");
+            toast(VideoRecordActivity.this, "Record is completed.");
             takePreview();
             new Handler().post(() -> saveLog());
             isLoop = false;
@@ -821,12 +734,12 @@ public class VideoRecordActivity extends Activity {
                             mPreviewSessions[0] = session;
                             setCaptureRequest(mPreviewBuilders, mPreviewSessions[0]);
                             new Thread(() -> (cameraId.equals(firstCamera) ? mMediaRecorder0 : mMediaRecorder1).start()).start();
-                            toast("Camera " + cameraId + " Is Recording Now.");
+                            toast(VideoRecordActivity.this, "Camera " + cameraId + " Is Recording Now.");
                         }
 
                         @Override
                         public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
-                            toast("Camera " + cameraId + " Record onConfigureFailed.", mLog.e);
+                            toast(VideoRecordActivity.this, "Camera " + cameraId + " Record onConfigureFailed.", mLog.e);
                         }
                     }, backgroundHandler);
         } catch (CameraAccessException e) {
@@ -846,7 +759,7 @@ public class VideoRecordActivity extends Activity {
                 video.delete();
             } else {
                 failed++;
-                toast("Video not find.", mLog.e);
+                toast(VideoRecordActivity.this, "Video not find.", mLog.e);
             }
         }
     }
@@ -880,9 +793,9 @@ public class VideoRecordActivity extends Activity {
         long sdAvailSize = stat.getAvailableBlocksLong()
                 * stat.getBlockSizeLong();
         double gigaAvailable = (sdAvailSize / 1073741824);
-        // toast("SD Free Space:" + gigaAvailable);
+        // toast(VideoRecordActivity.this,"SD Free Space:" + gigaAvailable);
         if (gigaAvailable < 3.5) { //TODO need 3.5Gb
-            toast("SD Card(" + gigaAvailable + "gb) is Full.");
+            toast(VideoRecordActivity.this, "SD Card(" + gigaAvailable + "gb) is Full.");
 //            runOnUiThread(() -> stopRecord(false));
             ArrayList<String> tmp = new ArrayList();
             File[] fileList = new File(filePath).listFiles();
@@ -916,9 +829,9 @@ public class VideoRecordActivity extends Activity {
         long sdAvailSize = stat.getAvailableBlocksLong()
                 * stat.getBlockSizeLong();
         int gigaAvailable = (int) (sdAvailSize / 1073741824);
-        // toast("SD Free Space:" + gigaAvailable);
+        // toast(VideoRecordActivity.this,"SD Free Space:" + gigaAvailable);
         if (gigaAvailable < 3) {
-            toast("SD Card(" + gigaAvailable + "gb) is Full.");
+            toast(VideoRecordActivity.this, "SD Card(" + gigaAvailable + "gb) is Full.");
             runOnUiThread(() -> stopRecord(false));
             ArrayList<String> tmp = new ArrayList();
             delete(firstFilePath.get(0), false);
@@ -984,12 +897,12 @@ public class VideoRecordActivity extends Activity {
         if (mMediaPlayer != null) {
             if (mMediaPlayer.isPlaying()) {
                 mMediaPlayer.stop();
-                toast("MediaPlay is Stop.");
+                toast(VideoRecordActivity.this, "MediaPlay is Stop.");
             }
         }
     }
 
-    protected void takePreview(String cameraId) {
+    private void takePreview(String cameraId) {
         Log.d(TAG, "takePreview");
         videoLogList.add(new LogMsg("Preview " + cameraId + " Camera.", mLog.i));
 
@@ -1049,16 +962,6 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private void toast(String t, mLog type) {
-        videoLogList.add(new LogMsg(t, type));
-        runOnUiThread(() -> Toast.makeText(this, t + "", Toast.LENGTH_SHORT).show());
-    }
-
-    private void toast(String t) {
-        videoLogList.add(new LogMsg(t, mLog.i));
-        runOnUiThread(() -> Toast.makeText(this, t + "", Toast.LENGTH_SHORT).show());
-    }
-
     private void setAdapter() {
         if (videoLogList.size() != 0) {
             mListView.setAdapter(new mListAdapter(this, videoLogList));
@@ -1068,60 +971,6 @@ public class VideoRecordActivity extends Activity {
 
     private boolean isCameraOne(String cameraId) {
         return cameraId.equals(firstCamera);
-    }
-
-    private class mCameraDeviceStatic extends CameraDevice.StateCallback {
-
-        private String mCameraID;
-
-        public mCameraDeviceStatic(String mCameraID) {
-            this.mCameraID = mCameraID;
-        }
-
-        public void onOpened(CameraDevice camera) {
-            if (!isReady) {
-                // 打开摄像头
-                Log.e(TAG, "onOpened");
-                toast("Camera " + mCameraID + " is opened.", mLog.i);
-            }
-            if (isCameraOne(mCameraID))
-                mCameraDevice0 = camera;
-            else
-                mCameraDevice1 = camera;
-            // 开启预览
-            takePreview(mCameraID);
-            if (!isCameraOne(mCameraID) && !isReady) {
-                isReady = true;
-                demoHandler.obtainMessage().sendToTarget(); // playDEMO
-                if (isError) {
-                    isFinish = 0;
-                    isLoop = true;
-                    runOnUiThread(() -> stopRecord(false));
-                }
-            }
-        }
-
-        public void onDisconnected(CameraDevice camera) {
-            camera.close();
-            // 关闭摄像头
-            Log.e(TAG, "onDisconnected");
-            toast("Camera " + mCameraID + " is disconnected.", mLog.w);
-            if (null != (isCameraOne(mCameraID) ? mCameraDevice0 : mCameraDevice1)) {
-                (isCameraOne(mCameraID) ? mCameraDevice0 : mCameraDevice1).close();
-                if (isCameraOne(mCameraID))
-                    mCameraDevice0 = null;
-                else
-                    mCameraDevice1 = null;
-            }
-        }
-
-        public void onError(CameraDevice camera, int error) {
-            onDisconnected(camera);
-            // 前鏡頭開啟失敗
-            Log.e(TAG, "onError");
-            toast("Open Camera " + mCameraID + " error.", mLog.e);
-            isError = true;
-        }
     }
 
     private class mSurfaceTextureListener implements TextureView.SurfaceTextureListener {
@@ -1178,10 +1027,10 @@ public class VideoRecordActivity extends Activity {
                                     new Handler().post(() -> openCamera(firstCamera));
                                     new Handler().post(() -> openCamera(secondCamera));
                                 } else {
-                                    toast("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e);
+                                    toast(VideoRecordActivity.this, "getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e);
                                 }
                             } else {
-                                toast("getFrameSkip error, fs == null.", mLog.e);
+                                toast(VideoRecordActivity.this, "getFrameSkip error, fs == null.", mLog.e);
                             }
                             setloading(false);
                         });

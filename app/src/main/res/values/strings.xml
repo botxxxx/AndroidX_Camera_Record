@@ -13,21 +13,24 @@
         8.VideoRecordConfig.ini 解析失敗或檔案不存在時重置檔案
         9.VideoRecordLog.ini 不存在時重置檔案
     [v1.1.0]
-        1.add setProp, getProp
-        2.move function to Utils.class
+        1.add setProp, getProp.
+        2.move function to Utils.class.
     [v1.1.1]
-        1.fix some error
-        2.add auto change camera device with config.ini
+        1.fix some error.
+        2.add auto change camera device with config.ini.
     [v1.2.0]
-        1.optimize user experience on takerecord function
-        2.fix reset framerate change error
-        3.add framerate switch options
-        4.the framerate switch will update on camera preview
-        5.show loadingView on framerate switch
+        1.optimize user experience on takerecord function.
+        2.fix reset framerate change error.
+        3.add framerate switch options.
+        4.the framerate switch will update on camera preview.
+        5.show loadingView on framerate switch.
     [v1.2.1]
-        1.fix deletefile and checkfile error
+        1.fix deletefile and checkfile error.
     [v1.2.2]
-        1.disable setprop function for the default devices
+        1.disable setprop function for the default devices.
+    [v1.2.3]
+        1.fix the problem with takeRecord change CameraDevice will crash error.
+        *you can change CameraDevice on application running.
     -->
 
     <string name="title_activity_video_record">VideoRecordActivity</string>
