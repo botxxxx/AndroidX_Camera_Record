@@ -91,7 +91,7 @@
                         <ProgressBar
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="@drawable/progress_bg" />
+                            android:background="@drawable/bg_green_dark" />
 
                         <Button
                             android:layout_width="match_parent"
@@ -127,36 +127,46 @@
                     android:layout_marginRight="50dp"
                     android:background="@color/gone"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/cancel"
+                    android:src="@drawable/ic_cancel"
                     android:tint="@color/orange" />
 
                 <ImageButton
                     android:id="@+id/volume_down"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
+                    android:layout_marginRight="50dp"
                     android:background="@color/gone"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/volume_down"
+                    android:src="@drawable/ic_volume_down"
                     android:tint="@color/orange" />
 
                 <ImageButton
                     android:id="@+id/record"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
-                    android:layout_marginLeft="50dp"
                     android:layout_marginRight="50dp"
                     android:background="@color/gone"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/record"
+                    android:src="@drawable/ic_record"
                     android:tint="@color/orange" />
 
                 <ImageButton
                     android:id="@+id/volume_up"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
+                    android:layout_marginRight="50dp"
                     android:background="@color/gone"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/volume_up"
+                    android:src="@drawable/ic_volume_up"
+                    android:tint="@color/orange" />
+
+                <ImageButton
+                    android:id="@+id/setting"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@color/gone"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_settings"
                     android:tint="@color/orange" />
             </TableRow>
         </LinearLayout>

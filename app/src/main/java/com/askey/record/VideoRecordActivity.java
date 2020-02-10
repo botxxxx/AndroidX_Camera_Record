@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -35,6 +36,7 @@ import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import com.askey.widget.CustomPageTransformer;
@@ -75,12 +77,13 @@ import static com.askey.record.Utils.getFrameRate;
 import static com.askey.record.Utils.getSDCardPath;
 import static com.askey.record.Utils.getSuccessful;
 import static com.askey.record.Utils.getVideo;
-import static com.askey.record.Utils.isDefault;
+import static com.askey.record.Utils.isBoolean;
 import static com.askey.record.Utils.isError;
 import static com.askey.record.Utils.isFinish;
 import static com.askey.record.Utils.isFrame;
 import static com.askey.record.Utils.isInteger;
 import static com.askey.record.Utils.isLoop;
+import static com.askey.record.Utils.isNew;
 import static com.askey.record.Utils.isQuality;
 import static com.askey.record.Utils.isReady;
 import static com.askey.record.Utils.isRecord;
@@ -90,6 +93,7 @@ import static com.askey.record.Utils.lastsecondCamera;
 import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.secondCamera;
 import static com.askey.record.Utils.secondFilePath;
+import static com.askey.record.Utils.setConfigFile;
 import static com.askey.record.Utils.successful;
 import static com.askey.record.Utils.toast;
 import static com.askey.record.Utils.videoLogList;
@@ -105,6 +109,7 @@ public class VideoRecordActivity extends Activity {
     private CaptureRequest.Builder mPreviewBuilder0, mPreviewBuilder1;
     private MediaRecorder mMediaRecorder0, mMediaRecorder1;
     private ListView mListView;
+    private AlertDialog dialog;
     private Handler mainHandler, backgroundHandler, soundHandler, demoHandler;
     private MediaPlayer mMediaPlayer;
     private Runnable sound = new Runnable() {
@@ -189,7 +194,7 @@ public class VideoRecordActivity extends Activity {
                 // -> adb shell su 0 getprop persist.our.camera.frameskip
 //                OurSystemProperties.set(FRAMESKIP, "0"); //*lib(com.our.sdk).jar
 //                SystemProperties.set(FRAMESKIP, "0"); //*lib(layoutlib).jar
-                if (!isDefault) PropertyUtils.set(FRAMESKIP, "0"); //*reflection invoke
+                if (isNew) PropertyUtils.set(FRAMESKIP, "0"); //*reflection invoke
 //                CommandUtil.executed("setprop "+FRAMESKIP+" 0"); //*not work
                 setStart();
             } else finish();
@@ -247,8 +252,8 @@ public class VideoRecordActivity extends Activity {
         ArrayList<View> items_frame = new ArrayList();
         ArrayList<View> items_quality = new ArrayList();
         for (String frame : new ArrayList<>(Arrays.asList( // or "3.9fps", "3.4fps", "1.7fps", "0.8fps"
-                isDefault ? new String[]{"27.5fps", "16fps"} :
-                        new String[]{"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"}))) {
+                isNew ? new String[]{"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"} :
+                        new String[]{"27.5fps", "16fps"}))) {
             View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
             CustomTextView item = vi.findViewById(R.id.customTextView);
             item.setText(frame);
@@ -372,6 +377,38 @@ public class VideoRecordActivity extends Activity {
         findViewById(R.id.volume_up).setOnClickListener((View v) ->
                 runOnUiThread(() -> audio.adjustStreamVolume(AudioManager.STREAM_MUSIC,
                         AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI)));
+        findViewById(R.id.setting).setOnClickListener((View v) -> {
+            View view = LayoutInflater.from(this).inflate(R.layout.layout_setprop, null);
+            view.findViewById(R.id.prop_button_1).setOnClickListener((View vs) -> { // reset
+                firstCamera = "0";
+                secondCamera = "1";
+                isFinish = 1;
+                isNew = false;
+                getSetting(view.findViewById(R.id.prop_editText_1), view.findViewById(R.id.prop_editText_2),
+                        view.findViewById(R.id.prop_editText_3), view.findViewById(R.id.prop_editText_4));
+            });
+            view.findViewById(R.id.prop_button_2).setOnClickListener((View vs) -> { // cancel
+                dialog.dismiss();
+            });
+            view.findViewById(R.id.prop_button_3).setOnClickListener((View vs) -> { // ok
+                String editText_1 = ((EditText) view.findViewById(R.id.prop_editText_1)).getText().toString();
+                String editText_2 = ((EditText) view.findViewById(R.id.prop_editText_2)).getText().toString();
+                String editText_3 = ((EditText) view.findViewById(R.id.prop_editText_3)).getText().toString();
+                setConfigFile(this, new File(getSDCardPath(), fileName), editText_1, editText_2, editText_3);
+                String editText_4 = ((EditText) view.findViewById(R.id.prop_editText_4)).getText().toString();
+                if (isBoolean(editText_4)) {
+                    isNew = Boolean.parseBoolean(editText_4);
+                } else {
+                    toast(this, "setProperty is Failed.", mLog.e);
+                }
+                getSetting(view.findViewById(R.id.prop_editText_1), view.findViewById(R.id.prop_editText_2),
+                        view.findViewById(R.id.prop_editText_3), view.findViewById(R.id.prop_editText_4));
+                dialog.dismiss();
+            });
+            getSetting(view.findViewById(R.id.prop_editText_1), view.findViewById(R.id.prop_editText_2),
+                    view.findViewById(R.id.prop_editText_3), view.findViewById(R.id.prop_editText_4));
+            dialog = new AlertDialog.Builder(this).setView(view).setCancelable(true).show();
+        });
         findViewById(R.id.loadingView).setVisibility(View.INVISIBLE);
         filePath = getSDCardPath();
         firstFilePath = new ArrayList();
@@ -403,6 +440,13 @@ public class VideoRecordActivity extends Activity {
                 }, 1500);
             }
         };
+    }
+
+    private void getSetting(EditText editText1, EditText editText2, EditText editText3, EditText editText4) {
+        editText1.setText(firstCamera);
+        editText2.setText(secondCamera);
+        editText3.setText(isFinish + "");
+        editText4.setText(isNew + "");
     }
 
     private void setloading(boolean visible) {
@@ -637,7 +681,7 @@ public class VideoRecordActivity extends Activity {
                     TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)));
             convertSeconds = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(duration) -
                     TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
-            double[] range = isDefault ? new double[]{27.5, 16} : new double[]{27.5, 13.7, 9.1, 6.8, 5.5, 4.5};
+            double[] range = isNew ? new double[]{27.5, 13.7, 9.1, 6.8, 5.5, 4.5} : new double[]{27.5, 16};
             boolean check = false;
             if (duration != 0) {
                 if (framerate >= range[isFrame]) {
@@ -879,7 +923,7 @@ public class VideoRecordActivity extends Activity {
             mediaRecorder.setAudioSamplingRate(profile.audioSampleRate);
         }
         /*设置要捕获的视频的帧速率*/ // default is 24.6
-        mediaRecorder.setVideoFrameRate(isFrame == 1 && isDefault ? 10 : 27); // 1 -> 12fps, 10 -> 16fps
+        mediaRecorder.setVideoFrameRate(isFrame == 1 && !isNew ? 10 : 27); // 1 -> 12fps, 10 -> 16fps
         // Step 4: Set output file
         mediaRecorder.setOutputFile(file);
         // Step 5: Prepare configured MediaRecorder
@@ -1012,7 +1056,7 @@ public class VideoRecordActivity extends Activity {
             switch (pos) {
                 case 0:
                     isFrame = position;
-                    if (!isDefault) {
+                    if (isNew) {
                         setloading(true);
                         new Handler().post(() -> {
                             String getFrameSkip = PropertyUtils.get(FRAMESKIP);

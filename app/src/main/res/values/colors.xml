@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
+    <color name="wine">#D81B60</color>
     <color name="orange">#FF6C3F</color>
     <color name="green_dark">#009D3C</color>
     <color name="gray_dark">#707070</color>

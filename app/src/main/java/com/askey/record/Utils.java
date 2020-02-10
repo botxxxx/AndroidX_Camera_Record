@@ -38,28 +38,6 @@ public class Utils {
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String fileName = "VideoRecordConfig.ini";
     public static final String logName = "VideoRecordLog.ini";
-    public static final String[] config = {
-            "[VIDEO_RECORD_TESTING]\r\n",
-            "#CameraID(0:BACK, 1:FRONT, 2:EXTERNAL)\r\n",
-            "firstCameraID = 0\r\n",
-            "secondCameraID = 1\r\n", "\r\n",
-            "#Camera Device total minute: one day has minutes(*10) = 144\r\n",
-            "total_test_minute = 1\r\n", "\r\n",
-            "#Play video path(can't change video path)\r\n",
-            "video1_path = /sdcard/(ddhhmmss)f.mp4\r\n",
-            "video2_path = /sdcard/(ddhhmmss)b.mp4\r\n", "\r\n",
-            "#Start application\r\n",
-            "adb shell am start -n com.askey.record/.VideoRecordActivity\r\n", "\r\n",
-            "#Start test record(no audio with 5s)\r\n",
-            "adb shell am broadcast -a com.askey.record.t\r\n", "\r\n",
-            "#Start/Stop record(default is 10 min)\r\n",
-            "adb shell am broadcast -a com.askey.record.s\r\n", "\r\n",
-            "#Finish applcation\r\n",
-            "adb shell am broadcast -a com.askey.record.f\r\n", "\r\n",
-            "#At least 3.5Gb memory needs to be available to record, \r\n",
-            "#Please check the SD card.\r\n",
-//            "#Frame rate switch will delay 3s to restart the camera device. \r\n", "\r\n"
-    };
     public static int isRun = 0, successful = 0, failed = 0;
     public static String TAG = "VideoRecord";
     public static String firstCamera = "0";
@@ -69,7 +47,7 @@ public class Utils {
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList;
     public static int isFinish = 1, delayTime = 600000, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isLoop = false, isError = false, isDefault = true;
+    public static boolean isReady = false, isRecord = false, isLoop = false, isError = false, isNew = false;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -113,6 +91,18 @@ public class Utils {
         return true;
     }
 
+    public static boolean isBoolean(String s) {
+        try {
+            if (Boolean.parseBoolean(s)) {
+                return true;
+            }
+        } catch (NumberFormatException e) {
+            return false;
+        } catch (NullPointerException e) {
+            return false;
+        }
+        return true;
+    }
 
     public static void setTestTime(Context context, int min) {
         if (min > 0) {
@@ -134,7 +124,7 @@ public class Utils {
                     e.printStackTrace();
                 }
                 toast(context, "Create the config file.", mLog.w);
-                writeConfigFile(context, file, config);
+                writeConfigFile(context, file, new Configini().config());
             } else {
                 if (!isRecord) {
                     toast(context, "Find the config file.", mLog.d);
@@ -201,10 +191,10 @@ public class Utils {
                     setTestTime(context, min);
                 } else reformat = true;
                 if (reformat) {
-                    reformatConfigFile(context, file, config);
+                    reformatConfigFile(context, file, new Configini().config());
                 }
-            } else reformatConfigFile(context, file, config);
-        } else reformatConfigFile(context, file, config);
+            } else reformatConfigFile(context, file, new Configini().config());
+        } else reformatConfigFile(context, file, new Configini().config());
     }
 
     public static boolean isCameraID(Context context, String f, String b) {
@@ -255,6 +245,20 @@ public class Utils {
         } catch (NullPointerException e) {
             return false;
         }
+    }
+
+    public static void setConfigFile(Context context, File file, String camera1, String camera2, String fin) {
+        firstCamera = camera1;
+        secondCamera = camera2;
+        if (isInteger(fin, false))
+            isFinish = Integer.parseInt(fin);
+        else {
+            isFinish = 1;
+        }
+
+        toast(context, "Ready to write.", mLog.e);
+        writeConfigFile(context, file, new Configini(firstCamera, secondCamera, isFinish).config());
+        toast(context, "Write file is completed.", mLog.e);
     }
 
     public static void reformatConfigFile(Context context, File file, String[] message) {
