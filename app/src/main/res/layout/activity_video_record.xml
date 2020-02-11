@@ -2,7 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".VideoRecordActivity">
+    tools:context=".VideoRecordActivity"
+    tools:ignore="Autofill,ButtonStyle,ContentDescription,HardcodedText,NestedWeights,RtlHardcoded,UselessParent">
 
     <TextureView
         android:id="@+id/surfaceView0"
@@ -39,20 +40,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <ListView
-                    android:id="@+id/list"
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:divider="@color/gone"
-                    android:dividerHeight="0px" />
-            </TableRow>
+                    android:layout_height="match_parent">
 
-            <Button
-                android:id="@+id/surfaceBackground"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/gone" />
+                    <ListView
+                        android:id="@+id/list"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:divider="@color/gone"
+                        android:dividerHeight="0px" />
+
+                    <Button
+                        android:id="@+id/listBackground"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/gone" />
+                </RelativeLayout>
+            </TableRow>
         </RelativeLayout>
 
         <LinearLayout

@@ -5,15 +5,17 @@ public class Configini {
     protected String firstCamera = "0";
     protected String secondCamera = "1";
     protected int isFinish = 1;
+    protected boolean isNew = false;
 
     public Configini(){
 
     }
 
-    public Configini(String firstCamera, String secondCamera , int isFinish){
+    public Configini(String firstCamera, String secondCamera, int isFinish, boolean isNew) {
         this.firstCamera = firstCamera;
         this.secondCamera = secondCamera;
         this.isFinish = isFinish;
+        this.isNew = isNew;
     }
 
     protected String[] config() {
@@ -24,6 +26,8 @@ public class Configini {
                 "secondCameraID = "+secondCamera+"\r\n", "\r\n",
                 "#Camera Device total minute: one day has minutes(*10) = 144\r\n",
                 "total_test_minute = "+isFinish+"\r\n", "\r\n",
+                "#Set Property\r\n",
+                "setprop = " + isNew + "\r\n", "\r\n",
                 "#Play video path(can't change video path)\r\n",
                 "video1_path = /sdcard/(ddhhmmss)f.mp4\r\n",
                 "video2_path = /sdcard/(ddhhmmss)b.mp4\r\n", "\r\n",
@@ -37,7 +41,7 @@ public class Configini {
                 "adb shell am broadcast -a com.askey.record.f\r\n", "\r\n",
                 "#At least 3.5Gb memory needs to be available to record, \r\n",
                 "#Please check the SD card.\r\n",
-//            "#Frame rate switch will delay 3s to restart the camera device. \r\n", "\r\n"
+                "#Frame rate switch will delay 3s to restart the camera device. \r\n", "\r\n"
         };
     }
 }

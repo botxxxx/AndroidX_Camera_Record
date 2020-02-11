@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="app_name">CDR9020_QTR(v1.2.2)</string>
+    <string name="app_name">CDR9020_QTR(v1.3.0)</string>
 
     <!--
     [CDR9020_QTR_v1.0.0]
@@ -31,6 +31,11 @@
     [v1.2.3]
         1.fix the problem with takeRecord change CameraDevice will crash error.
         *you can change CameraDevice on application running.
+    [v1.3.0]
+        1.add Setting Dialog, Log Dialog.
+        2.add setprop item in Config.ini. (if you used the new-9020 system.img)
+        3.fix error.
+        *you can change CameraDevice and Review log with DialogView.
     -->
 
     <string name="title_activity_video_record">VideoRecordActivity</string>

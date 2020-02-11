@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Surface;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.askey.widget.LogMsg;
@@ -36,7 +38,7 @@ public class Utils {
     public static final String COMMAND_VIDEO_RECORD_STARTa = "com.askey.record.S";
     public static final String COMMAND_VIDEO_RECORD_FINISHa = "com.askey.record.F";
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
-    public static final String fileName = "VideoRecordConfig.ini";
+    public static final String configName = "VideoRecordConfig.ini";
     public static final String logName = "VideoRecordLog.ini";
     public static int isRun = 0, successful = 0, failed = 0;
     public static String TAG = "VideoRecord";
@@ -116,7 +118,7 @@ public class Utils {
     public static boolean checkConfigFile(Context context, boolean first) {
         videoLogList.add(new LogMsg("#checkConfigFile", mLog.v));
         if (!"".equals(getSDCardPath())) {
-            File file = new File(getSDCardPath(), fileName);
+            File file = new File(getSDCardPath(), configName);
             if (!file.exists()) {
                 try {
                     file.createNewFile();
@@ -130,7 +132,7 @@ public class Utils {
                     toast(context, "Find the config file.", mLog.d);
                     videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
                 }
-                checkConfigFile(context, new File(getSDCardPath(), fileName), first);
+                checkConfigFile(context, new File(getSDCardPath(), configName), first);
             }
             return true;
         } else {
@@ -139,41 +141,55 @@ public class Utils {
         return false;
     }
 
+    public static void checkLogFile(Context context, File file, ArrayList list) {
+        String input = readConfigFile(context, file);
+        if (input.length() > 0) {
+            List<String> read = Arrays.asList(input.split("\r\n"));
+            for (String s : read)
+                list.add(s);
+        }
+    }
+
     public static void checkConfigFile(Context context, File file, boolean firstOne) {
         String input = readConfigFile(context, file);
         if (input.length() > 0) {
             List<String> read = Arrays.asList(input.split("\r\n"));
-            boolean target = false;
-            int t;
-            String code = "total_test_minute = ";
+            int target = 0, t;
             String first = "firstCameraID = ", second = "secondCameraID = ";
-//            String s = read.get(2);
+            String code = "total_test_minute = ", prop = "setprop = ";
+
             for (String s : read)
                 if (s.indexOf(first) != -1) {
-                    target = true;
+                    target++;
                     t = s.indexOf(first) + first.length();
                     first = s.substring(t);
                     toast(context, "firstCameraID: " + first);
                     break;
                 }
-//            s = read.get(3);
             for (String s : read)
                 if (s.indexOf(second) != -1) {
-                    target = true;
+                    target++;
                     t = s.indexOf(second) + second.length();
                     second = s.substring(t);
                     toast(context, "secondCameraID: " + second);
                     break;
                 }
-//            s = read.get(6);
             for (String s : read)
                 if (s.indexOf(code) != -1) {
-                    target = true;
+                    target++;
                     t = s.indexOf(code) + code.length();
                     code = s.substring(t);
                     break;
                 }
-            if (target) {
+
+            for (String s : read)
+                if (s.indexOf(prop) != -1) {
+                    target++;
+                    t = s.indexOf(prop) + prop.length();
+                    prop = s.substring(t);
+                    break;
+                }
+            if (target == 4) {
                 boolean reformat = false;
                 if (!first.equals(second)) {
                     if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {
@@ -190,6 +206,11 @@ public class Utils {
                     int min = Integer.parseInt(code.split("\n")[0]);
                     setTestTime(context, min);
                 } else reformat = true;
+                if (isBoolean(prop)) {
+                    isNew = Boolean.parseBoolean(prop);
+                } else {
+                    isNew = false;
+                }
                 if (reformat) {
                     reformatConfigFile(context, file, new Configini().config());
                 }
@@ -247,17 +268,31 @@ public class Utils {
         }
     }
 
-    public static void setConfigFile(Context context, File file, String camera1, String camera2, String fin) {
-        firstCamera = camera1;
-        secondCamera = camera2;
-        if (isInteger(fin, false))
-            isFinish = Integer.parseInt(fin);
-        else {
-            isFinish = 1;
+    public static void setConfigFile(Context context, File file, View view, boolean reset) {
+        String editText_1, editText_2, editText_3, editText_4;
+        editText_1 = ((EditText) view.findViewById(R.id.dialog_editText_1)).getText().toString();
+        editText_2 = ((EditText) view.findViewById(R.id.dialog_editText_2)).getText().toString();
+        editText_3 = ((EditText) view.findViewById(R.id.dialog_editText_3)).getText().toString();
+        editText_4 = ((EditText) view.findViewById(R.id.dialog_editText_4)).getText().toString();
+        int isFinish = 1;
+        boolean isNew = false;
+
+        if (!reset) {
+            if (isInteger(editText_3, false))
+                isFinish = Integer.parseInt(editText_3);
+            else {
+                isFinish = 1;
+            }
+            if (isBoolean(editText_4)) {
+                isNew = Boolean.parseBoolean(editText_4);
+            } else {
+                isNew = false;
+            }
         }
 
         toast(context, "Ready to write.", mLog.e);
-        writeConfigFile(context, file, new Configini(firstCamera, secondCamera, isFinish).config());
+        writeConfigFile(context, file, (
+                !reset ? new Configini(editText_1, editText_2, isFinish, isNew) : new Configini()).config());
         toast(context, "Write file is completed.", mLog.e);
     }
 

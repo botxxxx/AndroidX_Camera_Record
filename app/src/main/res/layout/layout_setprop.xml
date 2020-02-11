@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layout_prop"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_dialog"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:padding="5dp"
+    tools:ignore="Autofill,ButtonStyle,HardcodedText,RtlHardcoded,UselessParent">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,7 +20,6 @@
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginTop="10dp"
-            android:layout_marginBottom="3dp"
             android:background="@drawable/bg_rounded_white"
             android:gravity="center">
 
@@ -32,13 +34,15 @@
                 android:textSize="16sp" />
 
             <EditText
-                android:id="@+id/prop_editText_1"
+                android:id="@+id/dialog_editText_1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
                 android:background="@color/white"
+                android:digits="012"
                 android:hint="0"
                 android:inputType="number"
+                android:maxLength="1"
                 android:singleLine="true"
                 android:text="0"
                 android:textColor="@android:color/black"
@@ -63,13 +67,15 @@
                 android:textSize="16sp" />
 
             <EditText
-                android:id="@+id/prop_editText_2"
+                android:id="@+id/dialog_editText_2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
                 android:background="@color/white"
+                android:digits="012"
                 android:hint="1"
                 android:inputType="number"
+                android:maxLength="1"
                 android:singleLine="true"
                 android:text="1"
                 android:textColor="@android:color/black"
@@ -94,7 +100,7 @@
                 android:textSize="16sp" />
 
             <EditText
-                android:id="@+id/prop_editText_3"
+                android:id="@+id/dialog_editText_3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
@@ -141,7 +147,8 @@
             android:layout_height="40dp"
             android:layout_marginTop="10dp"
             android:background="@drawable/bg_rounded_white"
-            android:gravity="center">
+            android:gravity="center"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -150,8 +157,7 @@
                 android:layout_marginRight="10dp"
                 android:text="video2_path:"
                 android:textColor="@android:color/black"
-                android:textSize="16sp"
-                android:visibility="gone" />
+                android:textSize="16sp" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -181,12 +187,13 @@
                 android:textSize="16sp" />
 
             <EditText
-                android:id="@+id/prop_editText_4"
+                android:id="@+id/dialog_editText_4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
                 android:background="@color/white"
                 android:hint="false"
+                android:inputType="text"
                 android:singleLine="true"
                 android:text="false"
                 android:textColor="@android:color/black"
@@ -200,7 +207,7 @@
             android:layout_marginTop="5dp">
 
             <Button
-                android:id="@+id/prop_button_1"
+                android:id="@+id/dialog_button_1"
                 android:layout_width="60dp"
                 android:layout_height="40dp"
                 android:layout_alignParentLeft="true"
@@ -215,7 +222,7 @@
                 android:layout_alignParentRight="true">
 
                 <Button
-                    android:id="@+id/prop_button_2"
+                    android:id="@+id/dialog_button_2"
                     android:layout_width="60dp"
                     android:layout_height="40dp"
                     android:background="@drawable/bg_rounded_wine"
@@ -225,7 +232,7 @@
                     android:textSize="13sp" />
 
                 <Button
-                    android:id="@+id/prop_button_3"
+                    android:id="@+id/dialog_button_3"
                     android:layout_width="60dp"
                     android:layout_height="40dp"
                     android:layout_marginLeft="15dp"

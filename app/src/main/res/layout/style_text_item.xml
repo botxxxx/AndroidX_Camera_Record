@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    tools:ignore="Autofill,ButtonStyle,ContentDescription,HardcodedText,NestedWeights,RtlHardcoded,UselessParent">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -9,12 +12,13 @@
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp">
 
-        <TextView
-            android:id="@+id/customMessage"
+        <com.askey.widget.CustomTextView
+            android:id="@+id/customTextView"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:text="message"
             android:textColor="@color/white"
-            android:textSize="21sp" />
+            android:textSize="21sp"
+            app:customFont="SF-Pro-Display-Regular.ttf" />
     </RelativeLayout>
 </RelativeLayout>
