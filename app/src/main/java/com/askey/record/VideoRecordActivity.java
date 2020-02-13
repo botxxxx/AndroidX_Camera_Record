@@ -724,10 +724,12 @@ public class VideoRecordActivity extends Activity {
                 } else {
                     videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
                     toast(VideoRecordActivity.this, "#completed");
-                    for (String f : firstFilePath)
-                        fileCheck(f);
-                    for (String s : secondFilePath)
-                        fileCheck(s);
+                    if (firstFilePath.size() < 3)
+                        for (String f : firstFilePath)
+                            fileCheck(f);
+                    if (secondFilePath.size() < 3)
+                        for (String s : secondFilePath)
+                            fileCheck(s);
                     if (isFinish > 1) {
                         delete(firstFilePath.get(1), false);
                         delete(secondFilePath.get(1), false);
