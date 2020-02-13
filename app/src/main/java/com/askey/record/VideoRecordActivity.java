@@ -539,7 +539,9 @@ public class VideoRecordActivity extends Activity {
     private void takeRecord(int delayMillis, boolean preview) {
         isRun++;
         videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
-        videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")", mLog.v));
+        videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")" + " FrameRate:" + (isNew ?
+                new String[]{"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"} :
+                new String[]{"27.5fps", "16fps"}[isFrame]), mLog.v));
         int delay = 0;
 
         if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera)) {
@@ -1008,7 +1010,7 @@ public class VideoRecordActivity extends Activity {
             mediaRecorder.setAudioSamplingRate(profile.audioSampleRate);
         }
         /*设置要捕获的视频的帧速率*/ // default is 24.6
-        mediaRecorder.setVideoFrameRate(isFrame == 1 && !isNew ? 10 : 27); // 1 -> 12fps, 10 -> 16fps
+        mediaRecorder.setVideoFrameRate(!isNew ? isFrame == 1 ? 10 : 28 : 27); // 1 -> 12fps, 10 -> 16fps
         // Step 4: Set output file
         mediaRecorder.setOutputFile(file);
         // Step 5: Prepare configured MediaRecorder

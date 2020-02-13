@@ -24,7 +24,7 @@ public class Configini {
                 "#CameraID(0:BACK, 1:FRONT, 2:EXTERNAL)\r\n",
                 "firstCameraID = "+firstCamera+"\r\n",
                 "secondCameraID = "+secondCamera+"\r\n", "\r\n",
-                "#Camera Device total minute: one day has minutes(*10) = 144\r\n",
+                "#Camera Device total minute: one day has minutes(*10) = 144 = one day\r\n",
                 "total_test_minute = "+isFinish+"\r\n", "\r\n",
                 "#Set Property\r\n",
                 "setprop = " + isNew + "\r\n", "\r\n",
