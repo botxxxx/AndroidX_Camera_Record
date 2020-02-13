@@ -1,0 +1,4 @@
+key store path: app/libs/debug.keystore
+key store password: android
+key alias: platform
+key password: android
