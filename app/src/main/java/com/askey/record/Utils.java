@@ -150,8 +150,9 @@ public class Utils {
         }
     }
 
-    public static void checkConfigFile(Context context, File file, boolean firstOne) {
+    public static boolean[] checkConfigFile(Context context, File file, boolean firstOne) {
         String input = readConfigFile(context, file);
+        boolean reformat = true, isCameraChange = false, isPropChange = false;
         if (input.length() > 0) {
             List<String> read = Arrays.asList(input.split("\r\n"));
             int target = 0, t;
@@ -190,14 +191,21 @@ public class Utils {
                     break;
                 }
             if (target == 4) {
-                boolean reformat = false;
+                reformat = false;
                 if (!first.equals(second)) {
                     if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {
                         lastfirstCamera = firstOne ? first : firstCamera;
                         lastsecondCamera = firstOne ? second : secondCamera;
                         firstCamera = first;
                         secondCamera = second;
-                    } else reformat = true;
+                        if (!firstOne)
+                            if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera))
+                                isCameraChange = true;
+                        // toast(context, lastfirstCamera + "," + firstCamera + "," + lastsecondCamera + "," + secondCamera, mLog.e);
+                    } else {
+                        toast(context, "Unknown Camera ID.", mLog.e);
+                        reformat = true;
+                    }
                 } else {
                     toast(context, "Cannot use the same Camera ID.", mLog.e);
                     reformat = true;
@@ -205,17 +213,25 @@ public class Utils {
                 if (isInteger(code.split("\n")[0], true)) {
                     int min = Integer.parseInt(code.split("\n")[0]);
                     setTestTime(context, min);
-                } else reformat = true;
+                } else {
+                    toast(context, "Unknown Record Times.", mLog.e);
+                    reformat = true;
+                }
                 if (isBoolean(prop)) {
+                    if (isNew != Boolean.parseBoolean(prop))
+                        isPropChange = true;
                     isNew = Boolean.parseBoolean(prop);
                 } else {
-                    isNew = false;
+                    toast(context, "Unknown setProp value.", mLog.e);
+                    reformat = true;
                 }
-                if (reformat) {
-                    reformatConfigFile(context, file, new Configini().config());
-                }
-            } else reformatConfigFile(context, file, new Configini().config());
-        } else reformatConfigFile(context, file, new Configini().config());
+            }
+        }
+        if (reformat) {
+            reformatConfigFile(context, file);
+            return new boolean[]{true, true};
+        } else return new boolean[]{isCameraChange, isPropChange};
+
     }
 
     public static boolean isCameraID(Context context, String f, String b) {
@@ -269,22 +285,21 @@ public class Utils {
     }
 
     public static void setConfigFile(Context context, File file, View view, boolean reset) {
-        String editText_1, editText_2, editText_3, editText_4;
-        editText_1 = ((EditText) view.findViewById(R.id.dialog_editText_1)).getText().toString();
-        editText_2 = ((EditText) view.findViewById(R.id.dialog_editText_2)).getText().toString();
-        editText_3 = ((EditText) view.findViewById(R.id.dialog_editText_3)).getText().toString();
-        editText_4 = ((EditText) view.findViewById(R.id.dialog_editText_4)).getText().toString();
+        EditText editText_1 = view.findViewById(R.id.dialog_editText_1);
+        EditText editText_2 = view.findViewById(R.id.dialog_editText_2);
+        EditText editText_3 = view.findViewById(R.id.dialog_editText_3);
+        EditText editText_4 = view.findViewById(R.id.dialog_editText_4);
         int isFinish = 1;
         boolean isNew = false;
 
         if (!reset) {
-            if (isInteger(editText_3, false))
-                isFinish = Integer.parseInt(editText_3);
+            if (isInteger(editText_3.getText().toString(), false))
+                isFinish = Integer.parseInt(editText_3.getText().toString());
             else {
                 isFinish = 1;
             }
-            if (isBoolean(editText_4)) {
-                isNew = Boolean.parseBoolean(editText_4);
+            if (isBoolean(editText_4.getText().toString())) {
+                isNew = Boolean.parseBoolean(editText_4.getText().toString());
             } else {
                 isNew = false;
             }
@@ -292,16 +307,15 @@ public class Utils {
 
         toast(context, "Ready to write.", mLog.e);
         writeConfigFile(context, file, (
-                !reset ? new Configini(editText_1, editText_2, isFinish, isNew) : new Configini()).config());
+                !reset ? new Configini(editText_1.getText().toString(),
+                        editText_2.getText().toString(),
+                        isFinish, isNew) : new Configini()).config());
         toast(context, "Write file is completed.", mLog.e);
     }
 
-    public static void reformatConfigFile(Context context, File file, String[] message) {
-        firstCamera = "0";
-        secondCamera = "1";
-        isFinish = 1;
+    public static void reformatConfigFile(Context context, File file) {
         toast(context, "Config file error.", mLog.e);
-        writeConfigFile(context, file, message);
+        writeConfigFile(context, file, new Configini().config());
         toast(context, "Reformat the file.", mLog.e);
     }
 

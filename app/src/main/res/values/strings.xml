@@ -36,6 +36,9 @@
         2.add setprop item in Config.ini. (if you used the new-9020 system.img)
         3.fix error.
         *you can change CameraDevice and Review log with DialogView.
+    [v1.3.1]
+        1.optimizing The UX/UI.
+        2.add libs/debug.keystore.
     -->
 
     <string name="title_activity_video_record">VideoRecordActivity</string>

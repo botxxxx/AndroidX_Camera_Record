@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    tools:ignore="Autofill,ButtonStyle,ContentDescription,HardcodedText,NestedWeights,RtlHardcoded,UselessParent">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_rounded_white"
+        android:gravity="center">
+
+        <com.askey.widget.CustomTextView
+            android:id="@+id/customTextView"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:gravity="center"
+            android:text="firstCameraID:"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            app:customFont="SF-Pro-Display-Regular.ttf" />
+    </RelativeLayout>
+</RelativeLayout>

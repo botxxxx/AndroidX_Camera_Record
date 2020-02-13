@@ -250,6 +250,46 @@ public class VideoRecordActivity extends Activity {
         initial();
     }
 
+    public static void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, EditText editText4) {
+        String input = readConfigFile(context, new File(getSDCardPath(), configName));
+        if (input.length() > 0) {
+            List<String> read = Arrays.asList(input.split("\r\n"));
+            int t;
+            String first = "firstCameraID = ", second = "secondCameraID = ";
+            String code = "total_test_minute = ", prop = "setprop = ";
+            for (String s : read)
+                if (s.indexOf(first) != -1) {
+                    t = s.indexOf(first) + first.length();
+                    first = s.substring(t);
+                    break;
+                }
+            for (String s : read)
+                if (s.indexOf(second) != -1) {
+                    t = s.indexOf(second) + second.length();
+                    second = s.substring(t);
+                    break;
+                }
+            for (String s : read)
+                if (s.indexOf(code) != -1) {
+                    t = s.indexOf(code) + code.length();
+                    code = s.substring(t);
+                    break;
+                }
+            for (String s : read)
+                if (s.indexOf(prop) != -1) {
+                    t = s.indexOf(prop) + prop.length();
+                    prop = s.substring(t);
+                    break;
+                }
+            editText1.setText(first);
+            editText2.setText(second);
+            editText3.setText(code);
+            editText4.setText(prop);
+        } else {
+            toast(context, "Error reading config file.");
+        }
+    }
+
     private void initial() {
         ArrayList<View> items_frame = new ArrayList();
         ArrayList<View> items_quality = new ArrayList();
@@ -385,7 +425,7 @@ public class VideoRecordActivity extends Activity {
                 }
                 ((ListView) view.findViewById(R.id.dialog_listview)).setAdapter(new mListAdapter(items));
             }
-            dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen).setView(view).setCancelable(true).show();
+            dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen).setView(view).setCancelable(false).show();
         });
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
             Log.d("VideoRecord", "finish");
@@ -402,22 +442,24 @@ public class VideoRecordActivity extends Activity {
                 runOnUiThread(() -> audio.adjustStreamVolume(AudioManager.STREAM_MUSIC,
                         AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI)));
         findViewById(R.id.setting).setOnClickListener((View v) -> {
-            View view = LayoutInflater.from(this).inflate(R.layout.layout_setprop, null);
+            View view = LayoutInflater.from(this).inflate(R.layout.layout_setting, null);
             view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
                 setConfigFile(this, new File(getSDCardPath(), configName), view, true);
-                getSetting(view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
+                getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
                         view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
+                setSetting();
             });
             view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // cancel
                 dialog.dismiss();
             });
             view.findViewById(R.id.dialog_button_3).setOnClickListener((View vs) -> { // ok
                 setConfigFile(this, new File(getSDCardPath(), configName), view, false);
+                setSetting();
                 dialog.dismiss();
             });
-            getSetting(view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
+            getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
                     view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
-            dialog = new AlertDialog.Builder(this).setView(view).setCancelable(true).show();
+            dialog = new AlertDialog.Builder(this).setView(view).setCancelable(false).show();
         });
         findViewById(R.id.loadingView).setVisibility(View.INVISIBLE);
         filePath = getSDCardPath();
@@ -452,41 +494,41 @@ public class VideoRecordActivity extends Activity {
         };
     }
 
-    private void getSetting(EditText editText1, EditText editText2, EditText editText3, EditText editText4) {
-        String input = readConfigFile(this, new File(getSDCardPath(), configName));
-        if (input.length() > 0) {
-            List<String> read = Arrays.asList(input.split("\r\n"));
-            int t;
-            String first = "firstCameraID = ", second = "secondCameraID = ";
-            String code = "total_test_minute = ", prop = "setprop = ";
-            for (String s : read)
-                if (s.indexOf(first) != -1) {
-                    t = s.indexOf(first) + first.length();
-                    first = s.substring(t);
-                    break;
+    private void setSetting() {
+        boolean[] check = checkConfigFile(this, new File(getSDCardPath(), configName), false);
+        if (check[0]) {
+            runOnUiThread(() -> setAdapter());
+            mStateCallback0.onDisconnected(mCameraDevice0);
+            mStateCallback1.onDisconnected(mCameraDevice1);
+            new Handler().post(() -> openCamera(firstCamera));
+            new Handler().post(() -> openCamera(secondCamera));
+        }
+        if (check[1]) {
+            if (isNew) {
+                PropertyUtils.set(FRAMESKIP, "0");
+                String getFrameSkip = PropertyUtils.get(FRAMESKIP);
+                if (null != getFrameSkip) {
+                    if (isInteger(getFrameSkip, false)) {
+                        //if frameskip is chehe or lastcamera != cameraid, delay 3s to change camera devices
+                        SystemProperties.set(FRAMESKIP, String.valueOf(isFrame));
+                        videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
+                    } else {
+                        toast(VideoRecordActivity.this, "getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e);
+                    }
+                } else {
+                    toast(VideoRecordActivity.this, "getFrameSkip error, fs == null.", mLog.e);
                 }
-            for (String s : read)
-                if (s.indexOf(second) != -1) {
-                    t = s.indexOf(second) + second.length();
-                    second = s.substring(t);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(code) != -1) {
-                    t = s.indexOf(code) + code.length();
-                    code = s.substring(t);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(prop) != -1) {
-                    t = s.indexOf(prop) + prop.length();
-                    prop = s.substring(t);
-                    break;
-                }
-            editText1.setText(first);
-            editText2.setText(second);
-            editText3.setText(code);
-            editText4.setText(prop);
+            }
+            ArrayList<View> new_frame = new ArrayList();
+            for (String frame : new ArrayList<>(Arrays.asList( // or "3.9fps", "3.4fps", "1.7fps", "0.8fps"
+                    isNew ? new String[]{"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"} :
+                            new String[]{"27.5fps", "16fps"}))) {
+                View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
+                CustomTextView item = vi.findViewById(R.id.customTextView);
+                item.setText(frame);
+                new_frame.add(vi);
+            }
+            ((VerticalViewPager) findViewById(R.id.pager1)).setAdapter(new mPagerAdapter(new_frame));
         }
     }
 
