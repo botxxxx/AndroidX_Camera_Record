@@ -111,7 +111,6 @@ public class VideoRecordActivity extends Activity {
     private CaptureRequest.Builder mPreviewBuilder0, mPreviewBuilder1;
     private MediaRecorder mMediaRecorder0, mMediaRecorder1;
     private ListView mListView;
-    private AlertDialog dialog;
     private Handler mainHandler, backgroundHandler, soundHandler, demoHandler;
     private MediaPlayer mMediaPlayer;
     private Runnable sound = new Runnable() {
@@ -406,6 +405,7 @@ public class VideoRecordActivity extends Activity {
         AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         findViewById(R.id.listBackground).setOnClickListener((View v) -> {
             View view = LayoutInflater.from(this).inflate(R.layout.layout_getlog, null);
+            final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen).setView(view).setCancelable(true).create();
             view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
                 videoLogList.add(new LogMsg("#reset LogFile", mLog.v));
                 saveLog(true);
@@ -425,7 +425,7 @@ public class VideoRecordActivity extends Activity {
                 }
                 ((ListView) view.findViewById(R.id.dialog_listview)).setAdapter(new mListAdapter(items));
             }
-            dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen).setView(view).setCancelable(false).show();
+            dialog.show();
         });
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
             Log.d("VideoRecord", "finish");
@@ -442,24 +442,30 @@ public class VideoRecordActivity extends Activity {
                 runOnUiThread(() -> audio.adjustStreamVolume(AudioManager.STREAM_MUSIC,
                         AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI)));
         findViewById(R.id.setting).setOnClickListener((View v) -> {
-            View view = LayoutInflater.from(this).inflate(R.layout.layout_setting, null);
-            view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
-                setConfigFile(this, new File(getSDCardPath(), configName), view, true);
+            if (!isLoop) {
+                View view = LayoutInflater.from(this).inflate(R.layout.layout_setting, null);
+                final AlertDialog dialog = new AlertDialog.Builder(this).setView(view).setCancelable(false).create();
+                view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
+                    setConfigFile(this, new File(getSDCardPath(), configName), view, true);
+                    getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
+                            view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
+                    setSetting();
+                });
+                view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // cancel
+                    dialog.dismiss();
+                });
+                view.findViewById(R.id.dialog_button_3).setOnClickListener((View vs) -> { // ok
+                    setConfigFile(this, new File(getSDCardPath(), configName), view, false);
+                    setSetting();
+                    dialog.dismiss();
+                });
                 getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
                         view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
-                setSetting();
-            });
-            view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // cancel
-                dialog.dismiss();
-            });
-            view.findViewById(R.id.dialog_button_3).setOnClickListener((View vs) -> { // ok
-                setConfigFile(this, new File(getSDCardPath(), configName), view, false);
-                setSetting();
-                dialog.dismiss();
-            });
-            getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
-                    view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
-            dialog = new AlertDialog.Builder(this).setView(view).setCancelable(false).show();
+                dialog.show();
+            } else {
+                toast(this, "Is Recording Now.", mLog.e);
+                runOnUiThread(() -> setAdapter());
+            }
         });
         findViewById(R.id.loadingView).setVisibility(View.INVISIBLE);
         filePath = getSDCardPath();

@@ -23,6 +23,8 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+        }
     }
     buildToolsVersion '28.0.3'
     compileOptions {

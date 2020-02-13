@@ -39,6 +39,9 @@
     [v1.3.1]
         1.optimizing The UX/UI.
         2.add libs/debug.keystore.
+    [v1.3.2]
+        1.fix dialog can not dismiss pro.
+        2.fix record can used dialog change camera problem.
     -->
 
     <string name="title_activity_video_record">VideoRecordActivity</string>
