@@ -65,6 +65,8 @@ import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_STARTa;
 import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_TEST;
 import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_TESTa;
 import static com.askey.record.Utils.FRAMESKIP;
+import static com.askey.record.Utils.FRAME_RATE;
+import static com.askey.record.Utils.NEW_FRAME_RATE;
 import static com.askey.record.Utils.TAG;
 import static com.askey.record.Utils.checkConfigFile;
 import static com.askey.record.Utils.checkLogFile;
@@ -293,8 +295,7 @@ public class VideoRecordActivity extends Activity {
         ArrayList<View> items_frame = new ArrayList();
         ArrayList<View> items_quality = new ArrayList();
         for (String frame : new ArrayList<>(Arrays.asList( // or "3.9fps", "3.4fps", "1.7fps", "0.8fps"
-                isNew ? new String[]{"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"} :
-                        new String[]{"27.5fps", "16fps"}))) {
+                isNew ? NEW_FRAME_RATE : FRAME_RATE))) {
             View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
             CustomTextView item = vi.findViewById(R.id.customTextView);
             item.setText(frame);
@@ -527,8 +528,7 @@ public class VideoRecordActivity extends Activity {
             }
             ArrayList<View> new_frame = new ArrayList();
             for (String frame : new ArrayList<>(Arrays.asList( // or "3.9fps", "3.4fps", "1.7fps", "0.8fps"
-                    isNew ? new String[]{"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"} :
-                            new String[]{"27.5fps", "16fps"}))) {
+                    isNew ? NEW_FRAME_RATE : FRAME_RATE))) {
                 View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
                 CustomTextView item = vi.findViewById(R.id.customTextView);
                 item.setText(frame);
@@ -545,9 +545,8 @@ public class VideoRecordActivity extends Activity {
     private void takeRecord(int delayMillis, boolean preview) {
         isRun++;
         videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
-        videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")" + " FrameRate:" + (isNew ?
-                new String[]{"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"} :
-                new String[]{"27.5fps", "16fps"}[isFrame]), mLog.v));
+        videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")" + " FrameRate:" +
+                (isNew ? NEW_FRAME_RATE : FRAME_RATE)[isFrame], mLog.v));
         int delay = 0;
 
         if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera)) {

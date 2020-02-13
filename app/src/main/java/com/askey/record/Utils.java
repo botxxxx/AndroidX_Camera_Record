@@ -30,6 +30,8 @@ import java.util.List;
 
 public class Utils {
 
+    public static final String[] NEW_FRAME_RATE = {"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"},
+            FRAME_RATE = {"27.5fps", "16fps"};
     public static final String FRAMESKIP = "persist.our.camera.frameskip";
     public static final String COMMAND_VIDEO_RECORD_TEST = "com.askey.record.t";
     public static final String COMMAND_VIDEO_RECORD_START = "com.askey.record.s";
