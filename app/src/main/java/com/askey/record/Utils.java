@@ -30,8 +30,10 @@ import java.util.List;
 
 public class Utils {
 
-    public static final String[] NEW_FRAME_RATE = {"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"},
-            FRAME_RATE = {"27.5fps", "16fps"};
+    public static final String[] FRAME_RATE = {"27.5fps", "16fps"},
+            NEW_FRAME_RATE = {"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"};
+    public static final double[] DFRAME_RATE = {27.5, 16},
+            NEW_DFRAME_RATE = {27.5, 13.7, 9.1, 6.8, 5.5, 4.5};
     public static final String FRAMESKIP = "persist.our.camera.frameskip";
     public static final String COMMAND_VIDEO_RECORD_TEST = "com.askey.record.t";
     public static final String COMMAND_VIDEO_RECORD_START = "com.askey.record.s";
@@ -42,6 +44,7 @@ public class Utils {
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String configName = "VideoRecordConfig.ini";
     public static final String logName = "VideoRecordLog.ini";
+    public static final double sdData = 3.5;
     public static int isRun = 0, successful = 0, failed = 0;
     public static String TAG = "VideoRecord";
     public static String firstCamera = "0";
@@ -50,8 +53,8 @@ public class Utils {
     public static String lastsecondCamera = "1";
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList;
-    public static int isFinish = 1, delayTime = 600000, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isLoop = false, isError = false, isNew = false;
+    public static int isFinish = 999, delayTime = 600000, isFrame = 0, isQuality = 0;
+    public static boolean isReady = false, isRecord = false, isError = false, isNew = false;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -68,6 +71,10 @@ public class Utils {
     public static void toast(Context context, String t) {
         videoLogList.add(new LogMsg(t, mLog.i));
         ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
+    }
+
+    public static void toast(Context context) {
+        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "Is Recording Now.", Toast.LENGTH_SHORT).show());
     }
 
     public static int getSuccessful() {
@@ -111,7 +118,10 @@ public class Utils {
     public static void setTestTime(Context context, int min) {
         if (min > 0) {
             isFinish = min;
-            toast(context, "setRecord time: " + min + "0 min.");
+            if (min != 999)
+                toast(context, "setRecord time: " + min + "0 min.");
+            else
+                toast(context, "setRecord time: unlimited min.");
         } else {
             toast(context, "The test time must be a positive number.", mLog.e);
         }
@@ -130,7 +140,7 @@ public class Utils {
                 toast(context, "Create the config file.", mLog.w);
                 writeConfigFile(context, file, new Configini().config());
             } else {
-                if (!isRecord) {
+                if (!isReady) {
                     toast(context, "Find the config file.", mLog.d);
                     videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
                 }
@@ -291,14 +301,14 @@ public class Utils {
         EditText editText_2 = view.findViewById(R.id.dialog_editText_2);
         EditText editText_3 = view.findViewById(R.id.dialog_editText_3);
         EditText editText_4 = view.findViewById(R.id.dialog_editText_4);
-        int isFinish = 1;
+        int isFinish = 999;
         boolean isNew = false;
 
         if (!reset) {
             if (isInteger(editText_3.getText().toString(), false))
                 isFinish = Integer.parseInt(editText_3.getText().toString());
             else {
-                isFinish = 1;
+                isFinish = 999;
             }
             if (isBoolean(editText_4.getText().toString())) {
                 isNew = Boolean.parseBoolean(editText_4.getText().toString());

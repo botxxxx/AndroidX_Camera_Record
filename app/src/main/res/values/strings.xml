@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="app_name">CDR9020_QTR(v1.3.2)</string>
+    <string name="app_name">CDR9020_QTR(v1.3.3)</string>
 
     <!--
     [CDR9020_QTR_v1.0.0]
@@ -42,6 +42,9 @@
     [v1.3.2]
         1.fix dialog can not dismiss pro.
         2.fix record can used dialog change camera problem.
+    [v1.3.3]
+        1.update default config file, total_test_minute = 999.
+        2.fix error.
     -->
 
     <string name="title_activity_video_record">VideoRecordActivity</string>

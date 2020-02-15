@@ -4,10 +4,10 @@ public class Configini {
 
     protected String firstCamera = "0";
     protected String secondCamera = "1";
-    protected int isFinish = 1;
+    protected int isFinish = 999;
     protected boolean isNew = false;
 
-    public Configini(){
+    public Configini() {
 
     }
 
@@ -22,10 +22,10 @@ public class Configini {
         return new String[]{
                 "[VIDEO_RECORD_TESTING]\r\n",
                 "#CameraID(0:BACK, 1:FRONT, 2:EXTERNAL)\r\n",
-                "firstCameraID = "+firstCamera+"\r\n",
-                "secondCameraID = "+secondCamera+"\r\n", "\r\n",
-                "#Camera Device total minute: one day has minutes(*10) = 144 = one day\r\n",
-                "total_test_minute = "+isFinish+"\r\n", "\r\n",
+                "firstCameraID = " + firstCamera + "\r\n",
+                "secondCameraID = " + secondCamera + "\r\n", "\r\n",
+                "#Camera Device total minute: 144 = 1440min\r\n",
+                "total_test_minute = " + isFinish + "\r\n", "\r\n",
                 "#Set Property\r\n",
                 "setprop = " + isNew + "\r\n", "\r\n",
                 "#Play video path(can't change video path)\r\n",
