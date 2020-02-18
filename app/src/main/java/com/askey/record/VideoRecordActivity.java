@@ -107,7 +107,7 @@ import static com.askey.record.Utils.videoLogList;
 
 public class VideoRecordActivity extends Activity {
 
-    private static String filePath = "/sdcard/";
+    private static String filePath = "/storage/";
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
@@ -1009,15 +1009,10 @@ public class VideoRecordActivity extends Activity {
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        if (cameraId.equals("2")) profile = profile_720;
         if (isCameraOne(cameraId))
             mediaRecorder.setAudioEncoder(profile.audioCodec);
         mediaRecorder.setVideoEncoder(profile.videoCodec);
-        // Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
-        profile = isQuality == 1 ? profile_720 : profile_1080;
         mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
-        if (cameraId.equals("2")) profile = profile_720;
-        /*设置编码比特率*/
         if (isCameraOne(cameraId))
             mediaRecorder.setAudioEncodingBitRate(profile.audioBitRate);
         mediaRecorder.setVideoEncodingBitRate(profile.videoBitRate);

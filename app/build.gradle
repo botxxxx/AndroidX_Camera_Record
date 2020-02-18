@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
         debug {
-            storeFile file('/home/hongren_su/askey/TestTool/cdr9020_qtr/app/libs/debug.keystore')
+            storeFile file('C:\\Users\\admin\\Downloads\\cdr9020_qtr\\app\\libs\\debug.keystore')
             storePassword 'android'
             keyAlias = 'platform'
             keyPassword 'android'
@@ -17,6 +17,7 @@ android {
         versionCode 2
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.debug
     }
     buildTypes {
         release {

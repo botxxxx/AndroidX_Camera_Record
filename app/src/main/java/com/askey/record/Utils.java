@@ -329,12 +329,12 @@ public class Utils {
             }
         }
 
-        toast(context, "Ready to write.", mLog.e);
+        toast(context, "Ready to write.", mLog.w);
         writeConfigFile(context, file, (
                 !reset ? new Configini(context, editText_1.getText().toString(),
                         editText_2.getText().toString(),
                         isFinish, isNew) : new Configini(context)).config());
-        toast(context, "Write file is completed.", mLog.e);
+        toast(context, "Write file is completed.", mLog.i);
     }
 
     public static void reformatConfigFile(Context context, File file) {
