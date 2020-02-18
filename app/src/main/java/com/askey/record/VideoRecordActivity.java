@@ -96,6 +96,7 @@ import static com.askey.record.Utils.lastfirstCamera;
 import static com.askey.record.Utils.lastsecondCamera;
 import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.readConfigFile;
+import static com.askey.record.Utils.reformatConfigFile;
 import static com.askey.record.Utils.sdData;
 import static com.askey.record.Utils.secondCamera;
 import static com.askey.record.Utils.secondFilePath;
@@ -106,7 +107,7 @@ import static com.askey.record.Utils.videoLogList;
 
 public class VideoRecordActivity extends Activity {
 
-    private String filePath = "/sdcard/";
+    private static String filePath = "/sdcard/";
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
@@ -252,12 +253,12 @@ public class VideoRecordActivity extends Activity {
     }
 
     public static void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, EditText editText4) {
-        String input = readConfigFile(context, new File(getSDCardPath(), configName));
+        String input = readConfigFile(context, new File(filePath, configName));
         if (input.length() > 0) {
             List<String> read = Arrays.asList(input.split("\r\n"));
             int t;
             String first = "firstCameraID = ", second = "secondCameraID = ";
-            String code = "total_test_minute = ", prop = "setprop = ";
+            String code = "numberOfRuns = ", prop = "setProperty = ";
             for (String s : read)
                 if (s.indexOf(first) != -1) {
                     t = s.indexOf(first) + first.length();
@@ -288,6 +289,7 @@ public class VideoRecordActivity extends Activity {
             editText4.setText(prop);
         } else {
             toast(context, "Error reading config file.");
+            reformatConfigFile(context, new File(filePath, configName));
         }
     }
 
@@ -497,7 +499,7 @@ public class VideoRecordActivity extends Activity {
 
     private void setSetting() {
         if (!isRecord) {
-            boolean[] check = checkConfigFile(this, new File(getSDCardPath(), configName), false);
+            boolean[] check = checkConfigFile(this, new File(filePath, configName), false);
             if (check[0]) {
                 runOnUiThread(() -> setAdapter());
                 new Handler().post(() -> {
@@ -599,14 +601,14 @@ public class VideoRecordActivity extends Activity {
                 logString += (time + logs.msg + "\r\n");
             }
             try {
-                toast(VideoRecordActivity.this, "write failed.", mLog.e);
+//                toast(VideoRecordActivity.this, "write failed.", mLog.e);
                 FileOutputStream output = new FileOutputStream(new File(filePath, logName), !Reformate);
                 output.write(logString.getBytes());
                 output.close();
 
                 videoLogList.clear();
             } catch (IOException e) {
-                toast(VideoRecordActivity.this, "write failed.", mLog.e);
+//                toast(VideoRecordActivity.this, "write failed.", mLog.e);
             }
         } else {
             toast(VideoRecordActivity.this, "Please check the SD card.", mLog.e);
@@ -1000,19 +1002,21 @@ public class VideoRecordActivity extends Activity {
         runOnUiThread(() -> videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w)));
         (isCameraOne(cameraId) ? firstFilePath : secondFilePath).add(file);
         // Step 1: Unlock and set camera to MediaRecorder
+        CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
         MediaRecorder mediaRecorder = new MediaRecorder();
         // Step 2: Set sources
         if (isCameraOne(cameraId))
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        if (cameraId.equals("2")) profile = profile_720;
         if (isCameraOne(cameraId))
-            mediaRecorder.setAudioEncoder(profile_720.audioCodec);
-        mediaRecorder.setVideoEncoder(profile_720.videoCodec);
+            mediaRecorder.setAudioEncoder(profile.audioCodec);
+        mediaRecorder.setVideoEncoder(profile.videoCodec);
         // Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
-        CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
+        profile = isQuality == 1 ? profile_720 : profile_1080;
         mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
-        profile = profile_720;
+        if (cameraId.equals("2")) profile = profile_720;
         /*设置编码比特率*/
         if (isCameraOne(cameraId))
             mediaRecorder.setAudioEncodingBitRate(profile.audioBitRate);

@@ -1,6 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="app_name">CDR9020_QTR(v1.3.3)</string>
-
+    <string name="title_activity_video_record">VideoRecordActivity</string>
     <!--
     [CDR9020_QTR_v1.0.0]
         1.Rear Camera、External Camera同時錄影並儲存至外接SD Card
@@ -45,8 +44,9 @@
     [v1.3.3]
         1.update default config file, total_test_minute = 999.
         2.fix error.
+    [v1.3.4]
+        1.update default config file, app version at config file.
+        2.fix error with setUpMediaRecorder.
     -->
-
-    <string name="title_activity_video_record">VideoRecordActivity</string>
-
+    <string name="app_name">CDR9020_QTR(v1.3.4)</string>
 </resources>

@@ -31,9 +31,9 @@ import java.util.List;
 public class Utils {
 
     public static final String[] FRAME_RATE = {"27.5fps", "16fps"},
-            NEW_FRAME_RATE = {"27.5fps", "13.7fps", "9.1fps", "6.8fps", "5.5fps", "4.5fps"};
+            NEW_FRAME_RATE = {"27.5fps", "13.7fps"}; // , "9.1fps", "6.8fps", "5.5fps", "4.5fps"
     public static final double[] DFRAME_RATE = {27.5, 16},
-            NEW_DFRAME_RATE = {27.5, 13.7, 9.1, 6.8, 5.5, 4.5};
+            NEW_DFRAME_RATE = {27.5, 13.7}; // , 9.1, 6.8, 5.5, 4.5
     public static final String FRAMESKIP = "persist.our.camera.frameskip";
     public static final String COMMAND_VIDEO_RECORD_TEST = "com.askey.record.t";
     public static final String COMMAND_VIDEO_RECORD_START = "com.askey.record.s";
@@ -138,7 +138,7 @@ public class Utils {
                     e.printStackTrace();
                 }
                 toast(context, "Create the config file.", mLog.w);
-                writeConfigFile(context, file, new Configini().config());
+                writeConfigFile(context, file, new Configini(context).config());
             } else {
                 if (!isReady) {
                     toast(context, "Find the config file.", mLog.d);
@@ -168,15 +168,24 @@ public class Utils {
         if (input.length() > 0) {
             List<String> read = Arrays.asList(input.split("\r\n"));
             int target = 0, t;
+            String title = "[VIDEO_RECORD_TESTING]";
             String first = "firstCameraID = ", second = "secondCameraID = ";
-            String code = "total_test_minute = ", prop = "setprop = ";
+            String code = "numberOfRuns = ", prop = "setProperty = ";
 
+            for (String s : read)
+                if (s.indexOf(title) != -1) {
+                    target++;
+                    t = s.indexOf(title) + title.length();
+                    title = s.substring(t);
+                    toast(context, "app: " + title);
+                    break;
+                }
             for (String s : read)
                 if (s.indexOf(first) != -1) {
                     target++;
                     t = s.indexOf(first) + first.length();
                     first = s.substring(t);
-                    toast(context, "firstCameraID: " + first);
+                    toast(context, "firstCamera: " + first);
                     break;
                 }
             for (String s : read)
@@ -184,7 +193,7 @@ public class Utils {
                     target++;
                     t = s.indexOf(second) + second.length();
                     second = s.substring(t);
-                    toast(context, "secondCameraID: " + second);
+                    toast(context, "secondCamera: " + second);
                     break;
                 }
             for (String s : read)
@@ -194,7 +203,6 @@ public class Utils {
                     code = s.substring(t);
                     break;
                 }
-
             for (String s : read)
                 if (s.indexOf(prop) != -1) {
                     target++;
@@ -202,8 +210,12 @@ public class Utils {
                     prop = s.substring(t);
                     break;
                 }
-            if (target == 4) {
+            if (target == 5) {
                 reformat = false;
+                if (!title.equals(context.getString(R.string.app_name))) {
+                    toast(context, "Config is updated.", mLog.e);
+                    reformat = true;
+                }
                 if (!first.equals(second)) {
                     if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {
                         lastfirstCamera = firstOne ? first : firstCamera;
@@ -234,7 +246,7 @@ public class Utils {
                         isPropChange = true;
                     isNew = Boolean.parseBoolean(prop);
                 } else {
-                    toast(context, "Unknown setProp value.", mLog.e);
+                    toast(context, "Unknown setProperty.", mLog.e);
                     reformat = true;
                 }
             }
@@ -319,15 +331,15 @@ public class Utils {
 
         toast(context, "Ready to write.", mLog.e);
         writeConfigFile(context, file, (
-                !reset ? new Configini(editText_1.getText().toString(),
+                !reset ? new Configini(context, editText_1.getText().toString(),
                         editText_2.getText().toString(),
-                        isFinish, isNew) : new Configini()).config());
+                        isFinish, isNew) : new Configini(context)).config());
         toast(context, "Write file is completed.", mLog.e);
     }
 
     public static void reformatConfigFile(Context context, File file) {
         toast(context, "Config file error.", mLog.e);
-        writeConfigFile(context, file, new Configini().config());
+        writeConfigFile(context, file, new Configini(context).config());
         toast(context, "Reformat the file.", mLog.e);
     }
 
