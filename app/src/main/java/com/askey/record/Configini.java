@@ -39,7 +39,7 @@ public class Configini {
                 "adb shell am start -n com.askey.record/.VideoRecordActivity\r\n", "\r\n",
                 "#Start test record(no audio, 5s)\r\n",
                 "adb shell am broadcast -a com.askey.record.t\r\n", "\r\n",
-                "#Start/Stop record(10 min)\r\n",
+                "#Start/Stop record\r\n",
                 "adb shell am broadcast -a com.askey.record.s\r\n", "\r\n",
                 "#Finish\r\n",
                 "adb shell am broadcast -a com.askey.record.f\r\n", "\r\n",
