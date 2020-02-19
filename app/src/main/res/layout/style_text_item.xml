@@ -15,7 +15,7 @@
         <com.askey.widget.CustomTextView
             android:id="@+id/customTextView"
             android:layout_width="match_parent"
-            android:layout_height="30dp"
+            android:layout_height="wrap_content"
             android:text="message"
             android:textColor="@color/white"
             android:textSize="21sp"

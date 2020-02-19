@@ -47,6 +47,7 @@
     [v1.3.4]
         1.update default config file, app version at config file.
         2.fix error with setUpMediaRecorder 1080p.
+        3.edit log layout to show complete message.
     -->
     <string name="app_name">CDR9020_QTR(v1.3.4)</string>
 </resources>
