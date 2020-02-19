@@ -547,7 +547,7 @@ public class VideoRecordActivity extends Activity {
 
     private void takeRecord(int delayMillis, boolean preview) {
         isRun++;
-        videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
+        videoLogList.add(new LogMsg("#------------------------------", mLog.v));
         videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")" + " FrameRate:" +
                 (isNew ? NEW_FRAME_RATE : FRAME_RATE)[isFrame], mLog.v));
         int delay = 0;
@@ -732,7 +732,7 @@ public class VideoRecordActivity extends Activity {
                 isRun = 0;
                 isFinish = 0;
                 isRecord = false;
-                videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
+                videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                 toast(VideoRecordActivity.this, "#completed");
                 if (autoClean) {
                     checkAndClear();

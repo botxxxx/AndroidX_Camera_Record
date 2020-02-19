@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
         debug {
-            storeFile file('C:\\Users\\admin\\Downloads\\cdr9020_qtr\\app\\libs\\debug.keystore')
+            storeFile file('libs/debug.keystore')
             storePassword 'android'
             keyAlias = 'platform'
             keyPassword 'android'
