@@ -48,6 +48,12 @@
         1.update default config file, app version at config file.
         2.fix error with setUpMediaRecorder 1080p.
         3.edit log layout to show complete message.
+    [v1.3.5]
+        1.fix manually stop record crash bug.
+        2.unblock setProp, inner and external option.
+        3.Update Config message.
+        4.fix inner and external will crash error, application is not closed.
+        5.fix cancel and restart will crash error, application is not closed.
     -->
-    <string name="app_name">CDR9020_QTR(v1.3.4)</string>
+    <string name="app_name">CDR9020_QTR(v1.3.5)</string>
 </resources>

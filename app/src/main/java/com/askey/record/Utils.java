@@ -11,6 +11,7 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.askey.widget.LogMsg;
@@ -24,9 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.List;
 
 public class Utils {
 
@@ -53,7 +52,7 @@ public class Utils {
     public static String lastsecondCamera = "1";
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList;
-    public static int isFinish = 999, delayTime = 600000, isFrame = 0, isQuality = 0;
+    public static int isFinish = 999, delayTime = 60000, isFrame = 0, isQuality = 0;
     public static boolean isReady = false, isRecord = false, isError = false, isNew = false;
 
     static {
@@ -142,7 +141,7 @@ public class Utils {
             } else {
                 if (!isReady) {
                     toast(context, "Find the config file.", mLog.d);
-                    videoLogList.add(new LogMsg("#---------------------------------------------------------------------", mLog.v));
+                    videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                 }
                 checkConfigFile(context, new File(getSDCardPath(), configName), first);
             }
@@ -156,7 +155,7 @@ public class Utils {
     public static void checkLogFile(Context context, File file, ArrayList list) {
         String input = readConfigFile(context, file);
         if (input.length() > 0) {
-            List<String> read = Arrays.asList(input.split("\r\n"));
+            String[] read = input.split("\r\n");
             for (String s : read)
                 list.add(s);
         }
@@ -166,7 +165,7 @@ public class Utils {
         String input = readConfigFile(context, file);
         boolean reformat = true, isCameraChange = false, isPropChange = false;
         if (input.length() > 0) {
-            List<String> read = Arrays.asList(input.split("\r\n"));
+            String[] read = input.split("\r\n");
             int target = 0, t;
             String title = "[VIDEO_RECORD_TESTING]";
             String first = "firstCameraID = ", second = "secondCameraID = ";
@@ -177,7 +176,7 @@ public class Utils {
                     target++;
                     t = s.indexOf(title) + title.length();
                     title = s.substring(t);
-                    toast(context, "app: " + title);
+//                    toast(context, "app: " + title);
                     break;
                 }
             for (String s : read)
@@ -185,7 +184,7 @@ public class Utils {
                     target++;
                     t = s.indexOf(first) + first.length();
                     first = s.substring(t);
-                    toast(context, "firstCamera: " + first);
+//                    toast(context, "firstCamera: " + first);
                     break;
                 }
             for (String s : read)
@@ -193,7 +192,7 @@ public class Utils {
                     target++;
                     t = s.indexOf(second) + second.length();
                     second = s.substring(t);
-                    toast(context, "secondCamera: " + second);
+//                    toast(context, "secondCamera: " + second);
                     break;
                 }
             for (String s : read)
@@ -217,18 +216,22 @@ public class Utils {
                     reformat = true;
                 }
                 if (!first.equals(second)) {
-                    if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {
-                        lastfirstCamera = firstOne ? first : firstCamera;
-                        lastsecondCamera = firstOne ? second : secondCamera;
-                        firstCamera = first;
-                        secondCamera = second;
-                        if (!firstOne)
-                            if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera))
-                                isCameraChange = true;
-                        // toast(context, lastfirstCamera + "," + firstCamera + "," + lastsecondCamera + "," + secondCamera, mLog.e);
-                    } else {
-                        toast(context, "Unknown Camera ID.", mLog.e);
+                    if ((first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"))) {
+                        toast(context, "Inner and External, Cannot be used at the same time", mLog.e);
                         reformat = true;
+                    } else {
+                        if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {
+                            lastfirstCamera = firstOne ? first : firstCamera;
+                            lastsecondCamera = firstOne ? second : secondCamera;
+                            firstCamera = first;
+                            secondCamera = second;
+                            if (!firstOne)
+                                if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera))
+                                    isCameraChange = true;
+                        } else {
+                            toast(context, "Unknown Camera ID.", mLog.e);
+                            reformat = true;
+                        }
                     }
                 } else {
                     toast(context, "Cannot use the same Camera ID.", mLog.e);
@@ -242,9 +245,11 @@ public class Utils {
                     reformat = true;
                 }
                 if (isBoolean(prop)) {
-                    if (isNew != Boolean.parseBoolean(prop))
-                        isPropChange = true;
-                    isNew = Boolean.parseBoolean(prop);
+                    if (!Boolean.parseBoolean(prop)) {
+                        if (isNew != Boolean.parseBoolean(prop))
+                            isPropChange = true;
+                        isNew = Boolean.parseBoolean(prop);
+                    }
                 } else {
                     toast(context, "Unknown setProperty.", mLog.e);
                     reformat = true;
@@ -312,7 +317,7 @@ public class Utils {
         EditText editText_1 = view.findViewById(R.id.dialog_editText_1);
         EditText editText_2 = view.findViewById(R.id.dialog_editText_2);
         EditText editText_3 = view.findViewById(R.id.dialog_editText_3);
-        EditText editText_4 = view.findViewById(R.id.dialog_editText_4);
+        TextView editText_4 = view.findViewById(R.id.dialog_editText_4);
         int isFinish = 999;
         boolean isNew = false;
 
@@ -329,18 +334,18 @@ public class Utils {
             }
         }
 
-        toast(context, "Ready to write.", mLog.w);
+        //toast(context, "Ready to write.", mLog.w);
         writeConfigFile(context, file, (
                 !reset ? new Configini(context, editText_1.getText().toString(),
                         editText_2.getText().toString(),
                         isFinish, isNew) : new Configini(context)).config());
-        toast(context, "Write file is completed.", mLog.i);
+        //toast(context, "Write file is completed.", mLog.i);
     }
 
     public static void reformatConfigFile(Context context, File file) {
-        toast(context, "Config file error.", mLog.e);
+        //toast(context, "Config file error.", mLog.e);
         writeConfigFile(context, file, new Configini(context).config());
-        toast(context, "Reformat the file.", mLog.e);
+        toast(context, "Reformat the Config file.", mLog.e);
     }
 
     public static String readConfigFile(Context context, File file) {
@@ -357,7 +362,7 @@ public class Utils {
             bytes.close();
             input.close();
         } catch (IOException e) {
-            Log.e(TAG, " read failed: \" + e.toString()");
+//            Log.e(TAG, " read failed: \" + e.toString()");
             toast(context, "read failed.", mLog.e);
         }
         return tmp;
@@ -372,9 +377,20 @@ public class Utils {
             output.write(tmp.getBytes());
             output.close();
         } catch (IOException e) {
-            Log.e(TAG, " write failed: \" + e.toString()");
+//            Log.e(TAG, " write failed: \" + e.toString()");
             toast(context, "write failed.", mLog.e);
         }
+    }
+
+    public static String getCalendarTime() {
+        String d, h, i, s;
+        Calendar calendar = Calendar.getInstance();
+        d = String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH));
+        h = String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY));
+        i = String.format("%02d", calendar.get(Calendar.MINUTE));
+        s = String.format("%02d", calendar.get(Calendar.SECOND));
+
+        return d + h + i + s + "";
     }
 
     public static String getCalendarTime(boolean isCameraOne) {
@@ -399,7 +415,7 @@ public class Utils {
             while ((line = buf.readLine()) != null) {
                 if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
                     path = "/storage/" + line + "/";
-                    Log.d("Lewis", "sdpath = " + path);
+//                    Log.d("Lewis", "sdpath = " + path);
                     break;
                 }
             }

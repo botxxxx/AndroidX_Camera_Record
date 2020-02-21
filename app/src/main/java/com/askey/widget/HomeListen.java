@@ -41,7 +41,7 @@ public class HomeListen {
         mContext.unregisterReceiver(mHomeBtnReceiver);
     }
 
-    private void receive(Intent intent) {
+    public void receive(Intent intent) {
         String action = intent.getAction();
         if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
             String reason = intent.getStringExtra("reason");
@@ -65,7 +65,7 @@ public class HomeListen {
         void onHomeBtnLongPress();
     }
 
-    class HomeBtnReceiver extends BroadcastReceiver {
+    public class HomeBtnReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             receive(intent);

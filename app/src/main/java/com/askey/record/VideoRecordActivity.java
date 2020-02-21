@@ -31,16 +31,17 @@ import android.os.SystemProperties;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.util.Size;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.askey.widget.CustomPageTransformer;
 import com.askey.widget.CustomTextView;
+import com.askey.widget.HomeListen;
 import com.askey.widget.LogMsg;
 import com.askey.widget.PropertyUtils;
 import com.askey.widget.VerticalViewPager;
@@ -107,7 +108,7 @@ import static com.askey.record.Utils.videoLogList;
 
 public class VideoRecordActivity extends Activity {
 
-    private static String filePath = "/storage/";
+    private static String filePath = "/storage/", codeDate;
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
@@ -141,7 +142,7 @@ public class VideoRecordActivity extends Activity {
                         takeRecord(5000, true);
                     } else {
                         isFinish = 0;
-                        stopRecord(true);
+                        new stopRecord(true);
                     }
                 } else toast(VideoRecordActivity.this, "Not Ready to Record.");
             }
@@ -151,7 +152,7 @@ public class VideoRecordActivity extends Activity {
             if (action.equals(COMMAND_VIDEO_RECORD_FINISH) || action.equals(COMMAND_VIDEO_RECORD_FINISHa)) {
                 Log.d("VideoRecord", "finish");
                 isFinish = 0;
-                stopRecord(false);
+                new stopRecord(false);
             }
         }
     };
@@ -183,7 +184,7 @@ public class VideoRecordActivity extends Activity {
                 takeRecord(delayTime, false);
             } else {
                 isFinish = 0;
-                runOnUiThread(() -> stopRecord(true));
+                new stopRecord(true);
             }
     }
 
@@ -201,7 +202,7 @@ public class VideoRecordActivity extends Activity {
                 if (isNew) PropertyUtils.set(FRAMESKIP, "0"); //*reflection invoke
 //                CommandUtil.executed("setprop "+FRAMESKIP+" 0"); //*not work
                 setStart();
-            } else finish();
+            } else android.os.Process.killProcess(android.os.Process.myPid());
         }
     }
 
@@ -249,13 +250,29 @@ public class VideoRecordActivity extends Activity {
     private void setStart() {
         setContentView(R.layout.activity_video_record);
         fullScreenCall();
+        setHomeListener();
         initial();
     }
 
-    public static void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, EditText editText4) {
+    private void setHomeListener() {
+        HomeListen home = new HomeListen(this);
+        home.setOnHomeBtnPressListener(new HomeListen.OnHomeBtnPressLitener() {
+            public void onHomeBtnPress() {
+                android.os.Process.killProcess(android.os.Process.myPid());
+
+            }
+
+            public void onHomeBtnLongPress() {
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        });
+        home.start();
+    }
+
+    public static void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, TextView editText4) {
         String input = readConfigFile(context, new File(filePath, configName));
         if (input.length() > 0) {
-            List<String> read = Arrays.asList(input.split("\r\n"));
+            String[] read = input.split("\r\n");
             int t;
             String first = "firstCameraID = ", second = "secondCameraID = ";
             String code = "numberOfRuns = ", prop = "setProperty = ";
@@ -303,7 +320,7 @@ public class VideoRecordActivity extends Activity {
             item.setText(frame);
             items_frame.add(vi);
         }
-        for (String quality : new ArrayList<>(Arrays.asList(new String[]{"1080p", "720p"}))) {
+        for (String quality : new ArrayList<>(Arrays.asList("1080p", "720p"))) {
             View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
             CustomTextView item = vi.findViewById(R.id.customTextView);
             item.setText(quality);
@@ -377,7 +394,7 @@ public class VideoRecordActivity extends Activity {
                     demoHandler.obtainMessage().sendToTarget(); // playDEMO
                     if (isError) {
                         isFinish = 0;
-                        runOnUiThread(() -> stopRecord(false));
+                        new stopRecord(false);
                     }
                 }
             }
@@ -431,8 +448,8 @@ public class VideoRecordActivity extends Activity {
         });
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
             Log.d("VideoRecord", "finish");
-            isFinish = 0;
-            stopRecord(false);
+            new Handler().post(() -> saveLog(false));
+            android.os.Process.killProcess(android.os.Process.myPid());
         });
         findViewById(R.id.volume_down).setOnClickListener((View v) ->
                 runOnUiThread(() -> audio.adjustStreamVolume(AudioManager.STREAM_MUSIC,
@@ -464,6 +481,7 @@ public class VideoRecordActivity extends Activity {
             dialog.show();
         });
         findViewById(R.id.loadingView).setVisibility(View.INVISIBLE);
+        codeDate = getCalendarTime();
         filePath = getSDCardPath();
         firstFilePath = new ArrayList();
         secondFilePath = new ArrayList();
@@ -477,7 +495,7 @@ public class VideoRecordActivity extends Activity {
         registerReceiver(myReceiver, filter);
         videoLogList.add(new LogMsg("#initial complete", mLog.v));
         mListView.setAdapter(new mLogListAdapter(this, videoLogList));
-        // show selection DEMO
+        // show DEMO
         demoHandler = new Handler() {
             public void handleMessage(android.os.Message msg) {
                 Runnable r = () -> playMusic(R.raw.scanner_beep);
@@ -487,10 +505,10 @@ public class VideoRecordActivity extends Activity {
                 this.postDelayed(() -> checkSdCardFromFileList(getSDCardPath()), 1500);
                 this.postDelayed(() -> {
                     if (isError) {
-                        isFinish = 0;
-                        stopRecord(false);
+                        android.os.Process.killProcess(android.os.Process.myPid());
                     } else {
-                        checkSdCardFromFileList(filePath);
+                        runOnUiThread(() -> setAdapter());
+                        saveLog(false);
                     }
                 }, 1500);
             }
@@ -548,10 +566,10 @@ public class VideoRecordActivity extends Activity {
     private void takeRecord(int delayMillis, boolean preview) {
         isRun++;
         videoLogList.add(new LogMsg("#------------------------------", mLog.v));
-        videoLogList.add(new LogMsg("#takeRecord(" + delayMillis + ")" + " FrameRate:" +
+        videoLogList.add(new LogMsg("#takeRecord FrameRate:" +
                 (isNew ? NEW_FRAME_RATE : FRAME_RATE)[isFrame], mLog.v));
         int delay = 0;
-
+        new Handler().post(() -> checkSdCardFromFileList(filePath));
         if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera)) {
             lastfirstCamera = firstCamera; // String
             lastsecondCamera = secondCamera;
@@ -567,16 +585,11 @@ public class VideoRecordActivity extends Activity {
 
         new Handler().postDelayed(() -> new Thread(() -> startRecord(firstCamera)).start(), delay);
         new Handler().postDelayed(() -> new Thread(() -> startRecord(secondCamera)).start(), delay);
-        new Handler().postDelayed(() -> stopRecord(preview), delay + delayMillis + 2000);
+        new stopRecord(preview, delay + delayMillis + 2000);
         new Handler().postDelayed(() -> {
             runOnUiThread(() -> setAdapter());
             saveLog(false);
         }, delay);
-    }
-
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        new Handler().post(() -> saveLog(false));
-        return false;
     }
 
     private void saveLog(boolean Reformate) {
@@ -586,7 +599,7 @@ public class VideoRecordActivity extends Activity {
             if (!file.exists()) {
                 try {
                     file.createNewFile();
-                    toast(VideoRecordActivity.this, "Create the log file.", mLog.w);
+                    toast(this, "Create the log file.", mLog.w);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -697,52 +710,69 @@ public class VideoRecordActivity extends Activity {
         Log.e(TAG, "openCamera X");
     }
 
-    private void stopRecord(boolean preview) {
-        if (isRecord) {
-            boolean autoClean = false;
-            videoLogList.add(new LogMsg("#stopRecord", mLog.v));
-            Log.d(TAG, "stopRecord");
-            if (mMediaRecorder0 != null) {
-                mMediaRecorder0.stop();
-                mMediaRecorder0.reset();   // You can reuse the object by going back to setAudioSource() step
-                //mMediaRecorder.release(); // Now the object cannot be reused
-                mMediaRecorder0 = null;
-                toast(VideoRecordActivity.this, "Record " + firstCamera + " finish.");
-            }
-            if (mMediaRecorder1 != null) {
-                mMediaRecorder1.stop();
-                mMediaRecorder1.reset();
-                mMediaRecorder1 = null;
-                toast(VideoRecordActivity.this, "Record " + secondCamera + " finish.");
-            }
+    private String getCodeDate() {
+        return codeDate;
+    }
 
-            if (!autoClean) {
-                checkAndClear();
-                checkSdCardFromFileList(filePath);
-            } else {
-                deleteAndLeftTwo();
-            }
+    private class stopRecord {
+        public stopRecord(boolean preview) {
+            final String codeDate = getCodeDate();
+            new Handler().post(() -> stopRecord(preview, codeDate));
+        }
 
-            new Handler().post(() -> saveLog(false));
-            runOnUiThread(() -> setAdapter());
+        public stopRecord(boolean preview, int delay) {
+            final String codeDate = getCodeDate();
+            new Handler().postDelayed(() -> stopRecord(preview, codeDate), delay);
+        }
+    }
 
-            if (isFinish == 999 || isRun <= isFinish) {
-                takeRecord(delayTime, false);
+    private void stopRecord(boolean preview, String date) {
+        if (date.equals(getCodeDate())) {
+            codeDate = getCalendarTime();
+            if (isRecord) {
+                videoLogList.add(new LogMsg("#stopRecord", mLog.v));
+                Log.d(TAG, "stopRecord");
+                if (mMediaRecorder0 != null) {
+                    mMediaRecorder0.stop();
+                    mMediaRecorder0.reset();   // You can reuse the object by going back to setAudioSource() step
+                    //mMediaRecorder.release(); // Now the object cannot be reused
+                    mMediaRecorder0 = null;
+                    toast(VideoRecordActivity.this, "Record " + firstCamera + " finish.");
+                }
+                if (mMediaRecorder1 != null) {
+                    mMediaRecorder1.stop();
+                    mMediaRecorder1.reset();
+                    mMediaRecorder1 = null;
+                    toast(VideoRecordActivity.this, "Record " + secondCamera + " finish.");
+                }
+                boolean autoClean = false;
+                if (autoClean) {
+                    deleteAndLeftTwo();
+                } else {
+                    checkAndClear();
+                }
+
+                new Handler().post(() -> saveLog(false));
+                runOnUiThread(() -> setAdapter());
+
+                if (isFinish == 999 || isRun <= isFinish) {
+                    takeRecord(delayTime, false);
+                } else {
+                    isRun = 0;
+                    isFinish = 0;
+                    isRecord = false;
+                    videoLogList.add(new LogMsg("#------------------------------", mLog.v));
+                    toast(VideoRecordActivity.this, "#completed");
+                    if (autoClean) {
+                        checkAndClear();
+                    }
+                    end(preview);
+                }
             } else {
                 isRun = 0;
                 isFinish = 0;
-                isRecord = false;
-                videoLogList.add(new LogMsg("#------------------------------", mLog.v));
-                toast(VideoRecordActivity.this, "#completed");
-                if (autoClean) {
-                    checkAndClear();
-                }
                 end(preview);
             }
-        } else {
-            isRun = 0;
-            isFinish = 0;
-            end(preview);
         }
     }
 
@@ -751,7 +781,7 @@ public class VideoRecordActivity extends Activity {
         runOnUiThread(() -> setAdapter());
         if (preview) {
             takePreview();
-        } else finish();
+        } else android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     private void stopMediaPlayer() {
@@ -896,7 +926,6 @@ public class VideoRecordActivity extends Activity {
                 runOnUiThread(() -> setAdapter());
                 video.delete();
             } else {
-                failed++;
                 toast(VideoRecordActivity.this, "Video not find.", mLog.e);
             }
         }
@@ -954,17 +983,15 @@ public class VideoRecordActivity extends Activity {
             }
             if (tmp.size() >= 2) {
                 runOnUiThread(() -> setAdapter());
-                Object[] tmps = tmp.toArray();
-                Arrays.sort(tmps);
-                delete((String) tmps[0], false);
-                delete((String) tmps[1], false);
-                runOnUiThread(() -> setAdapter());
-                new Handler().post(() -> saveLog(false));
-                checkSdCardFromFileList(filePath);
+                Object[] list = tmp.toArray();
+                Arrays.sort(list);
+                delete((String) list[0], false);
+                delete((String) list[1], false);
+                new Handler().post(() -> checkSdCardFromFileList(filePath));
             } else {
                 videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
                 new Handler().post(() -> saveLog(false));
-                new Handler().post(() -> finish());
+                android.os.Process.killProcess(android.os.Process.myPid());
             }
         }
     }
@@ -977,7 +1004,7 @@ public class VideoRecordActivity extends Activity {
         // toast(VideoRecordActivity.this,"SD Free Space:" + gigaAvailable);
         if (gigaAvailable < 3) {
             toast(VideoRecordActivity.this, "SD Card(" + gigaAvailable + "gb) is Full.");
-            stopRecord(false);
+            new stopRecord(false);
             ArrayList<String> tmp = new ArrayList();
             delete(firstFilePath.get(0), false);
             delete(secondFilePath.get(0), false);
