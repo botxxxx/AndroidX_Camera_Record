@@ -52,7 +52,7 @@ public class Utils {
     public static String lastsecondCamera = "1";
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList;
-    public static int isFinish = 999, delayTime = 60000, isFrame = 0, isQuality = 0;
+    public static int isFinish = 999, delayTime = 600000, isFrame = 0, isQuality = 0;
     public static boolean isReady = false, isRecord = false, isError = false, isNew = false;
 
     static {
