@@ -6,7 +6,6 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.View;
@@ -401,7 +400,7 @@ public class Utils {
         i = String.format("%02d", calendar.get(Calendar.MINUTE));
         s = String.format("%02d", calendar.get(Calendar.SECOND));
 
-        return "v" + d + h + i + s + (isCameraOne ? "b" : "f");
+        return "v" + d + h + i + s + (isCameraOne ? "f" : "s");
     }
 
     public static String getSDCardPath() {
