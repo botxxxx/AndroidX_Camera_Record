@@ -45,6 +45,7 @@ public class Configini {
                 "adb shell am broadcast -a com.askey.record.f\r\n", "\r\n",
                 "#At the recording video, please don't copy the sd card file.\r\n",
                 "#At least 3.5Gb memory needs to be available to record.\r\n",
+                "#Sometimes need reboot device to wake up the External camera.\r\n",
                 "#Inner and External can't be used at the same time.\r\n",
                 "\r\n"
         };
