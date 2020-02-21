@@ -108,7 +108,7 @@ import static com.askey.record.Utils.videoLogList;
 
 public class VideoRecordActivity extends Activity {
 
-    private static String filePath = "/storage/", codeDate;
+    private static String filePath = "/storage/", codeDate, soundDate;
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
@@ -117,18 +117,27 @@ public class VideoRecordActivity extends Activity {
     private CaptureRequest.Builder mPreviewBuilder0, mPreviewBuilder1;
     private MediaRecorder mMediaRecorder0, mMediaRecorder1;
     private ListView mListView;
-    private Handler mainHandler, backgroundHandler, soundHandler, demoHandler;
+    private Handler mainHandler, backgroundHandler, demoHandler;
     private MediaPlayer mMediaPlayer;
-    private Runnable sound = new Runnable() {
 
-        public void run() {
-            if (isRecord)
-                if (isFinish == 999 || isRun <= isFinish) {
-                    playMusic(R.raw.scanner_beep);
-                    soundHandler.postDelayed(this, 10000);
+    private String getSoundDate() {
+        return soundDate;
+    }
+
+    private class soundHandler {
+        public soundHandler(String date) {
+            final String sounds = date;
+            new Handler().postDelayed(() -> {
+                if (sounds.equals(getSoundDate())) {
+                    soundDate = getCalendarTime();
+                    if (isRecord) {
+                        playMusic(R.raw.scanner_beep);
+                        new soundHandler(soundDate);
+                    }
                 }
+            }, 10000);
         }
-    };
+    }
 
     private final BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
@@ -165,7 +174,7 @@ public class VideoRecordActivity extends Activity {
         failed = 0;
         firstFilePath.clear();
         secondFilePath.clear();
-        soundHandler.post(sound);
+        new soundHandler(soundDate);
     }
 
     private void fullScreenCall() {
@@ -345,7 +354,7 @@ public class VideoRecordActivity extends Activity {
         thread.start();
         backgroundHandler = new Handler(thread.getLooper());
         mainHandler = new Handler(getMainLooper());
-        soundHandler = new Handler();
+        soundDate = getCalendarTime();
         mStateCallback0 = new CameraDevice.StateCallback() {
 
             public void onOpened(CameraDevice camera) {
