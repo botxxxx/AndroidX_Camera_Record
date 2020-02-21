@@ -216,7 +216,7 @@ public class Utils {
                 }
                 if (!first.equals(second)) {
                     if ((first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"))) {
-                        toast(context, "Inner and External, Cannot be used at the same time", mLog.e);
+                        toast(context, "Inner and External can't be used at the same time.", mLog.e);
                         reformat = true;
                     } else {
                         if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {

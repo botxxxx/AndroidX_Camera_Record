@@ -25,14 +25,14 @@ public class Configini {
     protected String[] config() {
         return new String[]{
                 "[VIDEO_RECORD_TESTING]" + context.getString(R.string.app_name) + "\r\n",
-                "#CameraID(0:Outer, 1:Inner, 2:External)\r\n",
+                "#CameraID (0:Outer, 1:Inner, 2:External)\r\n",
                 "firstCameraID = " + firstCamera + "\r\n",
                 "secondCameraID = " + secondCamera + "\r\n", "\r\n",
-                "#Total number of runs: 1 record is 10 min\r\n",
+                "#Total number of runs (1 record is 10 min)\r\n",
                 "numberOfRuns = " + numberOfRuns + "\r\n", "\r\n",
                 "#Set Property\r\n",
                 "setProperty = " + isNew + "\r\n", "\r\n",
-                "#Play video path\r\n",
+                "#Video path\r\n",
                 "video1_path = /sdcard/(ddhhmmss)f.mp4\r\n",
                 "video2_path = /sdcard/(ddhhmmss)s.mp4\r\n", "\r\n",
                 "#Start\r\n",
@@ -46,7 +46,7 @@ public class Configini {
                 "#At the recording video, please don't copy the sd card file.\r\n",
                 "#At least 3.5Gb memory needs to be available to record, please check the SD card.\r\n",
                 "#Frame rate switch will delay 3s to restart the camera device.\r\n",
-                "#Inner and External, Cannot be used at the same time.\r\n",
+                "#Inner and External can't be used at the same time.\r\n",
                 "\r\n"
         };
     }
