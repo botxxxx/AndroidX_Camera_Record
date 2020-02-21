@@ -28,7 +28,7 @@ public class Configini {
                 "#CameraID(0:Outer, 1:Inner, 2:External)\r\n",
                 "firstCameraID = " + firstCamera + "\r\n",
                 "secondCameraID = " + secondCamera + "\r\n", "\r\n",
-                "#Total number of runs: 1 = 10min\r\n",
+                "#Total number of runs: 1 record is 10 min\r\n",
                 "numberOfRuns = " + numberOfRuns + "\r\n", "\r\n",
                 "#Set Property\r\n",
                 "setProperty = " + isNew + "\r\n", "\r\n",
@@ -44,9 +44,9 @@ public class Configini {
                 "#Finish\r\n",
                 "adb shell am broadcast -a com.askey.record.f\r\n", "\r\n",
                 "#At the recording video, please don't copy the sd card file.\r\n",
-                "#At least 3.5Gb memory needs to be available to record, \r\n",
-                "#please check the SD card.\r\n",
-                "#Frame rate switch will delay 3s to restart the camera device. \r\n",
+                "#At least 3.5Gb memory needs to be available to record, please check the SD card.\r\n",
+                "#Frame rate switch will delay 3s to restart the camera device.\r\n",
+                "#Inner and External, Cannot be used at the same time.\r\n",
                 "\r\n"
         };
     }
