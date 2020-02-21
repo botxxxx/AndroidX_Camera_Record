@@ -120,25 +120,6 @@ public class VideoRecordActivity extends Activity {
     private Handler mainHandler, backgroundHandler, demoHandler;
     private MediaPlayer mMediaPlayer;
 
-    private String getSoundDate() {
-        return soundDate;
-    }
-
-    private class soundHandler {
-        public soundHandler(String date) {
-            final String sounds = date;
-            new Handler().postDelayed(() -> {
-                if (sounds.equals(getSoundDate())) {
-                    soundDate = getCalendarTime();
-                    if (isRecord) {
-                        playMusic(R.raw.scanner_beep);
-                        new soundHandler(soundDate);
-                    }
-                }
-            }, 10000);
-        }
-    }
-
     private final BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -723,18 +704,6 @@ public class VideoRecordActivity extends Activity {
         return codeDate;
     }
 
-    private class stopRecord {
-        public stopRecord(boolean preview) {
-            final String codeDate = getCodeDate();
-            new Handler().post(() -> stopRecord(preview, codeDate));
-        }
-
-        public stopRecord(boolean preview, int delay) {
-            final String codeDate = getCodeDate();
-            new Handler().postDelayed(() -> stopRecord(preview, codeDate), delay);
-        }
-    }
-
     private void stopRecord(boolean preview, String date) {
         if (date.equals(getCodeDate())) {
             codeDate = getCalendarTime();
@@ -1171,6 +1140,37 @@ public class VideoRecordActivity extends Activity {
 
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 
+        }
+    }
+
+    private class soundHandler {
+        private String getSoundDate() {
+            return soundDate;
+        }
+
+        public soundHandler(String date) {
+            final String sounds = date;
+            new Handler().postDelayed(() -> {
+                if (sounds.equals(getSoundDate())) {
+                    soundDate = getCalendarTime();
+                    if (isRecord) {
+                        playMusic(R.raw.scanner_beep);
+                        new soundHandler(soundDate);
+                    }
+                }
+            }, 10000);
+        }
+    }
+
+    private class stopRecord {
+        public stopRecord(boolean preview) {
+            final String codeDate = getCodeDate();
+            new Handler().post(() -> stopRecord(preview, codeDate));
+        }
+
+        public stopRecord(boolean preview, int delay) {
+            final String codeDate = getCodeDate();
+            new Handler().postDelayed(() -> stopRecord(preview, codeDate), delay);
         }
     }
 
