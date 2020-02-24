@@ -6,9 +6,10 @@
     tools:ignore="ProtectedPermissions">
 
     <uses-feature android:name="android.hardware.camera" />
-<!--    <uses-feature android:name="android.hardware.camera2.full" />-->
-<!--    <uses-feature android:name="android.hardware.camera2.autofocus" />-->
+    <!--    <uses-feature android:name="android.hardware.camera2.full" />-->
+    <!--    <uses-feature android:name="android.hardware.camera2.autofocus" />-->
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -32,5 +33,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name="com.askey.record.VideoService" />
     </application>
 </manifest>
