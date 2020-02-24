@@ -503,6 +503,17 @@ public class VideoRecordActivity extends Activity {
                 }, 1500);
             }
         };
+
+        this.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {  //Battery
+                    videoLogList.add(new LogMsg("Battery:" + intent.getIntExtra("level", 0) + "%", mLog.e));
+                    runOnUiThread(() -> setAdapter());
+                    new Handler().post(() -> saveLog(false));
+                }
+            }
+        }, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
     }
 
     private void setSetting() {

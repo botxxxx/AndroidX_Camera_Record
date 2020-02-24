@@ -193,7 +193,6 @@
                 android:layout_marginRight="10dp"
                 android:background="@color/white"
                 android:hint="false"
-                android:inputType="text"
                 android:singleLine="true"
                 android:text="false"
                 android:textColor="@android:color/black"

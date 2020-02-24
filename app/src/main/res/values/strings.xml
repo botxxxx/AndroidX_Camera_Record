@@ -54,6 +54,8 @@
         3.Update Config message.
         4.fix inner and external will crash error, application is not closed.
         5.fix cancel and restart will crash error, application is not closed.
+    [v1.3.6]
+        1.add Battery Receiver.
     -->
-    <string name="app_name">CDR9020_QTR(v1.3.5)</string>
+    <string name="app_name">CDR9020_QTR(v1.3.6)</string>
 </resources>
