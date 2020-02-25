@@ -54,8 +54,11 @@
         3.Update Config message.
         4.fix inner and external will crash error, application is not closed.
         5.fix cancel and restart will crash error, application is not closed.
-    [v1.3.6]
-        1.add Battery Receiver.
+    [v1.4.0]
+        1.add Battery Listener.
+        2.add Reset Activity.
+        3.application will reset on camera error.
+        3.show battery in Log message.
     -->
-    <string name="app_name">CDR9020_QTR(v1.3.6)</string>
+    <string name="app_name">CDR9020_QTR(v1.4.0)</string>
 </resources>

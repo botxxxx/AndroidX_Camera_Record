@@ -39,11 +39,13 @@ public class Utils {
     public static final String COMMAND_VIDEO_RECORD_TESTa = "com.askey.record.T";
     public static final String COMMAND_VIDEO_RECORD_STARTa = "com.askey.record.S";
     public static final String COMMAND_VIDEO_RECORD_FINISHa = "com.askey.record.F";
+    public static final String EXTRA_VIDEO_RESET = "RESET";
+    public static final String EXTRA_VIDEO_RECORD = "RECORD";
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String configName = "VideoRecordConfig.ini";
     public static final String logName = "VideoRecordLog.ini";
     public static final double sdData = 3.5;
-    public static int isRun = 0, successful = 0, failed = 0;
+    public static int isRun = 0, successful = 0, failed = 0, isReset = 0;
     public static String TAG = "VideoRecord";
     public static String firstCamera = "0";
     public static String secondCamera = "1";
@@ -81,6 +83,10 @@ public class Utils {
 
     public static int getFailed() {
         return failed;
+    }
+
+    public static int getReset() {
+        return isReset;
     }
 
     public static int getIsRun() {
@@ -165,11 +171,10 @@ public class Utils {
         boolean reformat = true, isCameraChange = false, isPropChange = false;
         if (input.length() > 0) {
             String[] read = input.split("\r\n");
-            int target = 0, t;
+            int target = 0, t = 0;
             String title = "[VIDEO_RECORD_TESTING]";
             String first = "firstCameraID = ", second = "secondCameraID = ";
             String code = "numberOfRuns = ", prop = "setProperty = ";
-
             for (String s : read)
                 if (s.indexOf(title) != -1) {
                     target++;
@@ -208,6 +213,7 @@ public class Utils {
                     prop = s.substring(t);
                     break;
                 }
+
             if (target == 5) {
                 reformat = false;
                 if (!title.equals(context.getString(R.string.app_name))) {

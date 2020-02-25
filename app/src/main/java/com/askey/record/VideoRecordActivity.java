@@ -6,11 +6,9 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.SurfaceTexture;
@@ -29,7 +27,6 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.IBinder;
 import android.os.StatFs;
 import android.os.SystemProperties;
 import android.support.v4.app.ActivityCompat;
@@ -70,6 +67,8 @@ import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_STARTa;
 import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_TEST;
 import static com.askey.record.Utils.COMMAND_VIDEO_RECORD_TESTa;
 import static com.askey.record.Utils.DFRAME_RATE;
+import static com.askey.record.Utils.EXTRA_VIDEO_RECORD;
+import static com.askey.record.Utils.EXTRA_VIDEO_RESET;
 import static com.askey.record.Utils.FRAMESKIP;
 import static com.askey.record.Utils.FRAME_RATE;
 import static com.askey.record.Utils.NEW_DFRAME_RATE;
@@ -85,6 +84,7 @@ import static com.askey.record.Utils.firstFilePath;
 import static com.askey.record.Utils.getCalendarTime;
 import static com.askey.record.Utils.getFailed;
 import static com.askey.record.Utils.getFrameRate;
+import static com.askey.record.Utils.getReset;
 import static com.askey.record.Utils.getSDCardPath;
 import static com.askey.record.Utils.getSuccessful;
 import static com.askey.record.Utils.getVideo;
@@ -102,6 +102,7 @@ import static com.askey.record.Utils.lastsecondCamera;
 import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.readConfigFile;
 import static com.askey.record.Utils.reformatConfigFile;
+import static com.askey.record.Utils.isReset;
 import static com.askey.record.Utils.sdData;
 import static com.askey.record.Utils.secondCamera;
 import static com.askey.record.Utils.secondFilePath;
@@ -111,8 +112,8 @@ import static com.askey.record.Utils.toast;
 import static com.askey.record.Utils.videoLogList;
 
 public class VideoRecordActivity extends Activity {
-
-    private static int isDebug = 0;
+    public static int onReset = 0;
+    public static boolean onRecord = false;
     private static String filePath = "/storage/", codeDate, soundDate;
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
@@ -124,6 +125,8 @@ public class VideoRecordActivity extends Activity {
     private ListView mListView;
     private Handler mainHandler, backgroundHandler, demoHandler;
     private MediaPlayer mMediaPlayer;
+    private HandlerThread thread;
+//    private ServiceConnection conn;
 
     private final BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
@@ -158,6 +161,7 @@ public class VideoRecordActivity extends Activity {
         isRun = 0;
         successful = 0;
         failed = 0;
+        isReset = 0;
         firstFilePath.clear();
         secondFilePath.clear();
         new soundHandler(soundDate);
@@ -201,7 +205,10 @@ public class VideoRecordActivity extends Activity {
                 if (isNew) PropertyUtils.set(FRAMESKIP, "0"); //*reflection invoke
 //                CommandUtil.executed("setprop "+FRAMESKIP+" 0"); //*not work
                 setStart();
-            } else android.os.Process.killProcess(android.os.Process.myPid());
+            } else {
+                toast(VideoRecordActivity.this, "No SD card!");
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
         }
     }
 
@@ -257,12 +264,15 @@ public class VideoRecordActivity extends Activity {
         HomeListen home = new HomeListen(this);
         home.setOnHomeBtnPressListener(new HomeListen.OnHomeBtnPressLitener() {
             public void onHomeBtnPress() {
+                stopRecordAndFinish();
                 android.os.Process.killProcess(android.os.Process.myPid());
-
+//                finish();
             }
 
             public void onHomeBtnLongPress() {
+                stopRecordAndFinish();
                 android.os.Process.killProcess(android.os.Process.myPid());
+//                finish();
             }
         });
         home.start();
@@ -309,16 +319,110 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private void getService(){
-        this.bindService(new Intent(this, VideoService.class), new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName className, IBinder binder) {
-            }
+//    private void getService() {
+//        bindService(new Intent(this, VideoService.class), conn, Context.BIND_AUTO_CREATE);
+//    }
 
-            @Override
-            public void onServiceDisconnected(ComponentName className) {
-            }
-        }, Context.BIND_AUTO_CREATE);
+    private void setCallback(int callback) {
+        if (callback == 0)
+            mStateCallback0 = new CameraDevice.StateCallback() {
+
+                public void onOpened(CameraDevice camera) {
+                    if (!isReady) {
+                        // 打开摄像头
+                        Log.e(TAG, "onOpened");
+                        toast(VideoRecordActivity.this, "Camera " + firstCamera + " is opened.", mLog.i);
+                    }
+                    mCameraDevice0 = camera;
+                    // 开启预览
+                    takePreview(firstCamera);
+                }
+
+                public void onDisconnected(CameraDevice camera) {
+                    camera.close();
+                    // 关闭摄像头
+                    Log.e(TAG, "onDisconnected");
+                    toast(VideoRecordActivity.this, "Camera " + firstCamera + " is disconnected.", mLog.w);
+                    if (null != mCameraDevice0) {
+                        mCameraDevice0.close();
+                        mCameraDevice0 = null;
+                    }
+                }
+
+                public void onError(CameraDevice camera, int error) {
+                    onDisconnected(camera);
+                    // 前鏡頭開啟失敗
+                    Log.e(TAG, "onError");
+                    toast(VideoRecordActivity.this, "Open Camera " + firstCamera + " error. <========================= Crash here", mLog.e);
+                    stopRecordAndFinish();
+                    isError = true;
+                    closePreviewSession(firstCamera);
+                    new Handler().postDelayed(() -> {
+                        restartApp();
+                    }, 3000);
+                }
+            };
+        if (callback == 1)
+            mStateCallback1 = new CameraDevice.StateCallback() {
+
+                public void onOpened(CameraDevice camera) {
+                    if (!isReady) {
+                        // 打开摄像头
+                        Log.e(TAG, "onOpened");
+                        toast(VideoRecordActivity.this, "Camera " + secondCamera + " is opened.", mLog.i);
+                    }
+                    mCameraDevice1 = camera;
+                    // 开启预览
+                    takePreview(secondCamera);
+                    if (!isReady) {
+                        isReady = true;
+                        demoHandler.obtainMessage().sendToTarget(); // playDEMO
+                        onReset = getIntent().getIntExtra(EXTRA_VIDEO_RESET, 0);
+                        isReset = onReset;
+                        if (isReset != 0)
+                            toast(VideoRecordActivity.this, "getReset:" + isReset);
+                    }
+                }
+
+                public void onDisconnected(CameraDevice camera) {
+                    camera.close();
+                    // 关闭摄像头
+                    Log.e(TAG, "onDisconnected");
+                    toast(VideoRecordActivity.this, "Camera " + secondCamera + " is disconnected.", mLog.w);
+                    if (null != mCameraDevice1) {
+                        mCameraDevice1.close();
+                        mCameraDevice1 = null;
+                    }
+                }
+
+                public void onError(CameraDevice camera, int error) {
+                    onDisconnected(camera);
+                    // 前鏡頭開啟失敗
+                    Log.e(TAG, "onError");
+                    toast(VideoRecordActivity.this, "Open Camera " + secondCamera + " error. <========================= Crash here", mLog.e);
+                    stopRecordAndFinish();
+                    isError = true;
+                    closePreviewSession(secondCamera);
+                    new Handler().postDelayed(() -> {
+                        restartApp();
+                    }, 3000);
+                }
+            };
+    }
+
+    private void stopRecordAndFinish() {
+        isFinish = 0;
+        new Handler().post(() -> new stopRecord(true));
+        runOnUiThread(() -> setAdapter());
+        new Handler().post(() -> saveLog(false));
+    }
+
+    private void restartApp() {
+//        toast(VideoRecordActivity.this, "reset:" + getReset(), mLog.e);
+        Context context = getApplicationContext();
+        Intent intent = RestartActivity.createIntent(context);
+        // RestartActivity を起動（AndroidManifest.xml での宣言により別プロセスで起動する
+        context.startActivity(intent);
     }
 
     private void initial() {
@@ -352,107 +456,13 @@ public class VideoRecordActivity extends Activity {
         mListView = findViewById(R.id.list);
         mListView.setEnabled(false);
         toast(VideoRecordActivity.this, "Initial now.", mLog.v);
-        if (isDebug == 0) {
-            HandlerThread thread = new HandlerThread("CameraPreview");
-            thread.start();
-            backgroundHandler = new Handler(thread.getLooper());
-            mainHandler = new Handler(getMainLooper());
-            soundDate = getCalendarTime();
-        }
-        mStateCallback0 = new CameraDevice.StateCallback() {
-
-            public void onOpened(CameraDevice camera) {
-                if (!isReady) {
-                    // 打开摄像头
-                    Log.e(TAG, "onOpened");
-                    toast(VideoRecordActivity.this, "Camera " + firstCamera + " is opened.", mLog.i);
-                }
-                mCameraDevice0 = camera;
-                // 开启预览
-                takePreview(firstCamera);
-            }
-
-            public void onDisconnected(CameraDevice camera) {
-                camera.close();
-                // 关闭摄像头
-                Log.e(TAG, "onDisconnected");
-                toast(VideoRecordActivity.this, "Camera " + firstCamera + " is disconnected.", mLog.w);
-                if (null != mCameraDevice0) {
-                    mCameraDevice0.close();
-                    mCameraDevice0 = null;
-                }
-                if (isDebug < 3) {
-                    new Handler().postDelayed(() -> {
-                        isDebug++;
-                        initial();
-                    }, 15000);
-                }
-            }
-
-            public void onError(CameraDevice camera, int error) {
-                onDisconnected(camera);
-                // 前鏡頭開啟失敗
-                Log.e(TAG, "onError");
-                toast(VideoRecordActivity.this, "Open Camera " + firstCamera + " error. <========================= Crash here", mLog.e);
-                isFinish = 0;
-                new Handler().post(() -> new stopRecord(true));
-                runOnUiThread(() -> setAdapter());
-                new Handler().post(() -> saveLog(false));
-                isError = true;
-//                getService();
-//                finish();
-//                android.os.Process.killProcess(android.os.Process.myPid());
-            }
-        };
-        mStateCallback1 = new CameraDevice.StateCallback() {
-
-            public void onOpened(CameraDevice camera) {
-                if (!isReady) {
-                    // 打开摄像头
-                    Log.e(TAG, "onOpened");
-                    toast(VideoRecordActivity.this, "Camera " + secondCamera + " is opened.", mLog.i);
-                }
-                mCameraDevice1 = camera;
-                // 开启预览
-                takePreview(secondCamera);
-                if (!isReady) {
-                    isReady = true;
-                    demoHandler.obtainMessage().sendToTarget(); // playDEMO
-                }
-            }
-
-            public void onDisconnected(CameraDevice camera) {
-                camera.close();
-                // 关闭摄像头
-                Log.e(TAG, "onDisconnected");
-                toast(VideoRecordActivity.this, "Camera " + secondCamera + " is disconnected.", mLog.w);
-                if (null != mCameraDevice1) {
-                    mCameraDevice1.close();
-                    mCameraDevice1 = null;
-                }
-                if (isDebug < 3) {
-                    new Handler().postDelayed(() -> {
-                        isDebug++;
-                        initial();
-                    }, 15000);
-                }
-            }
-
-            public void onError(CameraDevice camera, int error) {
-                onDisconnected(camera);
-                // 前鏡頭開啟失敗
-                Log.e(TAG, "onError");
-                toast(VideoRecordActivity.this, "Open Camera " + secondCamera + " error. <========================= Crash here", mLog.e);
-                isFinish = 0;
-                new Handler().post(() -> new stopRecord(true));
-                runOnUiThread(() -> setAdapter());
-                new Handler().post(() -> saveLog(false));
-                isError = true;
-//                getService();
-//                finish();
-//                android.os.Process.killProcess(android.os.Process.myPid());
-            }
-        };
+        thread = new HandlerThread("CameraPreview ");
+        thread.start();
+        backgroundHandler = new Handler(thread.getLooper());
+        mainHandler = new Handler(getMainLooper());
+        soundDate = getCalendarTime();
+        setCallback(0);
+        setCallback(1);
         mTextureView0 = findViewById(R.id.surfaceView0);
         mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
         mTextureView1 = findViewById(R.id.surfaceView1);
@@ -460,8 +470,7 @@ public class VideoRecordActivity extends Activity {
         AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         findViewById(R.id.listBackground).setOnClickListener((View v) -> showDialogLog());
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
-            Log.d("VideoRecord", "finish");
-            new Handler().post(() -> saveLog(false));
+            stopRecordAndFinish();
             android.os.Process.killProcess(android.os.Process.myPid());
         });
         findViewById(R.id.volume_down).setOnClickListener((View v) ->
@@ -508,23 +517,29 @@ public class VideoRecordActivity extends Activity {
         registerReceiver(myReceiver, filter);
         videoLogList.add(new LogMsg("#initial complete", mLog.v));
         mListView.setAdapter(new mLogListAdapter(this, videoLogList));
+
+        onRecord = getIntent().getBooleanExtra(EXTRA_VIDEO_RECORD, false);
         // show DEMO
         demoHandler = new Handler() {
             public void handleMessage(android.os.Message msg) {
-                Runnable r = () -> playMusic(R.raw.scanner_beep);
-                this.post(r);
-                this.postDelayed(r, 900);
-                this.postDelayed(r, 1200);
-                this.postDelayed(() -> checkSdCardFromFileList(getSDCardPath()), 1500);
-                this.postDelayed(() -> {
-                    if (!isError) {
-                        runOnUiThread(() -> setAdapter());
-                        saveLog(false);
-                    }
-                }, 1500);
+                if (!onRecord) {
+                    Runnable r = () -> playMusic(R.raw.scanner_beep);
+                    this.post(r);
+                    this.postDelayed(r, 900);
+                    this.postDelayed(r, 1200);
+                    this.postDelayed(() -> checkSdCardFromFileList(getSDCardPath()), 1500);
+                    this.postDelayed(() -> {
+                        if (!isError) {
+                            runOnUiThread(() -> setAdapter());
+                            saveLog(false);
+                        }
+                    }, 1500);
+                } else {
+                    // startRecord
+                    isRecordStart();
+                }
             }
         };
-
         this.registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -681,6 +696,11 @@ public class VideoRecordActivity extends Activity {
         super.onDestroy();
         isFinish = 0;
         isRecord = false;
+
+        closePreviewSession(firstCamera);
+        closePreviewSession(secondCamera);
+        mStateCallback0 = null;
+        mStateCallback1 = null;
         if (mMediaRecorder0 != null) {
             mMediaRecorder0.stop();
             mMediaRecorder0.reset();
@@ -696,6 +716,7 @@ public class VideoRecordActivity extends Activity {
         stopMediaPlayer();
         new Handler().post(() -> saveLog(false));
         unregisterReceiver(myReceiver);
+//        unbindService(conn);
     }
 
 
@@ -875,9 +896,9 @@ public class VideoRecordActivity extends Activity {
             } else {
                 failed++;
             }
-            videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] + " framerate:" + framerate +
+            videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] + " frameRate:" + framerate +
                     " duration:" + convertMinutes + ":" + convertSeconds +
-                    " success:" + getSuccessful() + " fail:" + getFailed(), mLog.i));
+                    " success:" + getSuccessful() + " fail:" + getFailed() + " reset:" + getReset(), mLog.i));
             runOnUiThread(() -> setAdapter());
         } catch (Exception e) {
 
@@ -1052,9 +1073,9 @@ public class VideoRecordActivity extends Activity {
                 new Handler().post(() -> checkSdCardFromFileList(filePath));
             } else {
                 videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
-                new Handler().post(() -> saveLog(false));
+                stopRecordAndFinish();
                 isError = true;
-//                android.os.Process.killProcess(android.os.Process.myPid());
+                android.os.Process.killProcess(android.os.Process.myPid());
             }
         }
     }
