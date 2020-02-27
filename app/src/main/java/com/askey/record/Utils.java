@@ -21,10 +21,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Calendar;
+
+import static com.askey.record.VideoRecordActivity.getSdCard;
+import static com.askey.record.VideoRecordActivity.onReset;
 
 public class Utils {
 
@@ -39,13 +41,15 @@ public class Utils {
     public static final String COMMAND_VIDEO_RECORD_TESTa = "com.askey.record.T";
     public static final String COMMAND_VIDEO_RECORD_STARTa = "com.askey.record.S";
     public static final String COMMAND_VIDEO_RECORD_FINISHa = "com.askey.record.F";
-    public static final String EXTRA_VIDEO_RESET = "RESET";
-    public static final String EXTRA_VIDEO_RECORD = "RECORD";
+    public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
+    public static final String EXTRA_VIDEO_RESET = "RestartActivity.reset";
+    public static final String EXTRA_VIDEO_RECORD = "RestartActivity.record";
+    public static final String NO_SD_CARD = "SD card is not available!";
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String configName = "VideoRecordConfig.ini";
     public static final String logName = "VideoRecordLog.ini";
     public static final double sdData = 3.5;
-    public static int isRun = 0, successful = 0, failed = 0, isReset = 0;
+    public static int isRun = 0, successful = 0, failed = 0;
     public static String TAG = "VideoRecord";
     public static String firstCamera = "0";
     public static String secondCamera = "1";
@@ -86,7 +90,7 @@ public class Utils {
     }
 
     public static int getReset() {
-        return isReset;
+        return onReset;
     }
 
     public static int getIsRun() {
@@ -98,9 +102,8 @@ public class Utils {
             if (Integer.parseInt(s) <= (zero ? 0 : -1)) {
                 return false;
             }
-        } catch (NumberFormatException e) {
-            return false;
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
         return true;
@@ -111,9 +114,8 @@ public class Utils {
             if (Boolean.parseBoolean(s)) {
                 return true;
             }
-        } catch (NumberFormatException e) {
-            return false;
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
         return true;
@@ -138,7 +140,7 @@ public class Utils {
             if (!file.exists()) {
                 try {
                     file.createNewFile();
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 toast(context, "Create the config file.", mLog.w);
@@ -153,6 +155,7 @@ public class Utils {
             return true;
         } else {
             toast(context, "Please check the SD card.", mLog.e);
+
         }
         return false;
     }
@@ -167,105 +170,107 @@ public class Utils {
     }
 
     public static boolean[] checkConfigFile(Context context, File file, boolean firstOne) {
-        String input = readConfigFile(context, file);
-        boolean reformat = true, isCameraChange = false, isPropChange = false;
-        if (input.length() > 0) {
-            String[] read = input.split("\r\n");
-            int target = 0, t = 0;
-            String title = "[VIDEO_RECORD_TESTING]";
-            String first = "firstCameraID = ", second = "secondCameraID = ";
-            String code = "numberOfRuns = ", prop = "setProperty = ";
-            for (String s : read)
-                if (s.indexOf(title) != -1) {
-                    target++;
-                    t = s.indexOf(title) + title.length();
-                    title = s.substring(t);
-//                    toast(context, "app: " + title);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(first) != -1) {
-                    target++;
-                    t = s.indexOf(first) + first.length();
-                    first = s.substring(t);
-//                    toast(context, "firstCamera: " + first);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(second) != -1) {
-                    target++;
-                    t = s.indexOf(second) + second.length();
-                    second = s.substring(t);
-//                    toast(context, "secondCamera: " + second);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(code) != -1) {
-                    target++;
-                    t = s.indexOf(code) + code.length();
-                    code = s.substring(t);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(prop) != -1) {
-                    target++;
-                    t = s.indexOf(prop) + prop.length();
-                    prop = s.substring(t);
-                    break;
-                }
+        try {
+            String input = readConfigFile(context, file);
+            boolean reformat = true, isCameraChange = false, isPropChange = false;
+            if (input.length() > 0) {
+                String[] read = input.split("\r\n");
+                int target = 0, t = 0;
+                String title = "[VIDEO_RECORD_TESTING]";
+                String first = "firstCameraID = ", second = "secondCameraID = ";
+                String code = "numberOfRuns = ", prop = "setProperty = ";
+                for (String s : read)
+                    if (s.indexOf(title) != -1) {
+                        target++;
+                        t = s.indexOf(title) + title.length();
+                        title = s.substring(t);
+                        break;
+                    }
+                for (String s : read)
+                    if (s.indexOf(first) != -1) {
+                        target++;
+                        t = s.indexOf(first) + first.length();
+                        first = s.substring(t);
+                        break;
+                    }
+                for (String s : read)
+                    if (s.indexOf(second) != -1) {
+                        target++;
+                        t = s.indexOf(second) + second.length();
+                        second = s.substring(t);
+                        break;
+                    }
+                for (String s : read)
+                    if (s.indexOf(code) != -1) {
+                        target++;
+                        t = s.indexOf(code) + code.length();
+                        code = s.substring(t);
+                        break;
+                    }
+                for (String s : read)
+                    if (s.indexOf(prop) != -1) {
+                        target++;
+                        t = s.indexOf(prop) + prop.length();
+                        prop = s.substring(t);
+                        break;
+                    }
 
-            if (target == 5) {
-                reformat = false;
-                if (!title.equals(context.getString(R.string.app_name))) {
-                    toast(context, "Config is updated.", mLog.e);
-                    reformat = true;
-                }
-                if (!first.equals(second)) {
-                    if ((first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"))) {
-                        toast(context, "Inner and External can't be used at the same time.", mLog.e);
+                if (target == 5) {
+                    reformat = false;
+                    if (!title.equals(context.getString(R.string.app_name))) {
+                        toast(context, "Config is updated.", mLog.e);
                         reformat = true;
-                    } else {
-                        if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {
-                            lastfirstCamera = firstOne ? first : firstCamera;
-                            lastsecondCamera = firstOne ? second : secondCamera;
-                            firstCamera = first;
-                            secondCamera = second;
-                            if (!firstOne)
-                                if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera))
-                                    isCameraChange = true;
-                        } else {
-                            toast(context, "Unknown Camera ID.", mLog.e);
+                    }
+                    if (!first.equals(second)) {
+                        if ((first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"))) {
+                            toast(context, "Inner and External can't be used at the same time.", mLog.e);
                             reformat = true;
+                        } else {
+                            if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {
+                                lastfirstCamera = firstOne ? first : firstCamera;
+                                lastsecondCamera = firstOne ? second : secondCamera;
+                                firstCamera = first;
+                                secondCamera = second;
+                                if (!firstOne)
+                                    if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera))
+                                        isCameraChange = true;
+                            } else {
+                                toast(context, "Unknown Camera ID.", mLog.e);
+                                reformat = true;
+                            }
                         }
+                    } else {
+                        toast(context, "Cannot use the same Camera ID.", mLog.e);
+                        reformat = true;
                     }
-                } else {
-                    toast(context, "Cannot use the same Camera ID.", mLog.e);
-                    reformat = true;
-                }
-                if (isInteger(code.split("\n")[0], true)) {
-                    int min = Integer.parseInt(code.split("\n")[0]);
-                    setTestTime(context, min);
-                } else {
-                    toast(context, "Unknown Record Times.", mLog.e);
-                    reformat = true;
-                }
-                if (isBoolean(prop)) {
-                    if (!Boolean.parseBoolean(prop)) {
-                        if (isNew != Boolean.parseBoolean(prop))
-                            isPropChange = true;
-                        isNew = Boolean.parseBoolean(prop);
+                    if (isInteger(code.split("\n")[0], true)) {
+                        int min = Integer.parseInt(code.split("\n")[0]);
+                        setTestTime(context, min);
+                    } else {
+                        toast(context, "Unknown Record Times.", mLog.e);
+                        reformat = true;
                     }
-                } else {
-                    toast(context, "Unknown setProperty.", mLog.e);
-                    reformat = true;
+                    if (isBoolean(prop)) {
+                        if (!Boolean.parseBoolean(prop)) {
+                            if (isNew != Boolean.parseBoolean(prop))
+                                isPropChange = true;
+                            isNew = Boolean.parseBoolean(prop);
+                        }
+                    } else {
+                        toast(context, "Unknown setProperty.", mLog.e);
+                        reformat = true;
+                    }
                 }
             }
-        }
-        if (reformat) {
+            if (reformat) {
+                reformatConfigFile(context, file);
+                return new boolean[]{true, true};
+            } else return new boolean[]{isCameraChange, isPropChange};
+        }catch (Exception e){
+            e.printStackTrace();
             reformatConfigFile(context, file);
             return new boolean[]{true, true};
-        } else return new boolean[]{isCameraChange, isPropChange};
-
+        }
     }
 
     public static boolean isCameraID(Context context, String f, String b) {
@@ -311,9 +316,8 @@ public class Utils {
                 }
             }
             return true;
-        } catch (NumberFormatException e) {
-            return false;
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -366,24 +370,31 @@ public class Utils {
             tmp += bytes.toString();
             bytes.close();
             input.close();
-        } catch (IOException e) {
-//            Log.e(TAG, " read failed: \" + e.toString()");
+        } catch (Exception e) {
+            e.printStackTrace();
+            getSdCard = false;
             toast(context, "read failed.", mLog.e);
         }
         return tmp;
     }
 
     public static void writeConfigFile(Context context, File file, String[] str) {
-        String tmp = "";
-        for (String s : str)
-            tmp += s;
-        try {
-            FileOutputStream output = new FileOutputStream(file);
-            output.write(tmp.getBytes());
-            output.close();
-        } catch (IOException e) {
+        if (getSdCard != false) {
+            String tmp = "";
+            for (String s : str)
+                tmp += s;
+            try {
+                FileOutputStream output = new FileOutputStream(file);
+                output.write(tmp.getBytes());
+                output.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                getSdCard = false;
 //            Log.e(TAG, " write failed: \" + e.toString()");
-            toast(context, "write failed.", mLog.e);
+                toast(context, "write failed.", mLog.e);
+            }
+        } else {
+            toast(context, NO_SD_CARD, mLog.e);
         }
     }
 
@@ -458,9 +469,9 @@ public class Utils {
             }
             extractor.release();
             if (fis != null) fis.close();
-        } catch (IOException e) {
-            mMediaPlayer.release();
+        } catch (Exception e) {
             e.printStackTrace();
+            mMediaPlayer.release();
         }
         return frameRate;
     }

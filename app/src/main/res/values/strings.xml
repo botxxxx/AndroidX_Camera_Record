@@ -39,7 +39,7 @@
         1.optimizing The UX/UI.
         2.add libs/debug.keystore.
     [v1.3.2]
-        1.fix dialog can not dismiss pro.
+        1.fix dialog can not dismiss problem.
         2.fix record can used dialog change camera problem.
     [v1.3.3]
         1.update default config file, total_test_minute = 999.
@@ -59,6 +59,10 @@
         2.add Reset Activity.
         3.application will reset on camera error.
         3.show battery in Log message.
+    [v1.4.1]
+        1.show reset in Log message.
+        2.fix no SD card crash, camera not access crash, config not match crash.
+        3.auto select the last line of log message.
     -->
-    <string name="app_name">CDR9020_QTR(v1.4.0)</string>
+    <string name="app_name">CDR9020_QTR(v1.4.1)</string>
 </resources>
