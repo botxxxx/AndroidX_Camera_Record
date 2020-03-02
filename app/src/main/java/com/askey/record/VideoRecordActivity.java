@@ -153,6 +153,56 @@ public class VideoRecordActivity extends Activity {
         }
     };
 
+    public static void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, TextView editText4) {
+        String input = readConfigFile(context, new File(filePath, configName));
+        if (input.length() > 0) {
+            String[] read = input.split("\r\n");
+            int t;
+            String first = "firstCameraID = ", second = "secondCameraID = ";
+            String code = "numberOfRuns = ", prop = "setProperty = ";
+            for (String s : read)
+                if (s.indexOf(first) != -1) {
+                    t = s.indexOf(first) + first.length();
+                    first = s.substring(t);
+                    break;
+                }
+            for (String s : read)
+                if (s.indexOf(second) != -1) {
+                    t = s.indexOf(second) + second.length();
+                    second = s.substring(t);
+                    break;
+                }
+            for (String s : read)
+                if (s.indexOf(code) != -1) {
+                    t = s.indexOf(code) + code.length();
+                    code = s.substring(t);
+                    break;
+                }
+            for (String s : read)
+                if (s.indexOf(prop) != -1) {
+                    t = s.indexOf(prop) + prop.length();
+                    prop = s.substring(t);
+                    break;
+                }
+            editText1.setText(first);
+            editText2.setText(second);
+            editText3.setText(code);
+            editText4.setText(prop);
+        } else {
+            toast(context, "Error reading config file.");
+            reformatConfigFile(context, new File(filePath, configName));
+        }
+    }
+
+    private void fullScreenCall() {
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+    }
+
     private void setRecord() {
         isRecord = true;
         checkConfigFile(VideoRecordActivity.this, new File(filePath, configName), false);
@@ -170,15 +220,6 @@ public class VideoRecordActivity extends Activity {
         new soundHandler(soundDate);
     }
 
-    private void fullScreenCall() {
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-    }
-
     private void isRecordStart() {
         if (!isError && getSdCard) {
             if (isReady)
@@ -191,29 +232,6 @@ public class VideoRecordActivity extends Activity {
                 }
         } else {
             showDialogLog();
-        }
-    }
-
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        isRun = 0;
-        videoLogList = new ArrayList();
-        if (checkPermission()) {
-            showPermission();
-        } else {
-            if (checkConfigFile(this, true)) {
-                getSdCard = true;
-                //TODO SETPROP
-                // -> adb shell su 0 getprop persist.our.camera.frameskip
-//                SystemProperties.set(FRAMESKIP, "0"); //*lib(layoutlib).jar
-                if (isNew) PropertyUtils.set(FRAMESKIP, "0"); //*reflection invoke
-//                CommandUtil.executed("setprop "+FRAMESKIP+" 0"); //*not work
-                setStart();
-            } else {
-                setStart();
-                toast(VideoRecordActivity.this, NO_SD_CARD);
-//                android.os.Process.killProcess(android.os.Process.myPid());
-            }
         }
     }
 
@@ -265,63 +283,41 @@ public class VideoRecordActivity extends Activity {
         initial();
     }
 
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        isRun = 0;
+        videoLogList = new ArrayList();
+        if (checkPermission()) {
+            showPermission();
+        } else {
+            if (checkConfigFile(this, true)) {
+                getSdCard = true;
+                //TODO SETPROP
+                // -> adb shell su 0 getprop persist.our.camera.frameskip
+//                SystemProperties.set(FRAMESKIP, "0"); //*lib(layoutlib).jar
+                if (isNew) PropertyUtils.set(FRAMESKIP, "0"); //*reflection invoke
+                setStart();
+            } else {
+                setStart();
+                toast(VideoRecordActivity.this, NO_SD_CARD);
+            }
+        }
+    }
+
     private void setHomeListener() {
         HomeListen home = new HomeListen(this);
         home.setOnHomeBtnPressListener(new HomeListen.OnHomeBtnPressLitener() {
             public void onHomeBtnPress() {
                 stopRecordAndSaveLog();
                 android.os.Process.killProcess(android.os.Process.myPid());
-//                finish();
             }
 
             public void onHomeBtnLongPress() {
                 stopRecordAndSaveLog();
                 android.os.Process.killProcess(android.os.Process.myPid());
-//                finish();
             }
         });
         home.start();
-    }
-
-    public static void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, TextView editText4) {
-        String input = readConfigFile(context, new File(filePath, configName));
-        if (input.length() > 0) {
-            String[] read = input.split("\r\n");
-            int t;
-            String first = "firstCameraID = ", second = "secondCameraID = ";
-            String code = "numberOfRuns = ", prop = "setProperty = ";
-            for (String s : read)
-                if (s.indexOf(first) != -1) {
-                    t = s.indexOf(first) + first.length();
-                    first = s.substring(t);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(second) != -1) {
-                    t = s.indexOf(second) + second.length();
-                    second = s.substring(t);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(code) != -1) {
-                    t = s.indexOf(code) + code.length();
-                    code = s.substring(t);
-                    break;
-                }
-            for (String s : read)
-                if (s.indexOf(prop) != -1) {
-                    t = s.indexOf(prop) + prop.length();
-                    prop = s.substring(t);
-                    break;
-                }
-            editText1.setText(first);
-            editText2.setText(second);
-            editText3.setText(code);
-            editText4.setText(prop);
-        } else {
-            toast(context, "Error reading config file.");
-            reformatConfigFile(context, new File(filePath, configName));
-        }
     }
 
     private void setCallback(int callback) {
@@ -427,10 +423,10 @@ public class VideoRecordActivity extends Activity {
         intent.putExtra(EXTRA_VIDEO_RUN, isRun);
         intent.putExtra(EXTRA_VIDEO_RESET, onReset);
         intent.putExtra(EXTRA_VIDEO_RECORD, onRecord);
-        // RestartActivity を起動（AndroidManifest.xml での宣言により別プロセスで起動する
         context.startActivity(intent);
     }
 
+    @SuppressLint("HandlerLeak")
     private void initial() {
         ArrayList<View> items_frame = new ArrayList();
         ArrayList<View> items_quality = new ArrayList();
@@ -693,7 +689,6 @@ public class VideoRecordActivity extends Activity {
                 logString += (time + logs.msg + "\r\n");
             }
             try {
-//                toast(VideoRecordActivity.this, "write failed.", mLog.e);
                 FileOutputStream output = new FileOutputStream(new File(filePath, logName), !Reformate);
                 output.write(logString.getBytes());
                 output.close();
@@ -732,7 +727,6 @@ public class VideoRecordActivity extends Activity {
         stopMediaPlayer();
         new Handler().post(() -> saveLog(false));
         unregisterReceiver(myReceiver);
-//        unbindService(conn);
     }
 
 
@@ -881,6 +875,7 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
+    @SuppressLint("DefaultLocale")
     private void fileCheck(String path) {
         try {
             File video = new File(path);
@@ -1041,8 +1036,7 @@ public class VideoRecordActivity extends Activity {
                 filepath.add(firstFilePath.get(f));
             }
             firstFilePath.clear();
-            for (String s : filepath)
-                firstFilePath.add(s);
+            firstFilePath.addAll(filepath);
             filepath.clear();
         }
         if (secondFilePath.size() == 3) {
@@ -1051,8 +1045,7 @@ public class VideoRecordActivity extends Activity {
                 filepath.add(secondFilePath.get(f));
             }
             secondFilePath.clear();
-            for (String s : filepath)
-                secondFilePath.add(s);
+            secondFilePath.addAll(filepath);
             filepath.clear();
         }
     }
@@ -1071,7 +1064,7 @@ public class VideoRecordActivity extends Activity {
             StatFs stat = new StatFs(filePath);
             long sdAvailSize = stat.getAvailableBlocksLong()
                     * stat.getBlockSizeLong();
-            double gigaAvailable = (sdAvailSize / 1073741824);
+            double gigaAvailable = (sdAvailSize >> 30);
             if (gigaAvailable < sdData) {
                 toast(VideoRecordActivity.this, "SD Card(" + gigaAvailable + "gb) is Full.");
                 ArrayList<String> tmp = new ArrayList();
