@@ -39,7 +39,6 @@ public class RestartActivity extends Activity {
         restartIntent.putExtra(EXTRA_VIDEO_RESET, EXTRA_RESET);
         restartIntent.putExtra(EXTRA_VIDEO_RECORD, EXTRA_RECORD);
         context.startActivity(restartIntent);
-
         // 3. RestartActivity を終了する
         finish();
         android.os.Process.killProcess(android.os.Process.myPid());

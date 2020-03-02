@@ -269,13 +269,13 @@ public class VideoRecordActivity extends Activity {
         HomeListen home = new HomeListen(this);
         home.setOnHomeBtnPressListener(new HomeListen.OnHomeBtnPressLitener() {
             public void onHomeBtnPress() {
-                stopRecordAndFinish();
+                stopRecordAndSaveLog();
                 android.os.Process.killProcess(android.os.Process.myPid());
 //                finish();
             }
 
             public void onHomeBtnLongPress() {
-                stopRecordAndFinish();
+                stopRecordAndSaveLog();
                 android.os.Process.killProcess(android.os.Process.myPid());
 //                finish();
             }
@@ -356,12 +356,10 @@ public class VideoRecordActivity extends Activity {
                         // 前鏡頭開啟失敗
                         Log.e(TAG, "onError");
                         toast(VideoRecordActivity.this, "Open Camera " + firstCamera + " error. <============ Crash here", mLog.e);
-                        stopRecordAndFinish();
+                        stopRecordAndSaveLog();
                         isError = true;
                         closePreviewSession(firstCamera);
-                        new Handler().postDelayed(() -> {
-                            restartApp();
-                        }, 3000);
+                        new Handler().postDelayed(() -> restartApp(), 3000);
                     }
                 };
             if (callback == 1)
@@ -402,12 +400,10 @@ public class VideoRecordActivity extends Activity {
                         // 前鏡頭開啟失敗
                         Log.e(TAG, "onError");
                         toast(VideoRecordActivity.this, "Open Camera " + secondCamera + " error. <============ Crash here", mLog.e);
-                        stopRecordAndFinish();
+                        stopRecordAndSaveLog();
                         isError = true;
                         closePreviewSession(secondCamera);
-                        new Handler().postDelayed(() -> {
-                            restartApp();
-                        }, 3000);
+                        new Handler().postDelayed(() -> restartApp(), 3000);
                     }
                 };
         } catch (Exception e) {
@@ -416,7 +412,7 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private void stopRecordAndFinish() {
+    private void stopRecordAndSaveLog() {
         onRecord = isRecord;
         isFinish = 0;
         new Handler().post(() -> new stopRecord(true));
@@ -426,7 +422,6 @@ public class VideoRecordActivity extends Activity {
 
     private void restartApp() {
         onReset++;
-//        toast(VideoRecordActivity.this, "reset:" + getReset(), mLog.e);
         Context context = getApplicationContext();
         Intent intent = RestartActivity.createIntent(context);
         intent.putExtra(EXTRA_VIDEO_RUN, isRun);
@@ -481,7 +476,7 @@ public class VideoRecordActivity extends Activity {
         AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         findViewById(R.id.listBackground).setOnClickListener((View v) -> showDialogLog());
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
-            stopRecordAndFinish();
+            stopRecordAndSaveLog();
             android.os.Process.killProcess(android.os.Process.myPid());
         });
         findViewById(R.id.volume_down).setOnClickListener((View v) ->
@@ -1098,7 +1093,7 @@ public class VideoRecordActivity extends Activity {
                     new Handler().post(() -> checkSdCardFromFileList(filePath));
                 } else {
                     videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
-                    stopRecordAndFinish();
+                    stopRecordAndSaveLog();
                     isError = true;
                 }
             }
