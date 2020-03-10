@@ -63,6 +63,12 @@
         1.show reset in Log message.
         2.fix no SD card crash, camera not access crash, config not match crash.
         3.auto select the last line of log message.
+    [v1.5.0]
+        1.add record timer
+        2.unblock playMusic
+        3.record delayTime 10min to 1min
+        4.tmp path on /storage/emulated/0/DCIM/
+        5.copy video on service
     -->
-    <string name="app_name">CDR9020_QTR(v1.4.1)</string>
+    <string name="app_name">CDR9020_QTR(v1.5.0)</string>
 </resources>

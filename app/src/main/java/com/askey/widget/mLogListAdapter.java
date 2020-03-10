@@ -44,13 +44,15 @@ public class mLogListAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        LogMsg log = arrayList.get(position);
-        String time = log.time.format(DateTimeFormatter.ofPattern("HH:mm:ss")) + " ";
-        holder.tv.setText(time + log.msg);
-        mLog type = log.type;
-        int color = type == mLog.v ? Color.BLACK : type == mLog.d ? Color.BLUE :
-                type == mLog.i ? Color.GREEN : type == mLog.w ? Color.YELLOW : Color.RED;
-        holder.tv.setTextColor(color);
+        if (arrayList.size() > 0) {
+            LogMsg log = arrayList.get(position);
+            String time = log.time.format(DateTimeFormatter.ofPattern("HH:mm:ss")) + " ";
+            holder.tv.setText(time + log.msg);
+            mLog type = log.type;
+            int color = type == mLog.v ? Color.BLACK : type == mLog.d ? Color.BLUE :
+                    type == mLog.i ? Color.GREEN : type == mLog.w ? Color.YELLOW : Color.RED;
+            holder.tv.setTextColor(color);
+        }
         return convertView;
     }
 }

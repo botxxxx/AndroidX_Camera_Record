@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".VideoRecordActivity"
-    tools:ignore="Autofill,ButtonStyle,ContentDescription,HardcodedText,NestedWeights,RtlHardcoded,UselessParent">
+    tools:ignore="Autofill,ButtonStyle,ContentDescription,HardcodedText,NestedWeights,RtlHardcoded,UselessParent,SpUsage">
 
     <TextureView
         android:id="@+id/surfaceView0"
@@ -29,11 +29,25 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
 
-                <TextureView
-                    android:id="@+id/surfaceView1"
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="1" />
+                    android:layout_weight="1">
+
+                    <TextureView
+                        android:id="@+id/surfaceView1"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:gravity="bottom|left">
+
+                    </RelativeLayout>
+                </RelativeLayout>
             </TableRow>
 
             <TableRow
@@ -49,6 +63,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:divider="@color/gone"
+                        android:visibility="gone"
                         android:dividerHeight="0px" />
 
                     <Button
@@ -145,15 +160,32 @@
                     android:src="@drawable/ic_volume_down"
                     android:tint="@color/orange" />
 
-                <ImageButton
-                    android:id="@+id/record"
+
+                <RelativeLayout
                     android:layout_width="70dp"
                     android:layout_height="70dp"
-                    android:layout_marginRight="50dp"
-                    android:background="@color/gone"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_record"
-                    android:tint="@color/orange" />
+                    android:layout_marginRight="50dp">
+                    <ImageButton
+                        android:id="@+id/record"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/gone"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_record"
+                        android:tint="@color/orange" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/record_timer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="00"
+                            android:textColor="@color/black"
+                            android:textSize="25dp" />
+                    </RelativeLayout>
+                </RelativeLayout>
 
                 <ImageButton
                     android:id="@+id/volume_up"
@@ -176,4 +208,11 @@
             </TableRow>
         </LinearLayout>
     </LinearLayout>
+
+    <Button
+        android:id="@+id/mainBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/gone"
+        android:visibility="gone" />
 </RelativeLayout>

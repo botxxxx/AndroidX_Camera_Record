@@ -40,6 +40,6 @@
             android:launchMode="singleInstance"
             android:process=":restart_process"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
-
+        <service android:name=".MyIntentService"/>
     </application>
 </manifest>

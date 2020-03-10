@@ -1,6 +1,5 @@
 package com.askey.record;
 
-import android.app.Activity;
 import android.content.Context;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
@@ -11,7 +10,6 @@ import android.view.Surface;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.askey.widget.LogMsg;
 import com.askey.widget.mLog;
@@ -25,7 +23,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import static com.askey.record.VideoRecordActivity.getSdCard;
 import static com.askey.record.VideoRecordActivity.onReset;
 
 public class Utils {
@@ -44,11 +41,13 @@ public class Utils {
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_RESET = "RestartActivity.reset";
     public static final String EXTRA_VIDEO_RECORD = "RestartActivity.record";
+    public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
+    public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
     public static final String NO_SD_CARD = "SD card is not available!";
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String configName = "VideoRecordConfig.ini";
     public static final String logName = "VideoRecordLog.ini";
-    public static final double sdData = 3.5;
+    public static final double sdData = 1;
     public static int isRun = 0, successful = 0, failed = 0;
     public static String TAG = "VideoRecord";
     public static String firstCamera = "0";
@@ -56,9 +55,9 @@ public class Utils {
     public static String lastfirstCamera = "0";
     public static String lastsecondCamera = "1";
     public static ArrayList<String> firstFilePath, secondFilePath;
-    public static ArrayList<LogMsg> videoLogList;
-    public static int isFinish = 999, delayTime = 600000, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isError = false, isNew = false;
+    public static ArrayList<LogMsg> videoLogList = null;
+    public static int isFinish = 999, delayTime = 60000, isFrame = 0, isQuality = 0;
+    public static boolean isReady = false, isRecord = false, isError = false, isNew = false, getSdCard = false;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -69,16 +68,19 @@ public class Utils {
 
     public static void toast(Context context, String t, mLog type) {
         videoLogList.add(new LogMsg(t, type));
-        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
+//        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
+        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
     }
 
     public static void toast(Context context, String t) {
         videoLogList.add(new LogMsg(t, mLog.i));
-        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
+//        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
+        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
     }
 
     public static void toast(Context context) {
-        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "Is Recording Now.", Toast.LENGTH_SHORT).show());
+//        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "Is Recording Now.", Toast.LENGTH_SHORT).show());
+        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
     }
 
     public static int getSuccessful() {
@@ -125,9 +127,9 @@ public class Utils {
         if (min > 0) {
             isFinish = min;
             if (min != 999)
-                toast(context, "setRecord time: " + min + "0 min.");
+                toast(context, "setRecord time: " + min + " min.");
             else
-                toast(context, "setRecord time: unlimited min.");
+                toast(context, "setRecord time: unlimited times.");
         } else {
             toast(context, "The test time must be a positive number.", mLog.e);
         }
@@ -135,8 +137,8 @@ public class Utils {
 
     public static boolean checkConfigFile(Context context, boolean first) {
         videoLogList.add(new LogMsg("#checkConfigFile", mLog.v));
-        if (!"".equals(getSDCardPath())) {
-            File file = new File(getSDCardPath(), configName);
+        if (!"".equals(getSDPath())) {
+            File file = new File(getPath(), configName);
             if (!file.exists()) {
                 try {
                     file.createNewFile();
@@ -150,12 +152,11 @@ public class Utils {
                     toast(context, "Find the config file.", mLog.d);
                     videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                 }
-                checkConfigFile(context, new File(getSDCardPath(), configName), first);
+                checkConfigFile(context, new File(getPath(), configName), first);
             }
             return true;
         } else {
             toast(context, "Please check the SD card.", mLog.e);
-
         }
         return false;
     }
@@ -175,7 +176,7 @@ public class Utils {
             boolean reformat = true, isCameraChange = false, isPropChange = false;
             if (input.length() > 0) {
                 String[] read = input.split("\r\n");
-                int target = 0, t = 0;
+                int target = 0, t;
                 String title = "[VIDEO_RECORD_TESTING]";
                 String first = "firstCameraID = ", second = "secondCameraID = ";
                 String code = "numberOfRuns = ", prop = "setProperty = ";
@@ -263,10 +264,11 @@ public class Utils {
                 }
             }
             if (reformat) {
-                reformatConfigFile(context, file);
+                if (getSdCard)
+                    reformatConfigFile(context, file);
                 return new boolean[]{true, true};
             } else return new boolean[]{isCameraChange, isPropChange};
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             reformatConfigFile(context, file);
             return new boolean[]{true, true};
@@ -331,9 +333,9 @@ public class Utils {
         boolean isNew = false;
 
         if (!reset) {
-            if (isInteger(editText_3.getText().toString(), false))
+            if (isInteger(editText_3.getText().toString(), false)) {
                 isFinish = Integer.parseInt(editText_3.getText().toString());
-            else {
+            } else {
                 isFinish = 999;
             }
             if (isBoolean(editText_4.getText().toString())) {
@@ -373,7 +375,11 @@ public class Utils {
         } catch (Exception e) {
             e.printStackTrace();
             getSdCard = false;
+            isError = true;
             toast(context, "read failed.", mLog.e);
+            tmp += ("App Version:" + context.getString(R.string.app_name) + "\r\n");
+            tmp += (NO_SD_CARD);
+            return tmp;
         }
         return tmp;
     }
@@ -390,6 +396,7 @@ public class Utils {
             } catch (Exception e) {
                 e.printStackTrace();
                 getSdCard = false;
+                isError = true;
 //            Log.e(TAG, " write failed: \" + e.toString()");
                 toast(context, "write failed.", mLog.e);
             }
@@ -420,9 +427,13 @@ public class Utils {
         return "v" + d + h + i + s + (isCameraOne ? "f" : "s");
     }
 
-    public static String getSDCardPath() {
+    public static String getPath() {
+        String path = "/storage/emulated/0/DCIM/";
+        return path;
+    }
+    public static String getSDPath() {
         String path = "";
-        try {
+            try {
             String cmd = "ls /storage";
             Runtime run = Runtime.getRuntime();
             Process pr = run.exec(cmd);
@@ -431,7 +442,6 @@ public class Utils {
             while ((line = buf.readLine()) != null) {
                 if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
                     path = "/storage/" + line + "/";
-//                    Log.d("Lewis", "sdpath = " + path);
                     break;
                 }
             }
@@ -453,9 +463,9 @@ public class Utils {
         return duration;
     }
 
-    public static int getFrameRate(String path, MediaPlayer mMediaPlayer) {
+    public static int getFrameRate(String path) {
         int frameRate = 0;
-
+        MediaPlayer mMediaPlayer = new MediaPlayer();
         try {
             MediaExtractor extractor = new MediaExtractor();
             FileInputStream fis = new FileInputStream(new File(path));
