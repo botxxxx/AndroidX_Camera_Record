@@ -1,10 +1,12 @@
 package com.askey.record;
 
+import android.app.Activity;
 import android.content.Context;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Handler;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.View;
@@ -24,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import static com.askey.record.VideoRecordActivity.onReset;
+import static com.askey.record.VideoRecordActivity.saveLog;
 
 public class Utils {
 
@@ -59,7 +62,8 @@ public class Utils {
     public static ArrayList<LogMsg> videoLogList = null;
     public static int isFinish = 999, delayTime = 60000, isFrame = 0, isQuality = 0;
     public static boolean isReady = false, isRecord = false, isError = false, isNew = false, getSdCard = false;
-    public static boolean fCamera = false, sCamera = false;
+    public static boolean fCamera = true, sCamera = true;
+    public static String errorMessage = "";
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -161,6 +165,16 @@ public class Utils {
             return false;
         }
     }
+
+    public static void checkLogFile(ArrayList list) {
+        list.add("Please check file at you SD card");
+//        if (input.length() > 0) {
+//            String[] read = input.split("\r\n");
+//            for (String s : read)
+//                list.add(s);
+//        }
+    }
+
 
     public static void checkLogFile(Context context, File file, ArrayList list) {
         String input = readConfigFile(context, file);
@@ -381,9 +395,12 @@ public class Utils {
             input.close();
         } catch (Exception e) {
             e.printStackTrace();
-            getSdCard = false;
+            toast(context, "Read failed. "+ NO_SD_CARD + ". <============ Crash here", mLog.e);
+            new Handler().post(() -> saveLog(context, false));
             isError = true;
-            toast(context, "read failed.", mLog.e);
+            getSdCard = !getSDPath().equals("");
+            errorMessage = "Read failed."+ NO_SD_CARD+"<============ Crash here";
+            toast(context, "Read failed.", mLog.e);
             tmp += ("App Version:" + context.getString(R.string.app_name) + "\r\n");
             tmp += (NO_SD_CARD);
             return tmp;
@@ -402,10 +419,11 @@ public class Utils {
                 output.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                getSdCard = false;
+                toast(context, "Write failed. "+ NO_SD_CARD + ". <============ Crash here", mLog.e);
+                new Handler().post(() -> saveLog(context, false));
                 isError = true;
-//            Log.e(TAG, " write failed: \" + e.toString()");
-                toast(context, "write failed.", mLog.e);
+                getSdCard = !getSDPath().equals("");
+                errorMessage = "Write failed. "+ NO_SD_CARD+"<============ Crash here";
             }
         } else {
             toast(context, NO_SD_CARD, mLog.e);
@@ -443,7 +461,7 @@ public class Utils {
         String path = "";
         try {
             long start = System.currentTimeMillis();
-            long end = start + 3000;
+            long end = start + 10000;
             String cmd = "ls /storage";
             Runtime run = Runtime.getRuntime();
             Process pr = run.exec(cmd);
