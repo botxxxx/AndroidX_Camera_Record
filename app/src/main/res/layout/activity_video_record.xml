@@ -63,8 +63,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:divider="@color/gone"
-                        android:visibility="gone"
-                        android:dividerHeight="0px" />
+                        android:dividerHeight="0px"
+                        android:visibility="gone" />
 
                     <Button
                         android:id="@+id/listBackground"
@@ -150,21 +150,27 @@
                     android:src="@drawable/ic_cancel"
                     android:tint="@color/orange" />
 
-                <ImageButton
-                    android:id="@+id/volume_down"
-                    android:layout_width="70dp"
+                <RelativeLayout
+                    android:layout_width="200dp"
                     android:layout_height="70dp"
-                    android:layout_marginRight="50dp"
-                    android:background="@color/gone"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_volume_down"
-                    android:tint="@color/orange" />
+                    android:gravity="center"
+                    android:background="@color/white_gone"
+                    android:layout_marginRight="50dp">
 
+                    <TextView
+                        android:id="@+id/record_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="status"
+                        android:textColor="@color/black"
+                        android:textSize="40dp" />
 
+                </RelativeLayout>
                 <RelativeLayout
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:layout_marginRight="50dp">
+
                     <ImageButton
                         android:id="@+id/record"
                         android:layout_width="match_parent"
@@ -173,10 +179,12 @@
                         android:scaleType="centerCrop"
                         android:src="@drawable/ic_record"
                         android:tint="@color/orange" />
+
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center">
+
                         <TextView
                             android:id="@+id/record_timer"
                             android:layout_width="wrap_content"
@@ -186,16 +194,6 @@
                             android:textSize="25dp" />
                     </RelativeLayout>
                 </RelativeLayout>
-
-                <ImageButton
-                    android:id="@+id/volume_up"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:layout_marginRight="50dp"
-                    android:background="@color/gone"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_volume_up"
-                    android:tint="@color/orange" />
 
                 <ImageButton
                     android:id="@+id/setting"

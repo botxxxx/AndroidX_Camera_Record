@@ -43,6 +43,7 @@ public class Utils {
     public static final String EXTRA_VIDEO_RECORD = "RestartActivity.record";
     public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
     public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
+    public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
     public static final String NO_SD_CARD = "SD card is not available!";
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String configName = "VideoRecordConfig.ini";
@@ -58,6 +59,7 @@ public class Utils {
     public static ArrayList<LogMsg> videoLogList = null;
     public static int isFinish = 999, delayTime = 60000, isFrame = 0, isQuality = 0;
     public static boolean isReady = false, isRecord = false, isError = false, isNew = false, getSdCard = false;
+    public static boolean fCamera = false, sCamera = false;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -137,7 +139,7 @@ public class Utils {
 
     public static boolean checkConfigFile(Context context, boolean first) {
         videoLogList.add(new LogMsg("#checkConfigFile", mLog.v));
-        if (!"".equals(getSDPath())) {
+        if (!getPath().equals("")) {
             File file = new File(getPath(), configName);
             if (!file.exists()) {
                 try {
@@ -156,9 +158,8 @@ public class Utils {
             }
             return true;
         } else {
-            toast(context, "Please check the SD card.", mLog.e);
+            return false;
         }
-        return false;
     }
 
     public static void checkLogFile(Context context, File file, ArrayList list) {
@@ -173,7 +174,7 @@ public class Utils {
     public static boolean[] checkConfigFile(Context context, File file, boolean firstOne) {
         try {
             String input = readConfigFile(context, file);
-            boolean reformat = true, isCameraChange = false, isPropChange = false;
+            boolean reformat = true, isCameraChange = false, isPropChange = false, update = false;
             if (input.length() > 0) {
                 String[] read = input.split("\r\n");
                 int target = 0, t;
@@ -218,9 +219,11 @@ public class Utils {
 
                 if (target == 5) {
                     reformat = false;
+                    update = false;
                     if (!title.equals(context.getString(R.string.app_name))) {
                         toast(context, "Config is updated.", mLog.e);
                         reformat = true;
+                        update = true;
                     }
                     if (!first.equals(second)) {
                         if ((first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"))) {
@@ -262,6 +265,10 @@ public class Utils {
                         reformat = true;
                     }
                 }
+            }
+            if (update) {
+                if (getSdCard)
+                    reformatConfigFile(context, new File(logName));
             }
             if (reformat) {
                 if (getSdCard)
@@ -385,7 +392,7 @@ public class Utils {
     }
 
     public static void writeConfigFile(Context context, File file, String[] str) {
-        if (getSdCard != false) {
+        if (getSdCard) {
             String tmp = "";
             for (String s : str)
                 tmp += s;
@@ -431,9 +438,12 @@ public class Utils {
         String path = "/storage/emulated/0/DCIM/";
         return path;
     }
+
     public static String getSDPath() {
         String path = "";
-            try {
+        try {
+            long start = System.currentTimeMillis();
+            long end = start + 3000;
             String cmd = "ls /storage";
             Runtime run = Runtime.getRuntime();
             Process pr = run.exec(cmd);
@@ -442,6 +452,9 @@ public class Utils {
             while ((line = buf.readLine()) != null) {
                 if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
                     path = "/storage/" + line + "/";
+                    break;
+                }
+                if(System.currentTimeMillis() > end) {
                     break;
                 }
             }

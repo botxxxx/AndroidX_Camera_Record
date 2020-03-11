@@ -18,7 +18,6 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.AudioManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Bundle;
@@ -45,7 +44,6 @@ import com.askey.widget.PropertyUtils;
 import com.askey.widget.VerticalViewPager;
 import com.askey.widget.mListAdapter;
 import com.askey.widget.mLog;
-import com.askey.widget.mLogListAdapter;
 import com.askey.widget.mPagerAdapter;
 
 import java.io.File;
@@ -69,6 +67,7 @@ import static com.askey.record.Utils.DFRAME_RATE;
 import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
 import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
 import static com.askey.record.Utils.EXTRA_VIDEO_RECORD;
+import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
 import static com.askey.record.Utils.EXTRA_VIDEO_RESET;
 import static com.askey.record.Utils.EXTRA_VIDEO_RUN;
 import static com.askey.record.Utils.FRAMESKIP;
@@ -118,7 +117,7 @@ import static com.askey.record.Utils.videoLogList;
 public class VideoRecordActivity extends Activity {
     public static int onRun = 0, onReset = 0;
     public static boolean onRecord = false;
-    private static String configFilePath = "/storage/", codeDate, soundDate;
+    private static String configFilePath = "/storage/", sdFilePath = "", codeDate, soundDate;
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
@@ -126,7 +125,6 @@ public class VideoRecordActivity extends Activity {
     private CameraDevice.StateCallback mStateCallback0, mStateCallback1;
     private CaptureRequest.Builder mPreviewBuilder0, mPreviewBuilder1;
     private MediaRecorder mMediaRecorder0, mMediaRecorder1;
-    public static ListView mListView;
     private Handler mainHandler, backgroundHandler, demoHandler;
     private HandlerThread thread;
     private mTimerTask timerTask = null;
@@ -221,7 +219,6 @@ public class VideoRecordActivity extends Activity {
         onRecord = false;
         successful = 0;
         failed = 0;
-        onReset = 0;
         firstFilePath.clear();
         secondFilePath.clear();
         new soundHandler(soundDate);
@@ -302,15 +299,12 @@ public class VideoRecordActivity extends Activity {
             showPermission();
         } else {
             if (checkConfigFile(this, true)) {
-                getSdCard = true;
                 //TODO SETPROP
                 // -> adb shell su 0 getprop persist.our.camera.frameskip
 //                SystemProperties.set(FRAMESKIP, "0"); //*lib(layoutlib).jar
                 if (isNew) PropertyUtils.set(FRAMESKIP, "0"); //*reflection invoke
                 setStart();
             } else {
-                toast(VideoRecordActivity.this, NO_SD_CARD);
-                getSdCard = false;
                 setStart();
             }
         }
@@ -418,6 +412,7 @@ public class VideoRecordActivity extends Activity {
                 };
         } catch (Exception e) {
             e.printStackTrace();
+            isError = true;
             toast(VideoRecordActivity.this, "CameraDevice.StateCallback " + callback + " error. <============ Crash here", mLog.e);
         }
     }
@@ -482,7 +477,7 @@ public class VideoRecordActivity extends Activity {
         mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
         mTextureView1 = findViewById(R.id.surfaceView1);
         mTextureView1.setSurfaceTextureListener(new mSurfaceTextureListener(secondCamera));
-        AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+//        AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         findViewById(R.id.listBackground).setOnClickListener((View v) -> {
             videoLogList.add(new LogMsg("@dialog_log", mLog.v));
             runOnUiThread(() -> showDialogLog());
@@ -492,49 +487,46 @@ public class VideoRecordActivity extends Activity {
             stopRecordAndSaveLog();
             android.os.Process.killProcess(android.os.Process.myPid());
         });
-        findViewById(R.id.volume_down).setOnClickListener((View v) -> {
-            videoLogList.add(new LogMsg("@volume_down", mLog.v));
-            runOnUiThread(() -> audio.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                    AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI));
-        });
         findViewById(R.id.record).setOnClickListener((View v) -> {
             runOnUiThread(() -> isRecordStart());
         });
-        findViewById(R.id.volume_up).setOnClickListener((View v) -> {
-            videoLogList.add(new LogMsg("@volume_up", mLog.v));
-            runOnUiThread(() -> audio.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                    AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI));
-        });
         findViewById(R.id.setting).setOnClickListener((View v) -> {
-            videoLogList.add(new LogMsg("@dialog_setting", mLog.v));
-            View view = LayoutInflater.from(this).inflate(R.layout.layout_setting, null);
-            final AlertDialog dialog = new AlertDialog.Builder(this).setView(view).setCancelable(false).create();
-            view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
-                videoLogList.add(new LogMsg("@setting_reset", mLog.v));
-                if (getSdCard)
-                    setConfigFile(this, new File(configFilePath, configName), view, true);
+            if (getSdCard) {
+                videoLogList.add(new LogMsg("@dialog_setting", mLog.v));
+                View view = LayoutInflater.from(this).inflate(R.layout.layout_setting, null);
+                final AlertDialog dialog = new AlertDialog.Builder(this).setView(view).setCancelable(false).create();
+                view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
+                    videoLogList.add(new LogMsg("@setting_reset", mLog.v));
+                    if (getSdCard)
+                        setConfigFile(this, new File(configFilePath, configName), view, true);
+                    getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
+                            view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
+                    setSetting();
+                });
+                view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // cancel
+                    videoLogList.add(new LogMsg("@setting_cancel", mLog.v));
+                    dialog.dismiss();
+                });
+                view.findViewById(R.id.dialog_button_3).setOnClickListener((View vs) -> { // ok
+                    videoLogList.add(new LogMsg("@setting_ok", mLog.v));
+                    if (getSdCard)
+                        setConfigFile(this, new File(configFilePath, configName), view, false);
+                    setSetting();
+                    dialog.dismiss();
+                });
                 getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
                         view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
-                setSetting();
-            });
-            view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // cancel
-                videoLogList.add(new LogMsg("@setting_cancel", mLog.v));
-                dialog.dismiss();
-            });
-            view.findViewById(R.id.dialog_button_3).setOnClickListener((View vs) -> { // ok
-                videoLogList.add(new LogMsg("@setting_ok", mLog.v));
-                if (getSdCard)
-                    setConfigFile(this, new File(configFilePath, configName), view, false);
-                setSetting();
-                dialog.dismiss();
-            });
-            getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
-                    view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
-            dialog.show();
+                dialog.show();
+            } else {
+                showDialogLog();
+            }
         });
         findViewById(R.id.loadingView).setVisibility(View.INVISIBLE);
         codeDate = getCalendarTime();
         configFilePath = getPath();
+        sdFilePath = getSDPath();
+        getSdCard = !sdFilePath.equals("");
+        ((TextView) findViewById(R.id.record_status)).setText(sdFilePath.equals("") ? "Error" : "Ready");
         firstFilePath = new ArrayList();
         secondFilePath = new ArrayList();
         IntentFilter filter = new IntentFilter();
@@ -554,7 +546,7 @@ public class VideoRecordActivity extends Activity {
         demoHandler = new Handler() {
             public void handleMessage(android.os.Message msg) {
                 if (!onRecord) {
-                    this.post(() -> checkVideoFromFileList(getPath()));
+//                    this.post(() -> checkVideoFromFileList(getPath()));
                     this.postDelayed(() -> checkSdCardFromFileList(getSDPath()), 1500);
                     this.postDelayed(() -> {
                         if (!isError) {
@@ -623,36 +615,38 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void showDialogLog() {
-        View view = LayoutInflater.from(this).inflate(R.layout.layout_getlog, null);
-        final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen).setView(view).setCancelable(true).create();
-        view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
-            videoLogList.add(new LogMsg("@log_reset", mLog.v));
-            videoLogList.add(new LogMsg("#reset LogFile", mLog.v));
-            saveLog(getApplicationContext(), true);
-            dialog.dismiss();
-        });
-        view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // ok
-            videoLogList.add(new LogMsg("@log_ok", mLog.v));
-            dialog.dismiss();
-        });
-        ArrayList<String> list = new ArrayList();
-        if (getSdCard) checkLogFile(this, new File(getPath(), logName), list);
-        else {
-            list.add("App Version:" + this.getString(R.string.app_name));
-            list.add(NO_SD_CARD);
-        }
-
-        if (list.size() > 0) {
-            ArrayList<View> items = new ArrayList();
-            for (String s : list) {
-                View item_layout = LayoutInflater.from(this).inflate(R.layout.style_text_item, null);
-                ((CustomTextView) item_layout.findViewById(R.id.customTextView)).setText(s);
-                items.add(item_layout);
+        if (!isRecord) {
+            View view = LayoutInflater.from(this).inflate(R.layout.layout_getlog, null);
+            final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen).setView(view).setCancelable(true).create();
+            view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
+                videoLogList.add(new LogMsg("@log_reset", mLog.v));
+                videoLogList.add(new LogMsg("#reset LogFile", mLog.v));
+                saveLog(getApplicationContext(), true);
+                dialog.dismiss();
+            });
+            view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // ok
+                videoLogList.add(new LogMsg("@log_ok", mLog.v));
+                dialog.dismiss();
+            });
+            ArrayList<String> list = new ArrayList();
+            if (getSdCard) checkLogFile(this, new File(getPath(), logName), list);
+            else {
+                list.add("App Version:" + this.getString(R.string.app_name));
+                list.add(NO_SD_CARD);
             }
-            ((ListView) view.findViewById(R.id.dialog_listview)).setAdapter(new mListAdapter(items));
-            ((ListView) view.findViewById(R.id.dialog_listview)).setSelection(items.size() - 1);
+
+            if (list.size() > 0) {
+                ArrayList<View> items = new ArrayList();
+                for (String s : list) {
+                    View item_layout = LayoutInflater.from(this).inflate(R.layout.style_text_item, null);
+                    ((CustomTextView) item_layout.findViewById(R.id.customTextView)).setText(s);
+                    items.add(item_layout);
+                }
+                ((ListView) view.findViewById(R.id.dialog_listview)).setAdapter(new mListAdapter(items));
+                ((ListView) view.findViewById(R.id.dialog_listview)).setSelection(items.size() - 1);
+            }
+            dialog.show();
         }
-        dialog.show();
     }
 
     private void setLoading(boolean visible) {
@@ -668,6 +662,7 @@ public class VideoRecordActivity extends Activity {
                 mTimer = new Timer(true);
                 mTimer.schedule(timerTask, 100, 100);
                 ((TextView) findViewById(R.id.record_timer)).setText("00");
+                ((TextView) findViewById(R.id.record_status)).setText("Recording");
             }
             isRun++;
             videoLogList.add(new LogMsg("#------------------------------", mLog.v));
@@ -703,7 +698,7 @@ public class VideoRecordActivity extends Activity {
     public static void saveLog(Context context, boolean Reformate) {
         String logString = "[VIDEO_RECORD_LOG]" + context.getString(R.string.app_name) + "\r\n";
         if (!"".equals(getSDPath())) {
-            File file = new File(getSDPath(), logName);
+            File file = new File(getPath(), logName);
             if (!file.exists()) {
                 try {
                     file.createNewFile();
@@ -806,46 +801,53 @@ public class VideoRecordActivity extends Activity {
                 mTimer = null;
             }
             codeDate = getCalendarTime();
-            if (isRecord) {
-                videoLogList.add(new LogMsg("#stopRecord", mLog.v));
-                Log.d(TAG, "stopRecord");
-                if (mMediaRecorder0 != null) {
-                    mMediaRecorder0.stop();
-                    mMediaRecorder0.reset();   // You can reuse the object by going back to setAudioSource() step
-                    //mMediaRecorder.release(); // Now the object cannot be reused
-                    mMediaRecorder0 = null;
-                    toast(VideoRecordActivity.this, "Record " + firstCamera + " finish.");
-                }
-                if (mMediaRecorder1 != null) {
-                    mMediaRecorder1.stop();
-                    mMediaRecorder1.reset();
-                    mMediaRecorder1 = null;
-                    toast(VideoRecordActivity.this, "Record " + secondCamera + " finish.");
-                }
-                boolean autoClean = false;
-                if (autoClean) {
-                    deleteAndLeftTwo();
-                } else {
-                    checkAndClear();
-                }
+            new Handler().post(() -> moveFile(getPath() + logName, getSDPath() + logName, false));
+            if (!isError && getSdCard) {
+                ((TextView) findViewById(R.id.record_status)).setText("Stop");
+                if (isRecord) {
+                    videoLogList.add(new LogMsg("#stopRecord", mLog.v));
+                    Log.d(TAG, "stopRecord");
+                    if (mMediaRecorder0 != null) {
+                        mMediaRecorder0.stop();
+                        mMediaRecorder0.reset();   // You can reuse the object by going back to setAudioSource() step
+                        //mMediaRecorder.release(); // Now the object cannot be reused
+                        mMediaRecorder0 = null;
+                        toast(VideoRecordActivity.this, "Record " + firstCamera + " finish.");
+                    }
+                    if (mMediaRecorder1 != null) {
+                        mMediaRecorder1.stop();
+                        mMediaRecorder1.reset();
+                        mMediaRecorder1 = null;
+                        toast(VideoRecordActivity.this, "Record " + secondCamera + " finish.");
+                    }
+                    boolean autoClean = false;
+                    if (autoClean) {
+                        deleteAndLeftTwo();
+                    } else {
+                        checkAndClear();
+                    }
 
-                if (isFinish == 999 || isRun <= isFinish) {
-                    takeRecord(delayTime, false);
+                    if (isFinish == 999 || isRun <= isFinish) {
+                        takeRecord(delayTime, false);
+                    } else {
+                        isRun = 0;
+                        isFinish = 0;
+                        isRecord = false;
+                        videoLogList.add(new LogMsg("#------------------------------", mLog.v));
+                        toast(VideoRecordActivity.this, "#completed");
+                        if (autoClean) {
+                            checkAndClear();
+                        }
+                        end(preview);
+                    }
                 } else {
                     isRun = 0;
                     isFinish = 0;
-                    isRecord = false;
-                    videoLogList.add(new LogMsg("#------------------------------", mLog.v));
-                    toast(VideoRecordActivity.this, "#completed");
-                    if (autoClean) {
-                        checkAndClear();
-                    }
                     end(preview);
                 }
             } else {
-                isRun = 0;
-                isFinish = 0;
-                end(preview);
+                isRecord = false;
+                ((TextView) findViewById(R.id.record_status)).setText("Error");
             }
         }
     }
@@ -857,12 +859,13 @@ public class VideoRecordActivity extends Activity {
         } else android.os.Process.killProcess(android.os.Process.myPid());
     }
 
-    private void moveVideo(String video, String pathname) {
+    private void moveFile(String video, String pathname, boolean remove) {
         Context context = getApplicationContext();
         Intent intent = new Intent();
         intent.setClassName(context.getPackageName(), MyIntentService.class.getName());
         intent.putExtra(EXTRA_VIDEO_COPY, video);
         intent.putExtra(EXTRA_VIDEO_PASTE, pathname);
+        intent.putExtra(EXTRA_VIDEO_REMOVE, remove);
         context.startService(intent);
     }
 
@@ -895,14 +898,13 @@ public class VideoRecordActivity extends Activity {
                         successful++;
                     else
                         failed++;
-                    new Handler().post(() -> moveVideo(video.getPath(), getSDPath() + video.getName()));
                 } else {
                     failed++;
                 }
             } else {
                 failed++;
             }
-            videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[5] + " frameRate:" + framerate +
+            videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] + " frameRate:" + framerate +
                     " duration:" + convertMinutes + ":" + convertSeconds +
                     " success:" + getSuccessful() + " fail:" + getFailed() + " reset:" + getReset(), mLog.i));
             new Handler().post(() -> saveLog(getApplicationContext(), false));
@@ -1075,7 +1077,7 @@ public class VideoRecordActivity extends Activity {
             }
         }
         for (String video : tmp) {
-            delete(video, false, false);
+            delete(video, false, true);
         }
     }
 
@@ -1144,8 +1146,8 @@ public class VideoRecordActivity extends Activity {
             /*TODO CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 1080p, 720p
             CamcorderProfile profile_720 = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
             CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
-            String file = getPath() + getCalendarTime(isCameraOne(cameraId)) + ".mp4";
-            runOnUiThread(() -> videoLogList.add(new LogMsg("Create: " + file.split("/")[5], mLog.w)));
+            String file = getSDPath() + getCalendarTime(isCameraOne(cameraId)) + ".mp4";
+            runOnUiThread(() -> videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w)));
             (isCameraOne(cameraId) ? firstFilePath : secondFilePath).add(file);
             // Step 1: Unlock and set camera to MediaRecorder
             CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
@@ -1175,6 +1177,7 @@ public class VideoRecordActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
             isError = true;
+            new stopRecord(true);
         }
         return mediaRecorder;
     }

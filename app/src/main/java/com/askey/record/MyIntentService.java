@@ -17,6 +17,7 @@ import java.io.OutputStream;
 
 import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
 import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
+import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
 import static com.askey.record.Utils.getSdCard;
 import static com.askey.record.Utils.isError;
 import static com.askey.record.Utils.videoLogList;
@@ -24,13 +25,14 @@ import static com.askey.record.Utils.videoLogList;
 public class MyIntentService extends IntentService {
     String video;
     String pathname;
+    boolean reomve;
 
     public MyIntentService() {
         // ActivityのstartService(intent);で呼び出されるコンストラクタはこちら
         super("MyIntentService");
     }
 
-    public static void copy(String src, String dst) {
+    public static void copy(String src, String dst, boolean remove) {
         try {
             File sf = new File(src);
             InputStream in = new FileInputStream(sf);
@@ -48,7 +50,7 @@ public class MyIntentService extends IntentService {
                 }
             } finally {
                 in.close();
-                sf.delete();
+                if (remove) sf.delete();
             }
         } catch (IOException e) {
             videoLogList.add(new LogMsg("Copy file error", mLog.e));
@@ -59,11 +61,12 @@ public class MyIntentService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         video = intent.getStringExtra(EXTRA_VIDEO_COPY);
         pathname = intent.getStringExtra(EXTRA_VIDEO_PASTE);
+        reomve = intent.getBooleanExtra(EXTRA_VIDEO_REMOVE, false);
         // 非同期処理を行うメソッド。タスクはonHandleIntentメソッド内で実行する
         videoLogList.add(new LogMsg("#copy.", mLog.e));
         try {
             Log.d("IntentService", "onHandleIntent Start");
-            Thread t = new Thread(() -> copy(video, pathname));
+            Thread t = new Thread(() -> copy(video, pathname, reomve));
             t.start();
             t.join();
         } catch (Exception e) {
