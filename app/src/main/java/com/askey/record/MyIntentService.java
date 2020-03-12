@@ -18,7 +18,8 @@ import java.io.OutputStream;
 import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
 import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
 import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
-import static com.askey.record.Utils.getSdCard;
+import static com.askey.record.Utils.errorMessage;
+import static com.askey.record.Utils.getSDPath;
 import static com.askey.record.Utils.isError;
 import static com.askey.record.Utils.videoLogList;
 
@@ -45,14 +46,25 @@ public class MyIntentService extends IntentService {
                     while ((len = in.read(buf)) > 0) {
                         out.write(buf, 0, len);
                     }
+                } catch (IOException | RuntimeException e) {
+                    e.printStackTrace();
+                    isError = true;
+                    errorMessage = "Copy file error. <============ Crash here";
                 } finally {
                     out.close();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                isError = true;
+                errorMessage = "Copy file error. <============ Crash here";
             } finally {
                 in.close();
                 if (remove) sf.delete();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
+            isError = true;
+            errorMessage = "Copy file error. <============ Crash here";
             videoLogList.add(new LogMsg("Copy file error", mLog.e));
         }
     }
@@ -66,15 +78,25 @@ public class MyIntentService extends IntentService {
         videoLogList.add(new LogMsg("#copy.", mLog.e));
         try {
             Log.d("IntentService", "onHandleIntent Start");
-            Thread t = new Thread(() -> copy(video, pathname, reomve));
+            Thread t = new Thread(() -> {
+                try {
+                    if (!getSDPath().equals(""))
+                        copy(video, pathname, reomve);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    isError = true;
+                    errorMessage = "Copy file error. <============ Crash here";
+                    videoLogList.add(new LogMsg("Copy file error", mLog.e));
+                }
+            });
             t.start();
             t.join();
-        } catch (Exception e) {
-            videoLogList.add(new LogMsg("copy failed.", mLog.e));
-            isError = true;
-            getSdCard = false;
-        } finally {
             videoLogList.add(new LogMsg("copy successful.", mLog.e));
+        } catch (Exception e) {
+            e.printStackTrace();
+            isError = true;
+            errorMessage = "Copy file error. <============ Crash here";
+            videoLogList.add(new LogMsg("Copy file error", mLog.e));
         }
     }
 }

@@ -359,6 +359,7 @@ public class VideoRecordActivity extends Activity {
                                 mCameraDevice0 = null;
                             }
                         } catch (Exception e) {
+                            e.printStackTrace();
                             isError = true;
                         }
                     }
@@ -404,6 +405,7 @@ public class VideoRecordActivity extends Activity {
                                 mCameraDevice1 = null;
                             }
                         } catch (Exception e) {
+                            e.printStackTrace();
                             isError = true;
                         }
                     }
@@ -716,6 +718,10 @@ public class VideoRecordActivity extends Activity {
 
     public static void saveLog(Context context, boolean Reformate) {
         String logString = "[VIDEO_RECORD_LOG]" + context.getString(R.string.app_name) + "\r\n";
+        ArrayList<LogMsg> data = new ArrayList();
+        for(LogMsg s: videoLogList){
+            data.add(s);
+        }
         if (!"".equals(getSDPath())) {
             File file = new File(getPath(), logName);
             if (!file.exists()) {
@@ -734,7 +740,7 @@ public class VideoRecordActivity extends Activity {
                 //toast(VideoRecordActivity.this,"Find the log file.", mLog.d);
             }
 
-            for (LogMsg logs : videoLogList) {
+            for (LogMsg logs : data) {
                 String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                         + " run:" + logs.runTime + " -> ";
                 logString += (time + logs.msg + "\r\n");
@@ -822,60 +828,69 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void stopRecord(boolean preview, String date) {
-        if (date.equals(getCodeDate())) {
-            if (mTimer != null) {
-                mTimer.cancel();
-                mTimer = null;
-            }
-            codeDate = getCalendarTime();
-            new Handler().post(() -> moveFile(getPath() + logName, getSDPath() + logName, false));
-            if (!isError && getSdCard) {
-                ((TextView) findViewById(R.id.record_status)).setText("Stop");
-                if (isRecord) {
-                    videoLogList.add(new LogMsg("#stopRecord", mLog.v));
-                    Log.d(TAG, "stopRecord");
-                    if (mMediaRecorder0 != null) {
-                        mMediaRecorder0.stop();
-                        mMediaRecorder0.reset();   // You can reuse the object by going back to setAudioSource() step
-                        //mMediaRecorder.release(); // Now the object cannot be reused
-                        mMediaRecorder0 = null;
-                        toast(VideoRecordActivity.this, "Record " + firstCamera + " finish.");
-                    }
-                    if (mMediaRecorder1 != null) {
-                        mMediaRecorder1.stop();
-                        mMediaRecorder1.reset();
-                        mMediaRecorder1 = null;
-                        toast(VideoRecordActivity.this, "Record " + secondCamera + " finish.");
-                    }
-                    boolean autoClean = false;
-                    if (autoClean) {
-                        deleteAndLeftTwo();
-                    } else {
-                        checkAndClear();
-                    }
+        try {
+            if (date.equals(getCodeDate())) {
+                if (mTimer != null) {
+                    mTimer.cancel();
+                    mTimer = null;
+                }
+                codeDate = getCalendarTime();
+                new Handler().post(() -> moveFile(getPath() + logName, getSDPath() + logName, false));
+                if (!isError && getSdCard) {
+                    ((TextView) findViewById(R.id.record_status)).setText("Stop");
+                    if (isRecord) {
+                        videoLogList.add(new LogMsg("#stopRecord", mLog.v));
+                        Log.d(TAG, "stopRecord");
+                        if (mMediaRecorder0 != null) {
+                            mMediaRecorder0.stop();
+                            mMediaRecorder0.reset();   // You can reuse the object by going back to setAudioSource() step
+                            //mMediaRecorder.release(); // Now the object cannot be reused
+                            mMediaRecorder0 = null;
+                            toast(VideoRecordActivity.this, "Record " + firstCamera + " finish.");
+                        }
+                        if (mMediaRecorder1 != null) {
+                            mMediaRecorder1.stop();
+                            mMediaRecorder1.reset();
+                            mMediaRecorder1 = null;
+                            toast(VideoRecordActivity.this, "Record " + secondCamera + " finish.");
+                        }
+                        boolean autoClean = false;
+                        if (autoClean) {
+                            deleteAndLeftTwo();
+                        } else {
+                            checkAndClear();
+                        }
 
-                    if (isFinish == 999 || isRun <= isFinish) {
-                        takeRecord(delayTime, false);
+                        if (isFinish == 999 || isRun <= isFinish) {
+                            takeRecord(delayTime, false);
+                        } else {
+                            isRun = 0;
+                            isFinish = 0;
+                            isRecord = false;
+                            videoLogList.add(new LogMsg("#------------------------------", mLog.v));
+                            toast(VideoRecordActivity.this, "#completed");
+                            if (autoClean) {
+                                checkAndClear();
+                            }
+                            end(preview);
+                        }
                     } else {
                         isRun = 0;
                         isFinish = 0;
-                        isRecord = false;
-                        videoLogList.add(new LogMsg("#------------------------------", mLog.v));
-                        toast(VideoRecordActivity.this, "#completed");
-                        if (autoClean) {
-                            checkAndClear();
-                        }
                         end(preview);
                     }
                 } else {
-                    isRun = 0;
-                    isFinish = 0;
-                    end(preview);
+                    isRecord = false;
+                    ((TextView) findViewById(R.id.record_status)).setText("Error");
                 }
-            } else {
-                isRecord = false;
-                ((TextView) findViewById(R.id.record_status)).setText("Error");
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            videoLogList.add(new LogMsg("stopRecord error. <============ Crash here", mLog.e));
+            new Handler().post(() -> saveLog(getApplicationContext(), false));
+            isError = true;
+            errorMessage = "stopRecord error. <============ Crash here";
+            ((TextView) findViewById(R.id.record_status)).setText("Error");
         }
     }
 
@@ -900,39 +915,45 @@ public class VideoRecordActivity extends Activity {
     private void fileCheck(String path) {
         try {
             File video = new File(path);
-            int framerate = 0, duration;
-            String convertMinutes = "00", convertSeconds = "00";
+            int framerate = 0;
+//            , duration = 0;
+//            String convertMinutes = "00", convertSeconds = "00";
             if (video.exists()) {
-                framerate = getFrameRate(path);
-                duration = getVideo(this, path);
-                convertMinutes = String.format("%02d", TimeUnit.MILLISECONDS.toMinutes(duration) -
-                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)));
-                convertSeconds = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(duration) -
-                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
+                try {
+                    framerate = getFrameRate(path);
+//                    duration = getVideo(this, path);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    videoLogList.add(new LogMsg("CheckFile error. <============ Crash here", mLog.e));
+                    new Handler().post(() -> saveLog(getApplicationContext(), false));
+                    isError = true;
+                    errorMessage = "CheckFile error. <============ Crash here";
+                    ((TextView) findViewById(R.id.record_status)).setText("Error");
+                }
+//                convertMinutes = String.format("%02d", TimeUnit.MILLISECONDS.toMinutes(duration) -
+//                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)));
+//                convertSeconds = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(duration) -
+//                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
                 double[] range = isNew ? NEW_DFRAME_RATE : DFRAME_RATE;
                 boolean check = false;
-                if (duration != 0) {
-                    if (framerate >= range[isFrame]) {
-                        if (framerate <= range[isFrame] + 3) {
-                            check = true;
-                        }
-                    } else if (framerate < range[isFrame]) {
-                        if (framerate >= range[isFrame] - 3) {
-                            check = true;
-                        }
+                if (framerate >= range[isFrame]) {
+                    if (framerate <= range[isFrame] + 3) {
+                        check = true;
                     }
-                    if (check)
-                        successful++;
-                    else
-                        failed++;
-                } else {
-                    failed++;
+                } else if (framerate < range[isFrame]) {
+                    if (framerate >= range[isFrame] - 3) {
+                        check = true;
+                    }
                 }
+                if (check)
+                    successful++;
+                else
+                    failed++;
             } else {
                 failed++;
             }
             videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] + " frameRate:" + framerate +
-                    " duration:" + convertMinutes + ":" + convertSeconds +
+//                    " duration:" + convertMinutes + ":" + convertSeconds +
                     " success:" + getSuccessful() + " fail:" + getFailed() + " reset:" + getReset(), mLog.i));
             new Handler().post(() -> saveLog(getApplicationContext(), false));
         } catch (Exception e) {
@@ -1012,6 +1033,7 @@ public class VideoRecordActivity extends Activity {
                 if (mPreviewBuilder != null) {
                     final CaptureRequest.Builder mPreviewBuilders = mPreviewBuilder;
                     final CameraCaptureSession[] mPreviewSessions = {mPreviewSession};
+                    try {
                     mCameraDevice.createCaptureSession(surfaces,
                             new CameraCaptureSession.StateCallback() {
                                 @Override
@@ -1030,6 +1052,12 @@ public class VideoRecordActivity extends Activity {
                                     new Handler().post(() -> saveLog(getApplicationContext(), false));
                                 }
                             }, backgroundHandler);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        videoLogList.add(new LogMsg("StartRecord error. <============ Crash here", mLog.e));
+                        isError = true;
+                        errorMessage = "StartRecord error. <============ Crash here";
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -1151,6 +1179,7 @@ public class VideoRecordActivity extends Activity {
                     }
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
                 new Handler().post(() -> saveLog(this, false));
                 isError = true;
@@ -1192,8 +1221,16 @@ public class VideoRecordActivity extends Activity {
             /*TODO CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 1080p, 720p
             CamcorderProfile profile_720 = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
             CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
-            String file = getSDPath() + getCalendarTime(isCameraOne(cameraId)) + ".mp4";
-            runOnUiThread(() -> videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w)));
+            String file = "";
+            if (!getSDPath().equals("")) {
+                file = getSDPath() + getCalendarTime(isCameraOne(cameraId)) + ".mp4";
+                videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w));
+            } else {
+                isError = true;
+                errorMessage = "MediaRecorder error. <============ Crash here";
+                ((TextView) findViewById(R.id.record_status)).setText("Error");
+                return null;
+            }
             (isCameraOne(cameraId) ? firstFilePath : secondFilePath).add(file);
             // Step 1: Unlock and set camera to MediaRecorder
             CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
