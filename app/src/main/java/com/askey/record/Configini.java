@@ -8,7 +8,7 @@ public class Configini {
     protected String firstCamera = "0";
     protected String secondCamera = "1";
     protected int numberOfRuns = 999;
-    protected boolean isNew = false;
+    protected boolean isNew = true;
 
     public Configini(Context context) {
         this.context = context;
@@ -24,11 +24,11 @@ public class Configini {
 
     protected String[] config() {
         return new String[]{
-                "[VIDEO_RECORD_TESTING]" + context.getString(R.string.app_name) + "\r\n",
+                "[VIDEO_RECORD_CONFIG]" + context.getString(R.string.app_name) + "\r\n",
                 "#CameraID (0:Outer, 1:Inner, 2:External)\r\n",
                 "firstCameraID = " + firstCamera + "\r\n",
                 "secondCameraID = " + secondCamera + "\r\n", "\r\n",
-                "#Total number of runs (1 record is 10 min)\r\n",
+                "#Total number of runs (1 record is 1 min)\r\n",
                 "numberOfRuns = " + numberOfRuns + "\r\n", "\r\n",
                 "#Set Property\r\n",
                 "setProperty = " + isNew + "\r\n", "\r\n",

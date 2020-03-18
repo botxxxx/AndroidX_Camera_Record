@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -30,10 +31,10 @@ import static com.askey.record.VideoRecordActivity.saveLog;
 
 public class Utils {
 
-    public static final String[] FRAME_RATE = {"27.5fps", "16fps"},
-            NEW_FRAME_RATE = {"27.5fps", "13.7fps"}; // , "9.1fps", "6.8fps", "5.5fps", "4.5fps"
-    public static final double[] DFRAME_RATE = {27.5, 16},
-            NEW_DFRAME_RATE = {27.5, 13.7}; // , 9.1, 6.8, 5.5, 4.5
+    public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
+            NEW_FRAME_RATE = {"13.7fps", "27.5fps"}; // , "9.1fps", "6.8fps", "5.5fps", "4.5fps"
+    public static final double[] DFRAME_RATE = {16, 27.5},
+            NEW_DFRAME_RATE = {13.7, 27.5}; // , 9.1, 6.8, 5.5, 4.5
     public static final String FRAMESKIP = "persist.our.camera.frameskip";
     public static final String COMMAND_VIDEO_RECORD_TEST = "com.askey.record.t";
     public static final String COMMAND_VIDEO_RECORD_START = "com.askey.record.s";
@@ -47,6 +48,8 @@ public class Utils {
     public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
     public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
     public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
+    public static final String EXTRA_VIDEO_VERSION = "RestartActivity.version";
+    public static final String EXTRA_VIDEO_REFORMAT = "RestartActivity.reformat";
     public static final String NO_SD_CARD = "SD card is not available!";
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String configName = "VideoRecordConfig.ini";
@@ -61,7 +64,7 @@ public class Utils {
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList = null;
     public static int isFinish = 999, delayTime = 60000, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isError = false, isNew = false, getSdCard = false;
+    public static boolean isReady = false, isRecord = false, isError = false, isNew = true, getSdCard = false;
     public static boolean fCamera = true, sCamera = true;
     public static String errorMessage = "";
 
@@ -72,22 +75,22 @@ public class Utils {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
-    public static void toast(Context context, String t, mLog type) {
-        videoLogList.add(new LogMsg(t, type));
-//        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
-        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
-    }
-
-    public static void toast(Context context, String t) {
-        videoLogList.add(new LogMsg(t, mLog.i));
-//        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
-        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
-    }
-
-    public static void toast(Context context) {
-//        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "Is Recording Now.", Toast.LENGTH_SHORT).show());
-        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
-    }
+//    public static void toast(Context context, String t, mLog type) {
+//        videoLogList.add(new LogMsg(t, type));
+////        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
+//        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
+//    }
+//
+//    public static void toast(Context context, String t) {
+//        videoLogList.add(new LogMsg(t, mLog.i));
+////        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
+//        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
+//    }
+//
+//    public static void toast(Context context) {
+////        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "Is Recording Now.", Toast.LENGTH_SHORT).show());
+//        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
+//    }
 
     public static int getSuccessful() {
         return successful;
@@ -133,17 +136,18 @@ public class Utils {
         if (min > 0) {
             isFinish = min;
             if (min != 999)
-                toast(context, "setRecord time: " + min + " min.");
+                videoLogList.add(new LogMsg("setRecord time: " + min + " min.", mLog.d));
             else
-                toast(context, "setRecord time: unlimited times.");
+                videoLogList.add(new LogMsg("setRecord time: unlimited times.", mLog.d));
         } else {
-            toast(context, "The test time must be a positive number.", mLog.e);
+            videoLogList.add(new LogMsg("The test time must be a positive number.", mLog.e));
         }
     }
 
-    public static boolean checkConfigFile(Context context, boolean first) {
+    public static void checkConfigFile(Context context, boolean first) {
         videoLogList.add(new LogMsg("#checkConfigFile", mLog.v));
         if (!getPath().equals("")) {
+            getSdCard = true;
             File file = new File(getPath(), configName);
             if (!file.exists()) {
                 try {
@@ -151,18 +155,17 @@ public class Utils {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                toast(context, "Create the config file.", mLog.w);
+                videoLogList.add(new LogMsg("Create the config file.", mLog.w));
                 writeConfigFile(context, file, new Configini(context).config());
             } else {
                 if (!isReady) {
-                    toast(context, "Find the config file.", mLog.d);
+                    videoLogList.add(new LogMsg("Find the config file.", mLog.d));
                     videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                 }
                 checkConfigFile(context, new File(getPath(), configName), first);
             }
-            return true;
         } else {
-            return false;
+            getSdCard = false;
         }
     }
 
@@ -188,11 +191,11 @@ public class Utils {
     public static boolean[] checkConfigFile(Context context, File file, boolean firstOne) {
         try {
             String input = readConfigFile(context, file);
-            boolean reformat = true, isCameraChange = false, isPropChange = false, update = false;
+            boolean reformat = true, isCameraChange = false, isPropChange = false, update = true;
             if (input.length() > 0) {
                 String[] read = input.split("\r\n");
                 int target = 0, t;
-                String title = "[VIDEO_RECORD_TESTING]";
+                String title = "[VIDEO_RECORD_CONFIG]";
                 String first = "firstCameraID = ", second = "secondCameraID = ";
                 String code = "numberOfRuns = ", prop = "setProperty = ";
                 for (String s : read)
@@ -233,15 +236,15 @@ public class Utils {
 
                 if (target == 5) {
                     reformat = false;
-                    update = false;
-                    if (!title.equals(context.getString(R.string.app_name))) {
-                        toast(context, "Config is updated.", mLog.e);
+                    if (title.equals(context.getString(R.string.app_name))) {
+                        update = false;
+                    } else {
+                        videoLogList.add(new LogMsg("Config is updated.", mLog.e));
                         reformat = true;
-                        update = true;
                     }
                     if (!first.equals(second)) {
                         if ((first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"))) {
-                            toast(context, "Inner and External can't be used at the same time.", mLog.e);
+                            videoLogList.add(new LogMsg("Inner and External can't be used at the same time.", mLog.e));
                             reformat = true;
                         } else {
                             if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {
@@ -253,19 +256,19 @@ public class Utils {
                                     if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera))
                                         isCameraChange = true;
                             } else {
-                                toast(context, "Unknown Camera ID.", mLog.e);
+                                videoLogList.add(new LogMsg("Unknown Camera ID.", mLog.e));
                                 reformat = true;
                             }
                         }
                     } else {
-                        toast(context, "Cannot use the same Camera ID.", mLog.e);
+                        videoLogList.add(new LogMsg("Cannot use the same Camera ID.", mLog.e));
                         reformat = true;
                     }
                     if (isInteger(code.split("\n")[0], true)) {
                         int min = Integer.parseInt(code.split("\n")[0]);
                         setTestTime(context, min);
                     } else {
-                        toast(context, "Unknown Record Times.", mLog.e);
+                        videoLogList.add(new LogMsg("Unknown Record Times.", mLog.e));
                         reformat = true;
                     }
                     if (isBoolean(prop)) {
@@ -275,18 +278,32 @@ public class Utils {
                             isNew = Boolean.parseBoolean(prop);
                         }
                     } else {
-                        toast(context, "Unknown setProperty.", mLog.e);
+                        videoLogList.add(new LogMsg("Unknown setProperty.", mLog.e));
                         reformat = true;
                     }
                 }
             }
             if (update) {
-                if (getSdCard)
-                    reformatConfigFile(context, new File(logName));
+                String logString = "[VIDEO_RECORD_LOG]" + context.getString(R.string.app_name) + "\r\n";
+                videoLogList.add(new LogMsg("Reformat the Log file.", mLog.e));
+                for (LogMsg logs : videoLogList) {
+                    String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                            + " run:" + logs.runTime + " -> ";
+                    logString += (time + logs.msg + "\r\n");
+                }
+                try {
+                    FileOutputStream output = new FileOutputStream(new File(getPath(), logName), false);
+                    output.write(logString.getBytes());
+                    output.close();
+                    videoLogList.clear();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    videoLogList.add(new LogMsg("Write LOG failed. <============ error here", mLog.e));
+                }
             }
             if (reformat) {
-                if (getSdCard)
-                    reformatConfigFile(context, file);
+                reformatConfigFile(context, file);
                 return new boolean[]{true, true};
             } else return new boolean[]{isCameraChange, isPropChange};
         } catch (Exception e) {
@@ -299,7 +316,7 @@ public class Utils {
     public static boolean isCameraID(Context context, String f, String b) {
         try {
             if (Integer.parseInt(f) <= -1) {
-                toast(context, "The Camera ID must be a positive number.", mLog.e);
+                videoLogList.add(new LogMsg("The Camera ID must be a positive number.", mLog.e));
                 return false;
             } else {
                 boolean cameraID;
@@ -314,12 +331,12 @@ public class Utils {
                         break;
                 }
                 if (!cameraID) {
-                    toast(context, "The Camera ID is unknown.", mLog.e);
+                    videoLogList.add(new LogMsg("The Camera ID is unknown.", mLog.e));
                     return false;
                 }
             }
             if (Integer.parseInt(b) <= -1) {
-                toast(context, "The Camera ID must be a positive number.", mLog.e);
+                videoLogList.add(new LogMsg("The Camera ID must be a positive number.", mLog.e));
                 return false;
             } else {
                 boolean cameraID;
@@ -334,7 +351,7 @@ public class Utils {
                         break;
                 }
                 if (!cameraID) {
-                    toast(context, "The Camera ID is unknown.", mLog.e);
+                    videoLogList.add(new LogMsg("The Camera ID is unknown.", mLog.e));
                     return false;
                 }
             }
@@ -351,7 +368,7 @@ public class Utils {
         EditText editText_3 = view.findViewById(R.id.dialog_editText_3);
         TextView editText_4 = view.findViewById(R.id.dialog_editText_4);
         int isFinish = 999;
-        boolean isNew = false;
+        boolean isNew = true;
 
         if (!reset) {
             if (isInteger(editText_3.getText().toString(), false)) {
@@ -362,22 +379,21 @@ public class Utils {
             if (isBoolean(editText_4.getText().toString())) {
                 isNew = Boolean.parseBoolean(editText_4.getText().toString());
             } else {
-                isNew = false;
+                isNew = true;
             }
         }
 
         //toast(context, "Ready to write.", mLog.w);
         writeConfigFile(context, file, (
                 !reset ? new Configini(context, editText_1.getText().toString(),
-                        editText_2.getText().toString(),
-                        isFinish, isNew) : new Configini(context)).config());
+                        editText_2.getText().toString(), isFinish, isNew) : new Configini(context)).config());
         //toast(context, "Write file is completed.", mLog.i);
     }
 
     public static void reformatConfigFile(Context context, File file) {
         //toast(context, "Config file error.", mLog.e);
         writeConfigFile(context, file, new Configini(context).config());
-        toast(context, "Reformat the Config file.", mLog.e);
+        videoLogList.add(new LogMsg("Reformat the Config file.", mLog.e));
     }
 
     public static String readConfigFile(Context context, File file) {
@@ -395,12 +411,12 @@ public class Utils {
             input.close();
         } catch (Exception e) {
             e.printStackTrace();
-            toast(context, "Read failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e);
-            new Handler().post(() -> saveLog(context, false));
+            videoLogList.add(new LogMsg("Read failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
+            new Handler().post(() -> saveLog(context, false,false));
             isError = true;
             getSdCard = !getSDPath().equals("");
             errorMessage = "Read failed." + NO_SD_CARD + "<============ Crash here";
-            toast(context, "Read failed.", mLog.e);
+            videoLogList.add(new LogMsg("Read failed.", mLog.e));
             tmp += ("App Version:" + context.getString(R.string.app_name) + "\r\n");
             tmp += (NO_SD_CARD);
             return tmp;
@@ -419,14 +435,14 @@ public class Utils {
                 output.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                toast(context, "Write failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e);
-                new Handler().post(() -> saveLog(context, false));
+                videoLogList.add(new LogMsg("Write failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
+                new Handler().post(() -> saveLog(context, false,false));
                 isError = true;
                 getSdCard = !getSDPath().equals("");
                 errorMessage = "Write failed. " + NO_SD_CARD + "<============ Crash here";
             }
         } else {
-            toast(context, NO_SD_CARD, mLog.e);
+            videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
         }
     }
 

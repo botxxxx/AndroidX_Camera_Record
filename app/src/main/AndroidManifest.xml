@@ -40,6 +40,8 @@
             android:launchMode="singleInstance"
             android:process=":restart_process"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
-        <service android:name=".MyIntentService"/>
+        <service android:name=".copyFileService"/>
+        <service android:name=".saveLogService"/>
+        <service android:name=".checkSdCardService"/>
     </application>
 </manifest>

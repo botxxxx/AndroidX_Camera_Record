@@ -23,14 +23,14 @@ import static com.askey.record.Utils.getSDPath;
 import static com.askey.record.Utils.isError;
 import static com.askey.record.Utils.videoLogList;
 
-public class MyIntentService extends IntentService {
+public class copyFileService extends IntentService {
     String video;
     String pathname;
     boolean reomve;
 
-    public MyIntentService() {
+    public copyFileService() {
         // ActivityのstartService(intent);で呼び出されるコンストラクタはこちら
-        super("MyIntentService");
+        super("copyFileService");
     }
 
     public static void copy(String src, String dst, boolean remove) {

@@ -69,6 +69,12 @@
         3.record Time from 10min change to 1min.
         4.save log & config on /storage/emulated/0/DCIM/
         5.copy log to sd card when record finish or stop.
+    [v1.6.0]
+        1.SystemProperties default is 1.
+        2.videoBitRate default is 6.
+        3.saveLog is running in the background.
+        4.Create singleRecording Handler.
+        5.fix mediaRecorder no release error.
     -->
-    <string name="app_name">CDR9020_QTR(v1.5.0)</string>
+    <string name="app_name">CDR9020_QTR(v1.6.0)</string>
 </resources>

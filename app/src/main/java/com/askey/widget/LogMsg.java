@@ -10,6 +10,13 @@ public class LogMsg {
     public String msg;
     public mLog type;
 
+    public LogMsg(String msg) {
+        this.runTime = Utils.getIsRun();
+        this.time = LocalDateTime.now();
+        this.msg = msg;
+        this.type = mLog.d;
+    }
+
     public LogMsg(String msg, mLog type) {
         this.runTime = Utils.getIsRun();
         this.time = LocalDateTime.now();
