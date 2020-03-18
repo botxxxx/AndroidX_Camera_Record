@@ -77,6 +77,7 @@
         5.fix mediaRecorder no release error.
         6.disable mHomeBtnReceiver, BroadcastReceiver
         7.fix click cancel button doesn't save @cancel in log message error.
+        8.test the record on 30min will restartActivity function.
     -->
     <string name="app_name">CDR9020_QTR(v1.6.0)</string>
 </resources>
