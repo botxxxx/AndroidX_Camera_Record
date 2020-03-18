@@ -62,4 +62,19 @@
         1.show reset in Log message.
         2.fix no SD card crash, camera not access crash, config not match crash.
         3.auto select the last line of log message.
+    [v1.5.0]
+        1.add record timer, record status.
+        2.unblock playMusic, LogList, LogDialog.
+        3.record Time from 10min change to 1min.
+        4.save log & config on /storage/emulated/0/DCIM/
+        5.copy log to sd card when record finish or stop.
+    [v1.6.0]
+        1.SystemProperties default is 1.
+        2.videoBitRate default is 6.
+        3.saveLog is running in the background.
+        4.Create singleRecording Handler.
+        5.fix mediaRecorder no release error.
+        6.disable mHomeBtnReceiver, BroadcastReceiver
+        7.fix click cancel button doesn't save @cancel in log message error.
+        8.test the record on 30min will restartActivity function.
     -->
