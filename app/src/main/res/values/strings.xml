@@ -75,6 +75,8 @@
         3.saveLog is running in the background.
         4.Create singleRecording Handler.
         5.fix mediaRecorder no release error.
+        6.disable mHomeBtnReceiver, BroadcastReceiver
+        7.fix click cancel button doesn't save @cancel in log message error.
     -->
     <string name="app_name">CDR9020_QTR(v1.6.0)</string>
 </resources>
