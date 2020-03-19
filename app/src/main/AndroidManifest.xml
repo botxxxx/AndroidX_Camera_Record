@@ -34,7 +34,7 @@
         </activity>
 
         <activity
-            android:name=".RestartActivity"
+            android:name=".restartActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleInstance"

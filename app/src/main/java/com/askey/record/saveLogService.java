@@ -13,7 +13,7 @@ import java.io.FileOutputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-import static com.askey.record.RestartActivity.EXTRA_MAIN_PID;
+import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
 import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
 import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;

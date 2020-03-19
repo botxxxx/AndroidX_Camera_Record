@@ -54,7 +54,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.askey.record.RestartActivity.EXTRA_MAIN_PID;
 import static com.askey.record.Utils.DFRAME_RATE;
 import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
 import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
@@ -108,6 +107,7 @@ import static com.askey.record.Utils.secondFilePath;
 import static com.askey.record.Utils.setConfigFile;
 import static com.askey.record.Utils.successful;
 import static com.askey.record.Utils.videoLogList;
+import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 
 public class VideoRecordActivity extends Activity {
     public static int onRun = 0, onReset = 0;
@@ -127,32 +127,6 @@ public class VideoRecordActivity extends Activity {
     private mTimerTask timerTask = null;
     private Timer mTimer = null;
     private float mLaptime = 0.0f;
-//    private final BroadcastReceiver myReceiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            String action = intent.getAction();
-//            if (action.equals(COMMAND_VIDEO_RECORD_TEST) || action.equals(COMMAND_VIDEO_RECORD_TESTa)) {
-//                if (isReady) {
-//                    if (!isRecord) {
-//                        setRecord();
-//                        isFinish = 0;
-//                        takeRecord(5000, true);
-//                    } else {
-//                        isFinish = 0;
-//                        new stopRecord(true);
-//                    }
-//                } else videoLogList.add(new LogMsg("Not Ready to Record."));
-//            }
-//            if (action.equals(COMMAND_VIDEO_RECORD_START) || action.equals(COMMAND_VIDEO_RECORD_STARTa)) {
-//                isRecordStart();
-//            }
-//            if (action.equals(COMMAND_VIDEO_RECORD_FINISH) || action.equals(COMMAND_VIDEO_RECORD_FINISHa)) {
-//                Log.d("VideoRecord", "finish");
-//                isFinish = 0;
-//                new stopRecord(false);
-//            }
-//        }
-//    };
 
     public static void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, TextView editText4) {
         String input = readConfigFile(context, new File(getPath(), configName));
@@ -284,7 +258,7 @@ public class VideoRecordActivity extends Activity {
     private void setStart() {
         setContentView(R.layout.activity_video_record);
         fullScreenCall();
-         setHomeListener();
+        setHomeListener();
         initial();
     }
 
@@ -443,10 +417,10 @@ public class VideoRecordActivity extends Activity {
 
     private void restartApp() {
         if ((fCamera ^ sCamera) || (fCamera && sCamera)) {
-            stopRecordAndSaveLog(false); //TODO
+//            stopRecordAndSaveLog(false); //TODO
             onReset++;
             Context context = getApplicationContext();
-            Intent intent = RestartActivity.createIntent(context);
+            Intent intent = restartActivity.createIntent(context);
             intent.putExtra(EXTRA_VIDEO_RUN, isRun);
             intent.putExtra(EXTRA_VIDEO_RESET, onReset);
             intent.putExtra(EXTRA_VIDEO_RECORD, onRecord);
@@ -456,10 +430,10 @@ public class VideoRecordActivity extends Activity {
 
     private void restartCamera(String CameraID) {
         if ((fCamera ^ sCamera) || (fCamera && sCamera)) {
-            stopRecordAndSaveLog(false); //TODO
+//            stopRecordAndSaveLog(false); //TODO
             onReset++;
             Context context = getApplicationContext();
-            Intent intent = RestartActivity.createIntent(context);
+            Intent intent = restartActivity.createIntent(context);
             intent.putExtra(EXTRA_VIDEO_RUN, isRun);
             intent.putExtra(EXTRA_VIDEO_RESET, onReset);
             intent.putExtra(EXTRA_VIDEO_RECORD, onRecord);
@@ -611,30 +585,38 @@ public class VideoRecordActivity extends Activity {
                 });
             }
             if (check[1]) {
-                SystemProperties.set(FRAMESKIP, "1");
-                if (isNew) {
-                    String getFrameSkip = PropertyUtils.get(FRAMESKIP);
-                    if (null != getFrameSkip) {
-                        if (isInteger(getFrameSkip, false)) {
-                            //if frameskip is chehe or lastcamera != cameraid, delay 3s to change camera devices
-                            SystemProperties.set(FRAMESKIP, String.valueOf(isFrame == 0 ? 1 : 0));
-                            videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
+                try {
+                    SystemProperties.set(FRAMESKIP, "1");
+                    if (isNew) {
+                        String getFrameSkip = PropertyUtils.get(FRAMESKIP);
+                        if (null != getFrameSkip) {
+                            if (isInteger(getFrameSkip, false)) {
+                                //if frameskip is chehe or lastcamera != cameraid, delay 3s to change camera devices
+                                SystemProperties.set(FRAMESKIP, String.valueOf(isFrame == 0 ? 1 : 0));
+                                videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
+                            } else {
+                                videoLogList.add(new LogMsg("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e));
+                            }
                         } else {
-                            videoLogList.add(new LogMsg("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e));
+                            videoLogList.add(new LogMsg("getFrameSkip error, fs == null.", mLog.e));
                         }
-                    } else {
-                        videoLogList.add(new LogMsg("getFrameSkip error, fs == null.", mLog.e));
                     }
+                    ArrayList<View> new_frame = new ArrayList();
+                    for (String frame : new ArrayList<>(Arrays.asList( // or "3.9fps", "3.4fps", "1.7fps", "0.8fps"
+                            isNew ? NEW_FRAME_RATE : FRAME_RATE))) {
+                        View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
+                        CustomTextView item = vi.findViewById(R.id.customTextView);
+                        item.setText(frame);
+                        new_frame.add(vi);
+                    }
+                    ((VerticalViewPager) findViewById(R.id.pager1)).setAdapter(new mPagerAdapter(new_frame));
+                } catch (Exception e) {
+                    e.getStackTrace();
+                    isError = true;
+                    videoLogList.add(new LogMsg("SystemProperties error.", mLog.e));
+                    new Handler().post(() -> saveLog(this, false, false));
+                    errorMessage = "SystemProperties error. Please check your BuildVersion is 0302.";
                 }
-                ArrayList<View> new_frame = new ArrayList();
-                for (String frame : new ArrayList<>(Arrays.asList( // or "3.9fps", "3.4fps", "1.7fps", "0.8fps"
-                        isNew ? NEW_FRAME_RATE : FRAME_RATE))) {
-                    View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
-                    CustomTextView item = vi.findViewById(R.id.customTextView);
-                    item.setText(frame);
-                    new_frame.add(vi);
-                }
-                ((VerticalViewPager) findViewById(R.id.pager1)).setAdapter(new mPagerAdapter(new_frame));
             }
         } else {
             new Handler().post(() -> saveLog(getApplicationContext(), false, false));
@@ -809,10 +791,6 @@ public class VideoRecordActivity extends Activity {
 
                 if (isFinish == 999 || isRun <= isFinish) {
                     startRecord(cameraID);
-//                    if (isRun % 60 == 0) {
-//                        onRecord = true;
-//                        restartApp();
-//                    }
                 } else {
                     isRun = 0;
                     isFinish = 0;
@@ -1292,7 +1270,7 @@ public class VideoRecordActivity extends Activity {
             mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
             if (isCameraOne(cameraId))
                 mediaRecorder.setAudioEncodingBitRate(profile.audioBitRate);
-            mediaRecorder.setVideoEncodingBitRate((int)(profile.videoBitRate / 3.3));
+            mediaRecorder.setVideoEncodingBitRate((int) (profile.videoBitRate / 3.3));
             if (isCameraOne(cameraId)) {
                 mediaRecorder.setAudioChannels(profile.audioChannels);
                 mediaRecorder.setAudioSamplingRate(profile.audioSampleRate);
@@ -1508,7 +1486,15 @@ public class VideoRecordActivity extends Activity {
                                 if (null != getFrameSkip) {
                                     if (isInteger(getFrameSkip, false)) {
                                         //if frameskip is chehe or lastcamera != cameraid, delay 3s to change camera devices
-                                        SystemProperties.set(FRAMESKIP, String.valueOf(isFrame == 0 ? 1 : 0));
+                                        try {
+                                            SystemProperties.set(FRAMESKIP, String.valueOf(isFrame == 0 ? 1 : 0));
+                                        } catch (Exception e) {
+                                            e.getStackTrace();
+                                            isError = true;
+                                            videoLogList.add(new LogMsg("SystemProperties error.", mLog.e));
+                                            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
+                                            errorMessage = "SystemProperties error. Please check your BuildVersion is 0302.";
+                                        }
                                         videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
                                         mStateCallback0.onDisconnected(mCameraDevice0);
                                         mStateCallback1.onDisconnected(mCameraDevice1);

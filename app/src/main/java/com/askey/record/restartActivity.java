@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-public class RestartActivity extends Activity {
+public class restartActivity extends Activity {
     public static final String EXTRA_MAIN_PID = "RestartActivity.main_pid";
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_RESET = "RestartActivity.reset";
@@ -13,7 +13,7 @@ public class RestartActivity extends Activity {
 
     public static Intent createIntent(Context context) {
         Intent intent = new Intent();
-        intent.setClassName(context.getPackageName(), RestartActivity.class.getName());
+        intent.setClassName(context.getPackageName(), restartActivity.class.getName());
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         // メインプロセスの PID を Intent に保存しておく
         intent.putExtra(EXTRA_MAIN_PID, android.os.Process.myPid());

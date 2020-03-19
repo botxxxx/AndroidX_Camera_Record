@@ -6,28 +6,21 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.StatFs;
-import android.widget.TextView;
 
 import com.askey.widget.LogMsg;
 import com.askey.widget.mLog;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static com.askey.record.RestartActivity.EXTRA_MAIN_PID;
 import static com.askey.record.Utils.DFRAME_RATE;
-import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
-import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
 import static com.askey.record.Utils.NEW_DFRAME_RATE;
 import static com.askey.record.Utils.NO_SD_CARD;
 import static com.askey.record.Utils.errorMessage;
 import static com.askey.record.Utils.failed;
 import static com.askey.record.Utils.getFailed;
 import static com.askey.record.Utils.getFrameRate;
-import static com.askey.record.Utils.getPath;
 import static com.askey.record.Utils.getReset;
 import static com.askey.record.Utils.getSDPath;
 import static com.askey.record.Utils.getSdCard;
@@ -35,11 +28,9 @@ import static com.askey.record.Utils.getSuccessful;
 import static com.askey.record.Utils.isError;
 import static com.askey.record.Utils.isFrame;
 import static com.askey.record.Utils.isNew;
-import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.sdData;
 import static com.askey.record.Utils.successful;
 import static com.askey.record.Utils.videoLogList;
-import static com.askey.record.VideoRecordActivity.saveLog;
 
 public class checkSdCardService extends IntentService {
 

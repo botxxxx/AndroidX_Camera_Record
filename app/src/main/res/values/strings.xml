@@ -80,8 +80,7 @@
         8.test the record on 30min will restartActivity function.
     [v1.7.0]
         1.Enable mHomeBtnReceiver.
-        2.stopRecordAndSaveLog on restartActivity.(Check not yet)
-        3.singleCameraReset (not yet).
+        2.fix System properties can't be resolved error.
     -->
     <string name="app_name">CDR9020_QTR(v1.7.0)</string>
 </resources>
