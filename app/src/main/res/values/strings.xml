@@ -69,9 +69,10 @@
         3.record Time from 10min change to 1min.
         4.save log & config on /storage/emulated/0/DCIM/
         5.copy log to sd card when record finish or stop.
+        6.videoBitRate is 20.
     [v1.6.0]
         1.SystemProperties default is 1.
-        2.videoBitRate default is 10.
+        2.videoBitRate is 10.
         3.saveLog is running in the background.
         4.Create singleRecording Handler.
         5.fix mediaRecorder no release error.
@@ -80,7 +81,7 @@
         8.test the record on 30min will restartActivity function.
     [v1.7.0]
         1.Enable mHomeBtnReceiver.
-        2.videoBitRate default is 6.
+        2.videoBitRate is 6.
         3.fix System properties can't be resolved error.
 
     -->
