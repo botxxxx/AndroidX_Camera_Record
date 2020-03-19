@@ -123,10 +123,10 @@ public class VideoRecordActivity extends Activity {
     private Handler mainHandler, backgroundHandler0, backgroundHandler1;
     private Handler recordHandler0, recordHandler1, demoHandler;
     private HandlerThread thread0, thread1;
+    private HomeListen home;
     private mTimerTask timerTask = null;
     private Timer mTimer = null;
     private float mLaptime = 0.0f;
-
 //    private final BroadcastReceiver myReceiver = new BroadcastReceiver() {
 //        @Override
 //        public void onReceive(Context context, Intent intent) {
@@ -284,7 +284,7 @@ public class VideoRecordActivity extends Activity {
     private void setStart() {
         setContentView(R.layout.activity_video_record);
         fullScreenCall();
-        // setHomeListener();
+         setHomeListener();
         initial();
     }
 
@@ -315,7 +315,7 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void setHomeListener() {
-        HomeListen home = new HomeListen(this);
+        home = new HomeListen(this);
         home.setOnHomeBtnPressListener(new HomeListen.OnHomeBtnPressLitener() {
             public void onHomeBtnPress() {
                 videoLogList.add(new LogMsg("@home", mLog.v));
@@ -443,6 +443,20 @@ public class VideoRecordActivity extends Activity {
 
     private void restartApp() {
         if ((fCamera ^ sCamera) || (fCamera && sCamera)) {
+            stopRecordAndSaveLog(false); //TODO
+            onReset++;
+            Context context = getApplicationContext();
+            Intent intent = RestartActivity.createIntent(context);
+            intent.putExtra(EXTRA_VIDEO_RUN, isRun);
+            intent.putExtra(EXTRA_VIDEO_RESET, onReset);
+            intent.putExtra(EXTRA_VIDEO_RECORD, onRecord);
+            context.startActivity(intent);
+        }
+    }
+
+    private void restartCamera(String CameraID) {
+        if ((fCamera ^ sCamera) || (fCamera && sCamera)) {
+            stopRecordAndSaveLog(false); //TODO
             onReset++;
             Context context = getApplicationContext();
             Intent intent = RestartActivity.createIntent(context);
@@ -484,8 +498,6 @@ public class VideoRecordActivity extends Activity {
 
         // TODO findViewById
         setLoading(false);
-//        mListView = findViewById(R.id.list);
-//        mListView.setEnabled(false);
         videoLogList.add(new LogMsg("Initial now.", mLog.v));
         thread0 = new HandlerThread("CameraPreview0");
         thread0.start();
@@ -729,6 +741,7 @@ public class VideoRecordActivity extends Activity {
             videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
         }
         new Handler().post(() -> saveLog(getApplicationContext(), false, false));
+        home.stop();
 //        unregisterReceiver(myReceiver);
     }
 
@@ -965,7 +978,7 @@ public class VideoRecordActivity extends Activity {
             mPreviewSession0.close();
             mPreviewSession0 = null;
         }
-        if (cameraId.equals(secondCamera) && mPreviewSession1 != null) {
+        if (!isCameraOne(cameraId) && mPreviewSession1 != null) {
             mPreviewSession1.close();
             mPreviewSession1 = null;
         }

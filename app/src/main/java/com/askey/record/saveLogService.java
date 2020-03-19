@@ -2,6 +2,7 @@ package com.askey.record;
 
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 
 import com.askey.widget.LogMsg;
@@ -13,10 +14,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import static com.askey.record.RestartActivity.EXTRA_MAIN_PID;
+import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
+import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
 import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
+import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
 import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
 import static com.askey.record.Utils.NO_SD_CARD;
 import static com.askey.record.Utils.getPath;
+import static com.askey.record.Utils.getSDPath;
 import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.videoLogList;
 
@@ -29,7 +34,7 @@ public class saveLogService extends IntentService {
         super("saveLogService");
     }
 
-    private void saveLog(ArrayList<LogMsg> mLogList, boolean reFormat) {
+    private void saveLog(ArrayList<LogMsg> mLogList, boolean reFormat, boolean move) {
         String logString;
 
         File file = new File(getPath(), logName);
@@ -61,8 +66,21 @@ public class saveLogService extends IntentService {
             e.printStackTrace();
             mLogList.add(new LogMsg("Write failed. " + NO_SD_CARD + ". <============ Error here", mLog.e));
         }
+
+        if (move) {
+            moveFile(getPath() + logName, getSDPath() + logName, false);
+        }
     }
 
+    private void moveFile(String video, String pathname, boolean remove) {
+        Context context = getApplicationContext();
+        Intent intent = new Intent();
+        intent.setClassName(context.getPackageName(), copyFileService.class.getName());
+        intent.putExtra(EXTRA_VIDEO_COPY, video);
+        intent.putExtra(EXTRA_VIDEO_PASTE, pathname);
+        intent.putExtra(EXTRA_VIDEO_REMOVE, remove);
+        context.startService(intent);
+    }
 
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -72,7 +90,7 @@ public class saveLogService extends IntentService {
             reFormat = intent.getBooleanExtra(EXTRA_VIDEO_REFORMAT, false);
             Thread t = new Thread(() -> {
                 try {
-                    saveLog(videoLogList, reFormat);
+                    saveLog(videoLogList, reFormat, mainPid > 0);
                 } catch (Exception e) {
                     e.printStackTrace();
                     videoLogList.add(new LogMsg("saveLog error.", mLog.e));

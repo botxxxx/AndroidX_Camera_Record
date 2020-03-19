@@ -78,6 +78,10 @@
         6.disable mHomeBtnReceiver, BroadcastReceiver
         7.fix click cancel button doesn't save @cancel in log message error.
         8.test the record on 30min will restartActivity function.
+    [v1.7.0]
+        1.Enable mHomeBtnReceiver.
+        2.stopRecordAndSaveLog on restartActivity.(Check not yet)
+        3.singleCameraReset (not yet).
     -->
-    <string name="app_name">CDR9020_QTR(v1.6.0)</string>
+    <string name="app_name">CDR9020_QTR(v1.7.0)</string>
 </resources>
