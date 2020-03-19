@@ -71,7 +71,7 @@
         5.copy log to sd card when record finish or stop.
     [v1.6.0]
         1.SystemProperties default is 1.
-        2.videoBitRate default is 6.
+        2.videoBitRate default is 10.
         3.saveLog is running in the background.
         4.Create singleRecording Handler.
         5.fix mediaRecorder no release error.
@@ -80,7 +80,9 @@
         8.test the record on 30min will restartActivity function.
     [v1.7.0]
         1.Enable mHomeBtnReceiver.
-        2.fix System properties can't be resolved error.
+        2.videoBitRate default is 6.
+        3.fix System properties can't be resolved error.
+
     -->
     <string name="app_name">CDR9020_QTR(v1.7.0)</string>
 </resources>
