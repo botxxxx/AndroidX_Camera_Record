@@ -112,7 +112,7 @@ import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 public class VideoRecordActivity extends Activity {
     public static int onRun = 0, onReset = 0;
     public static boolean onRecord = false;
-    private static String codeDate, soundDate;
+    private static String codeDate0, codeDate1, soundDate;
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
@@ -205,8 +205,7 @@ public class VideoRecordActivity extends Activity {
                 } else {
                     videoLogList.add(new LogMsg("@Stop record", mLog.v));
                     isFinish = 0;
-                    final String codeDate = getCodeDate();
-                    new Handler().post(() -> stopRecord(true, codeDate));
+                    new Handler().post(() -> stopRecord(true));
                 }
         } else {
             stopRecordAndSaveLog(false);
@@ -409,8 +408,7 @@ public class VideoRecordActivity extends Activity {
         onRecord = isRecord;
         isFinish = 0;
         if (isRecord) new Handler().post(() -> {
-            final String codeDate = getCodeDate();
-            new Handler().post(() -> stopRecord(false, codeDate));
+            new Handler().post(() -> stopRecord(false));
         });
         new Handler().post(() -> saveLog(getApplicationContext(), false, kill));
     }
@@ -443,7 +441,6 @@ public class VideoRecordActivity extends Activity {
 
     @SuppressLint("HandlerLeak")
     private void initial() {
-        codeDate = getCalendarTime();
         getSdCard = !getSDPath().equals("");
         ArrayList<View> items_frame = new ArrayList();
         ArrayList<View> items_quality = new ArrayList();
@@ -758,18 +755,21 @@ public class VideoRecordActivity extends Activity {
         Log.e(TAG, "openCamera X");
     }
 
-    private String getCodeDate() {
-        return codeDate;
+    private String getCodeDate(String CameraID) {
+        return (isCameraOne(CameraID)) ? codeDate0 : codeDate1;
     }
 
     private void stopRecord(boolean preview, String date, String cameraID) {
         try {
-            if (date.equals(getCodeDate())) {
+            if (date.equals(getCodeDate(cameraID))) {
                 if (mTimer != null) {
                     mTimer.cancel();
                     mTimer = null;
                 }
-                codeDate = getCalendarTime();
+                if (isCameraOne(cameraID))
+                    codeDate0 = getCalendarTime();
+                else
+                    codeDate1 = getCalendarTime();
                 new Handler().post(() -> moveFile(getPath() + logName, getSDPath() + logName, false));
 
                 ((TextView) findViewById(R.id.record_status)).setText("Stop");
@@ -815,59 +815,51 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private void stopRecord(boolean preview, String date) {
+    private void stopRecord(boolean preview) {
         try {
-            if (date.equals(getCodeDate())) {
-                if (mTimer != null) {
-                    mTimer.cancel();
-                    mTimer = null;
-                }
-                codeDate = getCalendarTime();
-                new Handler().post(() -> moveFile(getPath() + logName, getSDPath() + logName, false));
-                if (!isError && getSdCard) {
-                    ((TextView) findViewById(R.id.record_status)).setText("Stop");
-                    if (isRecord) {
-                        videoLogList.add(new LogMsg("#stopRecord", mLog.v));
-                        Log.d(TAG, "stopRecord");
-                        if (mMediaRecorder0 != null) {
-                            mMediaRecorder0.stop();
-                            mMediaRecorder0.release();
-                            videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
-                        }
-                        if (mMediaRecorder1 != null) {
-                            mMediaRecorder1.stop();
-                            mMediaRecorder1.release();
-                            videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
-                        }
-                        boolean autoClean = false;
-                        if (autoClean) {
-                            deleteAndLeftTwo();
-                        } else {
-                            checkAndClear();
-                        }
+            if (mTimer != null) {
+                mTimer.cancel();
+                mTimer = null;
+            }
+            codeDate0 = getCalendarTime();
+            codeDate1 = getCalendarTime();
+            new Handler().post(() -> moveFile(getPath() + logName, getSDPath() + logName, false));
+            if (!isError && getSdCard) {
+                ((TextView) findViewById(R.id.record_status)).setText("Stop");
+                if (isRecord) {
+                    videoLogList.add(new LogMsg("#stopRecord", mLog.v));
+                    Log.d(TAG, "stopRecord");
+                    if (mMediaRecorder0 != null) {
+                        mMediaRecorder0.stop();
+                        mMediaRecorder0.release();
+                        videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
+                    }
+                    if (mMediaRecorder1 != null) {
+                        mMediaRecorder1.stop();
+                        mMediaRecorder1.release();
+                        videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
+                    }
+                    checkAndClear();
 
-                        if (isFinish == 999 || isRun <= isFinish) {
-                            takeRecord();
-                        } else {
-                            isRun = 0;
-                            isFinish = 0;
-                            isRecord = false;
-                            videoLogList.add(new LogMsg("#------------------------------", mLog.v));
-                            videoLogList.add(new LogMsg("#completed"));
-                            if (autoClean) {
-                                checkAndClear();
-                            }
-                            end(preview);
-                        }
+                    if (isFinish == 999 || isRun <= isFinish) {
+                        takeRecord();
                     } else {
                         isRun = 0;
                         isFinish = 0;
+                        isRecord = false;
+                        videoLogList.add(new LogMsg("#------------------------------", mLog.v));
+                        videoLogList.add(new LogMsg("#completed"));
+
                         end(preview);
                     }
                 } else {
-                    isRecord = false;
-                    ((TextView) findViewById(R.id.record_status)).setText("Error");
+                    isRun = 0;
+                    isFinish = 0;
+                    end(preview);
                 }
+            } else {
+                isRecord = false;
+                ((TextView) findViewById(R.id.record_status)).setText("Error");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -966,6 +958,10 @@ public class VideoRecordActivity extends Activity {
         if (!isError) {
             Log.d(TAG, "startRecord");
             try {
+                if (isCameraOne(cameraId))
+                    codeDate0 = getCalendarTime();
+                else
+                    codeDate1 = getCalendarTime();
                 runOnUiThread(() -> {
                     checkSdCardFromFileList();
                     if (mTimer == null) {
@@ -1040,10 +1036,11 @@ public class VideoRecordActivity extends Activity {
                                         mPreviewSessions[0] = session;
                                         setCaptureRequest(mPreviewBuilders, mPreviewSessions[0], backgroundHandler);
                                         mediaRecorder.start();
+
+                                        final String codeDate = getCodeDate(cameraId);
                                         new Handler().postDelayed(() -> {
                                             runOnUiThread(() -> {
-                                                if (mediaRecorder != null)
-                                                    stopRecord(false, getCodeDate(), cameraId);
+                                                stopRecord(false, codeDate, cameraId);
                                             });
                                         }, delayTime);
 //                                        videoLogList.add(new LogMsg("Camera " + cameraId + " Is Recording Now."));
@@ -1221,8 +1218,7 @@ public class VideoRecordActivity extends Activity {
         //  videoLogList.add(new LogMsg("SD Free Space:" + gigaAvailable);
         if (gigaAvailable < 3) {
             videoLogList.add(new LogMsg("SD Card(" + gigaAvailable + "gb) is Full."));
-            final String codeDate = getCodeDate();
-            new Handler().post(() -> stopRecord(false, codeDate));
+            new Handler().post(() -> stopRecord(false));
             ArrayList<String> tmp = new ArrayList();
             delete(firstFilePath.get(0), false, true);
             delete(secondFilePath.get(0), false, true);
@@ -1440,8 +1436,7 @@ public class VideoRecordActivity extends Activity {
                             isError = true;
                             getSdCard = false;
                             isFinish = 0;
-                            final String codeDate = getCodeDate();
-                            new Handler().post(() -> stopRecord(false, codeDate));
+                            new Handler().post(() -> stopRecord(false));
                         }
 //                        playMusic(R.raw.scanner_beep);
                         new soundHandler(soundDate);

@@ -83,7 +83,8 @@
         1.Enable mHomeBtnReceiver.
         2.videoBitRate is 6.
         3.fix System properties can't be resolved error.
-
+    [v1.7.1]
+        1.fix stopRecord bug.
     -->
-    <string name="app_name">CDR9020_QTR(v1.7.0)</string>
+    <string name="app_name">CDR9020_QTR(v1.7.1)</string>
 </resources>
