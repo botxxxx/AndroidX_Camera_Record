@@ -13,17 +13,16 @@ import java.io.FileOutputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
 import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
 import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
 import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
 import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
-import static com.askey.record.Utils.NO_SD_CARD;
 import static com.askey.record.Utils.getPath;
 import static com.askey.record.Utils.getSDPath;
 import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.videoLogList;
+import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 
 public class saveLogService extends IntentService {
     private String version;
@@ -45,7 +44,6 @@ public class saveLogService extends IntentService {
                 mLogList.add(new LogMsg("Create the log file.", mLog.w));
             } catch (Exception e) {
                 e.printStackTrace();
-                mLogList.add(new LogMsg("Create the log file error. <============ Error here", mLog.e));
             }
         } else {
             logString = "";
@@ -64,12 +62,17 @@ public class saveLogService extends IntentService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            mLogList.add(new LogMsg("Write failed. " + NO_SD_CARD + ". <============ Error here", mLog.e));
         }
-
-        if (move) {
-            moveFile(getPath() + logName, getSDPath() + logName, false);
-        }
+        if (move)
+            try {
+                Thread tMove = new Thread(() -> {
+                    moveFile(getPath() + logName, getSDPath() + logName, false);
+                });
+                tMove.start();
+                tMove.join();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
     private void moveFile(String video, String pathname, boolean remove) {
@@ -84,13 +87,17 @@ public class saveLogService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        int mainPid = 0;
         try {
-            int mainPid = intent.getIntExtra(EXTRA_MAIN_PID, -1);
+            mainPid = intent.getIntExtra(EXTRA_MAIN_PID, -1);
             version = intent.getStringExtra(EXTRA_VIDEO_VERSION);
             reFormat = intent.getBooleanExtra(EXTRA_VIDEO_REFORMAT, false);
+
+            int finalMainPid = mainPid;
             Thread t = new Thread(() -> {
+                final boolean move = finalMainPid > 0;
                 try {
-                    saveLog(videoLogList, reFormat, mainPid > 0);
+                    saveLog(videoLogList, reFormat, move);
                 } catch (Exception e) {
                     e.printStackTrace();
                     videoLogList.add(new LogMsg("saveLog error.", mLog.e));
@@ -98,10 +105,11 @@ public class saveLogService extends IntentService {
             });
             t.start();
             t.join();
-            if (mainPid > 0) android.os.Process.killProcess(mainPid);
         } catch (Exception e) {
             e.printStackTrace();
             videoLogList.add(new LogMsg("saveLog Service error.", mLog.e));
+        } finally {
+            if (mainPid > 0) android.os.Process.killProcess(mainPid);
         }
     }
 }

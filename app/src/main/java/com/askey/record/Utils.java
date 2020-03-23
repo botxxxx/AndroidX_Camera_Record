@@ -411,10 +411,10 @@ public class Utils {
             input.close();
         } catch (Exception e) {
             e.printStackTrace();
-            videoLogList.add(new LogMsg("Read failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
-            new Handler().post(() -> saveLog(context, false,false));
             isError = true;
             getSdCard = !getSDPath().equals("");
+            videoLogList.add(new LogMsg("Read failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
+            new Handler().post(() -> saveLog(context, false,false));
             errorMessage = "Read failed." + NO_SD_CARD + "<============ Crash here";
             videoLogList.add(new LogMsg("Read failed.", mLog.e));
             tmp += ("App Version:" + context.getString(R.string.app_name) + "\r\n");
@@ -435,10 +435,10 @@ public class Utils {
                 output.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                videoLogList.add(new LogMsg("Write failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
-                new Handler().post(() -> saveLog(context, false,false));
                 isError = true;
                 getSdCard = !getSDPath().equals("");
+                videoLogList.add(new LogMsg("Write failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
+                new Handler().post(() -> saveLog(context, false,false));
                 errorMessage = "Write failed. " + NO_SD_CARD + "<============ Crash here";
             }
         } else {
@@ -516,9 +516,8 @@ public class Utils {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            isError = true;
             getSdCard = !getSDPath().equals("");
-            errorMessage = "getVideo error. " + NO_SD_CARD + " <============ Crash here";
+            errorMessage = "getVideo error.";
             videoLogList.add(new LogMsg("getVideo error", mLog.e));
         }
         return duration;
@@ -534,9 +533,8 @@ public class Utils {
                 fis = new FileInputStream(new File(path));
                 extractor.setDataSource(fis.getFD());
             } catch (IOException e) {
-                isError = true;
                 getSdCard = !getSDPath().equals("");
-                errorMessage = "getFrameRate failed." + NO_SD_CARD + "<============ Crash here";
+                errorMessage = "getFrameRate failed.";
                 return 0;
             }
             int numTracks = extractor.getTrackCount();
@@ -552,9 +550,8 @@ public class Utils {
                 fis.close();
         } catch (Exception e) {
             e.printStackTrace();
-            isError = true;
             getSdCard = !getSDPath().equals("");
-            errorMessage = "getFrameRate failed." + NO_SD_CARD + "<============ Crash here";
+            errorMessage = "getFrameRate failed.";
         }
         return frameRate;
     }
