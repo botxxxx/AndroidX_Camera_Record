@@ -510,15 +510,14 @@ public class Utils {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    isError = true;
-                    videoLogList.add(new LogMsg("getVideo error", mLog.e));
+                    videoLogList.add(new LogMsg("getVideo error.", mLog.e));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
             getSdCard = !getSDPath().equals("");
             errorMessage = "getVideo error.";
-            videoLogList.add(new LogMsg("getVideo error", mLog.e));
+            videoLogList.add(new LogMsg("getVideo error.", mLog.e));
         }
         return duration;
     }

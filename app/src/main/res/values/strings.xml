@@ -88,7 +88,11 @@
     [v1.7.2]
         1.fix Camera Access error function was not reset problem.
         2.fix application has stopped problem.
-        3.try to restart application when (startRecord, stopRecord, MediaRecorder, setCaptureRequest, Preview) error.
+        3.try to restart application when (startRecord, stopRecord, MediaRecorder, setCaptureRequest, takePreview) error.
+    [v1.7.3]
+        1.fix saveLogService, copyFileService, checkSdCardService shutdown error.
+        2.fix stopRecord error.
+        3.try to restart application when (CameraDevice.StateCallback) error.
     -->
-    <string name="app_name">CDR9020_QTR(v1.7.2)</string>
+    <string name="app_name">CDR9020_QTR(v1.7.3)</string>
 </resources>

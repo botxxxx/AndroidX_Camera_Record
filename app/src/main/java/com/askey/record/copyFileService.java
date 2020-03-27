@@ -1,6 +1,5 @@
 package com.askey.record;
 
-
 import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
@@ -65,7 +64,8 @@ public class copyFileService extends IntentService {
             e.printStackTrace();
             isError = true;
             errorMessage = "Copy file error. <============ Crash here";
-            videoLogList.add(new LogMsg("Copy file error", mLog.e));
+            if (null != videoLogList)
+                videoLogList.add(new LogMsg("Copy file error", mLog.e));
         }
     }
 
@@ -75,8 +75,9 @@ public class copyFileService extends IntentService {
         pathname = intent.getStringExtra(EXTRA_VIDEO_PASTE);
         reomve = intent.getBooleanExtra(EXTRA_VIDEO_REMOVE, false);
         // 非同期処理を行うメソッド。タスクはonHandleIntentメソッド内で実行する
-        videoLogList.add(new LogMsg("#copy.", mLog.e));
         try {
+            if (null != videoLogList)
+                videoLogList.add(new LogMsg("#copy.", mLog.e));
             Log.d("IntentService", "onHandleIntent Start");
             Thread t = new Thread(() -> {
                 try {
@@ -86,17 +87,20 @@ public class copyFileService extends IntentService {
                     e.printStackTrace();
                     isError = true;
                     errorMessage = "Copy file error. <============ Crash here";
-                    videoLogList.add(new LogMsg("Copy file error", mLog.e));
+                    if (null != videoLogList)
+                        videoLogList.add(new LogMsg("Copy file error", mLog.e));
                 }
             });
             t.start();
             t.join();
-            videoLogList.add(new LogMsg("copy successful.", mLog.e));
+            if (null != videoLogList)
+                videoLogList.add(new LogMsg("copy successful.", mLog.e));
         } catch (Exception e) {
             e.printStackTrace();
             isError = true;
             errorMessage = "Copy file error. <============ Crash here";
-            videoLogList.add(new LogMsg("Copy file error", mLog.e));
+            if (null != videoLogList)
+                videoLogList.add(new LogMsg("Copy file error", mLog.e));
         }
     }
 }
