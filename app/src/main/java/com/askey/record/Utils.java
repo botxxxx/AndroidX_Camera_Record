@@ -524,33 +524,42 @@ public class Utils {
 
     public static int getFrameRate(String path) {
         int frameRate = 0;
-        try {
-            MediaExtractor extractor = null;
-            FileInputStream fis = null;
+        if(!getSDPath().equals("")) {
             try {
-                extractor = new MediaExtractor();
-                fis = new FileInputStream(new File(path));
-                extractor.setDataSource(fis.getFD());
-            } catch (IOException e) {
+                MediaExtractor extractor = null;
+                FileInputStream fis = null;
+                try {
+                    extractor = new MediaExtractor();
+                    fis = new FileInputStream(new File(path));
+                    extractor.setDataSource(fis.getFD());
+                } catch (IOException e) {
+                    getSdCard = !getSDPath().equals("");
+                    errorMessage = "getFrameRate failed.";
+                    videoLogList.add(new LogMsg("getFrameRate failed.", mLog.e));
+                    return 0;
+                }
+                int numTracks = extractor.getTrackCount();
+                for (int i = 0; i < numTracks; i++) {
+                    MediaFormat format = extractor.getTrackFormat(i);
+                    if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
+                        frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
+                    }
+                }
+                if (extractor != null)
+                    extractor.release();
+                if (fis != null)
+                    fis.close();
+            } catch (Exception e) {
+                e.printStackTrace();
                 getSdCard = !getSDPath().equals("");
                 errorMessage = "getFrameRate failed.";
-                return 0;
+                videoLogList.add(new LogMsg("getFrameRate failed.", mLog.e));
             }
-            int numTracks = extractor.getTrackCount();
-            for (int i = 0; i < numTracks; i++) {
-                MediaFormat format = extractor.getTrackFormat(i);
-                if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
-                    frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
-                }
-            }
-            if (extractor != null)
-                extractor.release();
-            if (fis != null)
-                fis.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            isError = true;
             getSdCard = !getSDPath().equals("");
-            errorMessage = "getFrameRate failed.";
+            errorMessage = "getFrameRate failed." + NO_SD_CARD + "<============ Crash here";
+            videoLogList.add(new LogMsg("getFrameRate failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
         }
         return frameRate;
     }

@@ -91,8 +91,9 @@
         3.try to restart application when (startRecord, stopRecord, MediaRecorder, setCaptureRequest, takePreview) error.
     [v1.7.3]
         1.fix saveLogService, copyFileService, checkSdCardService shutdown error.
-        2.fix stopRecord error.
+        2.fix stopRecord time out error.
         3.try to restart application when (CameraDevice.StateCallback) error.
+        4.fix getFrameRate 0 error.
     -->
     <string name="app_name">CDR9020_QTR(v1.7.3)</string>
 </resources>

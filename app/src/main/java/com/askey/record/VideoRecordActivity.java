@@ -196,7 +196,7 @@ public class VideoRecordActivity extends Activity {
 
     private void isRecordStart(boolean auto) {
         if (!isError && getSdCard) {
-            if (isReady)
+            if (isReady) {
                 if (!isRecord) {
                     if (!auto)
                         videoLogList.add(new LogMsg("@Start record", mLog.v));
@@ -213,6 +213,9 @@ public class VideoRecordActivity extends Activity {
                     isFinish = 0;
                     new Handler().post(() -> stopRecord(true));
                 }
+            }else{
+                videoLogList.add(new LogMsg("#Camera is not ready.", mLog.v));
+            }
         } else {
             stopRecordAndSaveLog(false);
             showDialogLog();
@@ -1281,6 +1284,12 @@ public class VideoRecordActivity extends Activity {
                 errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
                 ((TextView) findViewById(R.id.record_status)).setText("Error");
             }
+        } else {
+            isError = true;
+            videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
+            new Handler().post(() -> saveLog(this, false, false));
+            errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
+            ((TextView) findViewById(R.id.record_status)).setText("Error");
         }
     }
 
