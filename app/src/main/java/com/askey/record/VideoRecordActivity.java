@@ -450,7 +450,10 @@ public class VideoRecordActivity extends Activity {
     private void restartApp(String date, boolean record) {
         if (date.equals(resetDate))
             if ((fCamera ^ sCamera) || (fCamera && sCamera)) {
-                home.stop();
+                if (null != home) {
+                    home.stop();
+                    home = null;
+                }
                 onRestart = true;
                 onReset++;
                 Context context = getApplicationContext();
@@ -751,20 +754,24 @@ public class VideoRecordActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         isFinish = 0;
-        if (mStateCallback0 != null)
+        if (null != home) {
+            home.stop();
+            home = null;
+        }
+        if (null != mStateCallback0)
             mStateCallback0.onDisconnected(mCameraDevice0);
-        if (mStateCallback1 != null)
+        if (null != mStateCallback1)
             mStateCallback1.onDisconnected(mCameraDevice1);
         closePreviewSession(firstCamera);
         closePreviewSession(secondCamera);
         mStateCallback0 = null;
         mStateCallback1 = null;
-        if (mMediaRecorder0 != null) {
+        if (null != mMediaRecorder0) {
             mMediaRecorder0.stop();
             mMediaRecorder0.release();
             videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
         }
-        if (mMediaRecorder1 != null) {
+        if (null != mMediaRecorder1) {
             mMediaRecorder1.stop();
             mMediaRecorder1.release();
             videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
@@ -820,7 +827,7 @@ public class VideoRecordActivity extends Activity {
                 else
                     codeDate1 = getCalendarTime();
                 if (isCameraOne(cameraID)) {
-                    if (mTimer != null) {
+                    if (null != mTimer) {
                         mTimer.cancel();
                         mTimer = null;
                     }
@@ -831,13 +838,13 @@ public class VideoRecordActivity extends Activity {
                     new Handler().post(() -> moveFile(getPath() + logName, getSDPath() + logName, false));
 
                 if (isCameraOne(cameraID)) {
-                    if (mMediaRecorder0 != null) {
+                    if (null != mMediaRecorder0) {
                         mMediaRecorder0.stop();
                         mMediaRecorder0.release();
                         videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
                     }
                 } else {
-                    if (mMediaRecorder1 != null) {
+                    if (null != mMediaRecorder1) {
                         mMediaRecorder1.stop();
                         mMediaRecorder1.release();
                         videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
@@ -880,7 +887,7 @@ public class VideoRecordActivity extends Activity {
 
     private void stopRecord(boolean preview) {
         try {
-            if (mTimer != null) {
+            if (null != mTimer) {
                 mTimer.cancel();
                 mTimer = null;
             }
@@ -893,7 +900,7 @@ public class VideoRecordActivity extends Activity {
                     videoLogList.add(new LogMsg("#stopRecord", mLog.v));
                     Log.d(TAG, "stopRecord");
                     try {
-                        if (mMediaRecorder0 != null) {
+                        if (null != mMediaRecorder0) {
                             mMediaRecorder0.stop();
                             mMediaRecorder0.release();
                             videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
@@ -902,7 +909,7 @@ public class VideoRecordActivity extends Activity {
                         videoLogList.add(new LogMsg("mMediaRecorder0 is error."));
                     }
                     try {
-                        if (mMediaRecorder1 != null) {
+                        if (null != mMediaRecorder1) {
                             mMediaRecorder1.stop();
                             mMediaRecorder1.release();
                             videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
@@ -1016,11 +1023,11 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void closePreviewSession(String cameraId) {
-        if (isCameraOne(cameraId) && mPreviewSession0 != null) {
+        if (isCameraOne(cameraId) && null != mPreviewSession0) {
             mPreviewSession0.close();
             mPreviewSession0 = null;
         }
-        if (!isCameraOne(cameraId) && mPreviewSession1 != null) {
+        if (!isCameraOne(cameraId) && null != mPreviewSession1) {
             mPreviewSession1.close();
             mPreviewSession1 = null;
         }
@@ -1099,7 +1106,7 @@ public class VideoRecordActivity extends Activity {
                 }
                 // Start a capture session
                 // Once the session starts, we can update the UI and start recording
-                if (mPreviewBuilder != null) {
+                if (null != mPreviewBuilder) {
                     CaptureRequest.Builder mPreviewBuilders = mPreviewBuilder;
                     CameraCaptureSession[] mPreviewSessions = {mPreviewSession};
                     MediaRecorder mediaRecorder = isCameraOne(cameraId) ? mMediaRecorder0 : mMediaRecorder1;

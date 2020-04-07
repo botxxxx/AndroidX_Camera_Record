@@ -45,7 +45,7 @@ public class HomeListen {
         String action = intent.getAction();
         if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
             String reason = intent.getStringExtra("reason");
-            if (reason != null) {
+            if (null != reason) {
                 if (null != mOnHomeBtnPressListener) {
                     if (reason.equals("homekey")) {
                         // 按Home按键

@@ -488,7 +488,7 @@ public class Utils {
             Process pr = run.exec(cmd);
             BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
             String line;
-            while ((line = buf.readLine()) != null) {
+            while (null != (line = buf.readLine())) {
                 if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
                     path = "/storage/" + line + "/";
                     break;
@@ -509,7 +509,7 @@ public class Utils {
             if (!getSDPath().equals("")) {
                 try {
                     MediaPlayer mp = MediaPlayer.create(context, Uri.parse(path));
-                    if (mp != null) {
+                    if (null != mp) {
                         duration = mp.getDuration();
                         mp.release();
                     }
@@ -552,9 +552,9 @@ public class Utils {
                         frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
                     }
                 }
-                if (extractor != null)
+                if (null != extractor)
                     extractor.release();
-                if (fis != null)
+                if (null != fis)
                     fis.close();
             } catch (Exception e) {
                 e.printStackTrace();
