@@ -101,7 +101,6 @@ import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.readConfigFile;
 import static com.askey.record.Utils.reformatConfigFile;
 import static com.askey.record.Utils.sCamera;
-import static com.askey.record.Utils.sdData;
 import static com.askey.record.Utils.secondCamera;
 import static com.askey.record.Utils.secondFilePath;
 import static com.askey.record.Utils.setConfigFile;
@@ -181,12 +180,12 @@ public class VideoRecordActivity extends Activity {
     private void setRecord() {
         isRecord = true;
         checkConfigFile(VideoRecordActivity.this, new File(getPath(), configName), false);
-        if (onRecord && onReset != 0) {
+        if (onRecord) {
             isRun = onRun;
         } else {
             isRun = 0;
         }
-        onRecord = false;
+        onRecord = true;
         successful = 0;
         failed = 0;
         firstFilePath.clear();
@@ -213,7 +212,7 @@ public class VideoRecordActivity extends Activity {
                     isFinish = 0;
                     new Handler().post(() -> stopRecord(true));
                 }
-            }else{
+            } else {
                 videoLogList.add(new LogMsg("#Camera is not ready.", mLog.v));
             }
         } else {
@@ -349,8 +348,9 @@ public class VideoRecordActivity extends Activity {
                             ((TextView) findViewById(R.id.record_status)).setText("Error");
                         }
                         if (isError) {
-                            final String date = resetDate + "";
-                            new Handler().postDelayed(() -> restartApp(date), 3000);
+                            final String dates = resetDate + "";
+                            final boolean records = onRecord;
+                            new Handler().postDelayed(() -> restartApp(dates,records), 3000);
                         }
                     }
 
@@ -405,8 +405,9 @@ public class VideoRecordActivity extends Activity {
                             ((TextView) findViewById(R.id.record_status)).setText("Error");
                         }
                         if (isError) {
-                            final String date = resetDate + "";
-                            new Handler().postDelayed(() -> restartApp(date), 3000);
+                            final String dates = resetDate + "";
+                            final boolean records = onRecord;
+                            new Handler().postDelayed(() -> restartApp(dates,records), 3000);
                         }
                     }
 
@@ -431,14 +432,14 @@ public class VideoRecordActivity extends Activity {
             errorMessage = "CameraDevice.StateCallback " + callback + " error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
-                final String date = resetDate + "";
-                new Handler().postDelayed(() -> restartApp(date), 3000);
+                final String dates = resetDate + "";
+                final boolean records = onRecord;
+                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
             }
         }
     }
 
     private void stopRecordAndSaveLog(boolean kill) {
-        onRecord = isRecord;
         isFinish = 0;
         if (isRecord) new Handler().post(() -> {
             new Handler().post(() -> stopRecord(false));
@@ -446,7 +447,7 @@ public class VideoRecordActivity extends Activity {
         new Handler().post(() -> saveLog(getApplicationContext(), false, kill));
     }
 
-    private void restartApp(String date) {
+    private void restartApp(String date, boolean record) {
         if (date.equals(resetDate))
             if ((fCamera ^ sCamera) || (fCamera && sCamera)) {
                 home.stop();
@@ -454,9 +455,9 @@ public class VideoRecordActivity extends Activity {
                 onReset++;
                 Context context = getApplicationContext();
                 Intent intent = restartActivity.createIntent(context);
-                intent.putExtra(EXTRA_VIDEO_RUN, isRun);
+                intent.putExtra(EXTRA_VIDEO_RUN, onRun);
                 intent.putExtra(EXTRA_VIDEO_RESET, onReset);
-                intent.putExtra(EXTRA_VIDEO_RECORD, onRecord);
+                intent.putExtra(EXTRA_VIDEO_RECORD, record);
                 context.startActivity(intent);
             }
     }
@@ -533,9 +534,9 @@ public class VideoRecordActivity extends Activity {
         mTextureView1 = findViewById(R.id.surfaceView1);
         mTextureView1.setSurfaceTextureListener(new mSurfaceTextureListener(secondCamera));
 //        AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        findViewById(R.id.listBackground).setOnClickListener((View v) -> {
-            runOnUiThread(() -> showDialogLog());
-        });
+//        findViewById(R.id.listBackground).setOnClickListener((View v) -> {
+//            runOnUiThread(() -> showDialogLog());
+//        });
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
             videoLogList.add(new LogMsg("@cancel", mLog.v));
             stopRecordAndSaveLog(true);
@@ -656,7 +657,7 @@ public class VideoRecordActivity extends Activity {
 
     private void showDialogLog() {
         if (!isRecord) {
-            videoLogList.add(new LogMsg("@dialog_log", mLog.v));
+            videoLogList.add(new LogMsg("#dialog_log", mLog.v));
             View view = LayoutInflater.from(this).inflate(R.layout.layout_getlog, null);
             final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen).setView(view).setCancelable(true).create();
 //            view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
@@ -799,8 +800,9 @@ public class VideoRecordActivity extends Activity {
             errorMessage = "Camera Access error, Please check camera " + cameraId + ". <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
 //            if (onDebug) {
-//                final String date = resetDate + "";
-//                new Handler().postDelayed(() -> restartApp(date), 3000);
+//                final String dates = resetDate + "";
+//                final boolean records = onRecord;
+//                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
 //            }
         }
         Log.e(TAG, "openCamera X");
@@ -849,6 +851,7 @@ public class VideoRecordActivity extends Activity {
                     isRun = 0;
                     isFinish = 0;
                     isRecord = false;
+                    onRecord = false;
                     videoLogList.add(new LogMsg("#completed"));
                     end(preview);
                 }
@@ -856,6 +859,7 @@ public class VideoRecordActivity extends Activity {
                     isRun = 0;
                     isFinish = 0;
                     isRecord = false;
+                    onRecord = false;
                     ((TextView) findViewById(R.id.record_status)).setText("Error");
                 }
             }
@@ -867,8 +871,9 @@ public class VideoRecordActivity extends Activity {
             errorMessage = "Camera " + cameraID + " stopRecord error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
-                final String date1 = resetDate + "";
-                new Handler().postDelayed(() -> restartApp(date1), 3000);
+                final String dates = resetDate + "";
+                final boolean records = onRecord;
+                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
             }
         }
     }
@@ -910,11 +915,11 @@ public class VideoRecordActivity extends Activity {
                     } catch (Exception e) {
                         videoLogList.add(new LogMsg("Check file is fail."));
                     }
-
-                    isRecord = false;
                     if (isFinish == 999 || isRun <= isFinish) {
                         takeRecord();
                     } else {
+                        isRecord = false;
+                        onRecord = false;
                         videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                         videoLogList.add(new LogMsg("#completed"));
                         isRun = 0;
@@ -927,7 +932,6 @@ public class VideoRecordActivity extends Activity {
                     end(preview);
                 }
             } else {
-                isRecord = false;
                 ((TextView) findViewById(R.id.record_status)).setText("Error");
             }
         } catch (Exception e) {
@@ -938,8 +942,9 @@ public class VideoRecordActivity extends Activity {
             errorMessage = "stopRecord all camera error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
-                final String date = resetDate + "";
-                new Handler().postDelayed(() -> restartApp(date), 3000);
+                final String dates = resetDate + "";
+                final boolean records = onRecord;
+                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
             }
         }
     }
@@ -1031,10 +1036,11 @@ public class VideoRecordActivity extends Activity {
                     codeDate1 = getCalendarTime();
 
                 if (isCameraOne(cameraId)) {
+                    checkSdCardFromFileList();
                     runOnUiThread(() -> {
-                        checkSdCardFromFileList();
                         if (mTimer == null) {
                             isRun++;
+                            onRun = isRun;
                             //タイマーの初期化処理
                             timerTask = new mTimerTask();
                             mLaptime = 0.0f;
@@ -1129,8 +1135,9 @@ public class VideoRecordActivity extends Activity {
                         errorMessage = "Camera " + cameraId + " startRecord error. <============ Crash here";
                         ((TextView) findViewById(R.id.record_status)).setText("Error");
                         if (onDebug) {
-                            final String date = resetDate + "";
-                            new Handler().postDelayed(() -> restartApp(date), 3000);
+                            final String dates = resetDate + "";
+                            final boolean records = onRecord;
+                            new Handler().postDelayed(() -> restartApp(dates,records), 3000);
                         }
                     }
                 } else {
@@ -1140,8 +1147,9 @@ public class VideoRecordActivity extends Activity {
                     errorMessage = "Camera " + cameraId + " mPreviewBuilder is null. <============ Crash here";
                     ((TextView) findViewById(R.id.record_status)).setText("Error");
                     if (onDebug) {
-                        final String date = resetDate + "";
-                        new Handler().postDelayed(() -> restartApp(date), 3000);
+                        final String dates = resetDate + "";
+                        final boolean records = onRecord;
+                        new Handler().postDelayed(() -> restartApp(dates,records), 3000);
                     }
                 }
             } catch (Exception e) {
@@ -1152,11 +1160,19 @@ public class VideoRecordActivity extends Activity {
                 errorMessage = "Camera " + cameraId + " startRecord error. <============ Crash here";
                 ((TextView) findViewById(R.id.record_status)).setText("Error");
                 if (onDebug) {
-                    final String date = resetDate + "";
-                    new Handler().postDelayed(() -> restartApp(date), 3000);
+                    final String dates = resetDate + "";
+                    final boolean records = onRecord;
+                    new Handler().postDelayed(() -> restartApp(dates,records), 3000);
                 }
             }
         }
+    }
+
+    private void checkSdCardFromFileList() {
+        Context context = getApplicationContext();
+        Intent intent = new Intent();
+        intent.setClassName(context.getPackageName(), checkSdCardService.class.getName());
+        context.startService(intent);
     }
 
     private void delete(String path, boolean check, boolean fromSDcard) {
@@ -1211,14 +1227,24 @@ public class VideoRecordActivity extends Activity {
 
     private void checkAndClear(String cameraID) {
         if (isCameraOne(cameraID)) {
-            for (String f : firstFilePath)
-                fileCheck(f);
-            firstFilePath.clear();
+            try {
+                for (String f : firstFilePath)
+                    fileCheck(f);
+            } catch (Exception e) {
+                videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
+            } finally {
+                firstFilePath.clear();
+            }
         }
         if (!isCameraOne(cameraID)) {
-            for (String s : secondFilePath)
-                fileCheck(s);
-            secondFilePath.clear();
+            try {
+                for (String s : secondFilePath)
+                    fileCheck(s);
+            } catch (Exception e) {
+                videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
+            } finally {
+                secondFilePath.clear();
+            }
         }
     }
 
@@ -1244,52 +1270,6 @@ public class VideoRecordActivity extends Activity {
         }
         for (String video : tmp) {
             delete(video, false, true);
-        }
-    }
-
-    private void checkSdCardFromFileList() {
-        getSdCard = !getSDPath().equals("");
-        if (getSdCard) {
-            try {
-                StatFs stat = new StatFs(getSDPath());
-                long sdAvailSize = stat.getAvailableBlocksLong()
-                        * stat.getBlockSizeLong();
-                double gigaAvailable = (sdAvailSize >> 30);
-                if (gigaAvailable < sdData) {
-                    videoLogList.add(new LogMsg("SD Card is Full."));
-                    ArrayList<String> tmp = new ArrayList();
-                    File[] fileList = new File(getSDPath()).listFiles();
-                    for (int i = 0; i < fileList.length; i++) {
-                        // Recursive call if it's a directory
-                        File file = fileList[i];
-                        if (!fileList[i].isDirectory()) {
-                            if (Utils.getFileExtension(file.toString()).equals("mp4"))
-                                tmp.add(file.toString());
-                        }
-                    }
-                    if (tmp.size() >= 2) {
-                        Object[] list = tmp.toArray();
-                        Arrays.sort(list);
-                        delete((String) list[0], false, true);
-                        delete((String) list[1], false, true);
-                        checkSdCardFromFileList();
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                getSdCard = !getSDPath().equals("");
-                isError = true;
-                videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
-                new Handler().post(() -> saveLog(this, false, false));
-                errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
-                ((TextView) findViewById(R.id.record_status)).setText("Error");
-            }
-        } else {
-            isError = true;
-            videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
-            new Handler().post(() -> saveLog(this, false, false));
-            errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
-            ((TextView) findViewById(R.id.record_status)).setText("Error");
         }
     }
 
@@ -1336,8 +1316,9 @@ public class VideoRecordActivity extends Activity {
                 errorMessage = "MediaRecorder error. <============ Crash here";
                 ((TextView) findViewById(R.id.record_status)).setText("Error");
                 if (onDebug) {
-                    final String date = resetDate + "";
-                    new Handler().postDelayed(() -> restartApp(date), 3000);
+                    final String dates = resetDate + "";
+                    final boolean records = onRecord;
+                    new Handler().postDelayed(() -> restartApp(dates,records), 3000);
                 }
                 return null;
             }
@@ -1376,8 +1357,9 @@ public class VideoRecordActivity extends Activity {
             errorMessage = "MediaRecorder " + cameraId + " error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
-                final String date = resetDate + "";
-                new Handler().postDelayed(() -> restartApp(date), 3000);
+                final String dates = resetDate + "";
+                final boolean records = onRecord;
+                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
             }
         }
         return mediaRecorder;
@@ -1402,8 +1384,9 @@ public class VideoRecordActivity extends Activity {
             errorMessage = "takePreview " + cameraId + " error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
-                final String date = resetDate + "";
-                new Handler().postDelayed(() -> restartApp(date), 3000);
+                final String dates = resetDate + "";
+                final boolean records = onRecord;
+                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
             }
         }
         if (null != texture) {
@@ -1455,8 +1438,9 @@ public class VideoRecordActivity extends Activity {
                     errorMessage = "Preview " + cameraId + " error.";
                     ((TextView) findViewById(R.id.record_status)).setText("Error");
                     if (onDebug) {
-                        final String date = resetDate + "";
-                        new Handler().postDelayed(() -> restartApp(date), 3000);
+                        final String dates = resetDate + "";
+                        final boolean records = onRecord;
+                        new Handler().postDelayed(() -> restartApp(dates,records), 3000);
                     }
                 }
             }
@@ -1475,8 +1459,9 @@ public class VideoRecordActivity extends Activity {
             errorMessage = "setCaptureRequest error.";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
-                final String date = resetDate + "";
-                new Handler().postDelayed(() -> restartApp(date), 3000);
+                final String dates = resetDate + "";
+                final boolean records = onRecord;
+                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
             }
         }
     }
@@ -1500,8 +1485,9 @@ public class VideoRecordActivity extends Activity {
                     errorMessage = "Application has timed out.";
                     new Handler().post(() -> ((TextView) findViewById(R.id.record_status)).setText("Error"));
                     if (onDebug) {
-                        final String date = resetDate + "";
-                        new Handler().postDelayed(() -> restartApp(date), 3000);
+                        final String dates = resetDate + "";
+                        final boolean records = onRecord;
+                        new Handler().postDelayed(() -> restartApp(dates,records), 3000);
                     }
                 }
                 //計算にゆらぎがあるので小数点第1位で丸める

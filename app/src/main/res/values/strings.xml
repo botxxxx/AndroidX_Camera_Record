@@ -93,7 +93,9 @@
         1.fix saveLogService, copyFileService, checkSdCardService shutdown error.
         2.fix stopRecord time out error.
         3.try to restart application when (CameraDevice.StateCallback) error.
-        4.fix getFrameRate 0 error.
+        4.find getFrameRate 0 error on delete file time out.
+        5.fix reset camera not recording error.
+        6.fix run number not continue error.
     -->
     <string name="app_name">CDR9020_QTR(v1.7.3)</string>
 </resources>

@@ -1,4 +1,4 @@
-key store path: app/libs/debug.keystore
-key store password: android
-key alias: platform
-key password: android
+storeFile file('app/libs/debug.keystore')
+storePassword 'android'
+keyAlias = 'platform'
+keyPassword 'android'

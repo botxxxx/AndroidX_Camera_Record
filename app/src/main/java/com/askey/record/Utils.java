@@ -1,5 +1,6 @@
 package com.askey.record;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
@@ -414,7 +415,7 @@ public class Utils {
             isError = true;
             getSdCard = !getSDPath().equals("");
             videoLogList.add(new LogMsg("Read failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
-            new Handler().post(() -> saveLog(context, false,false));
+            new Handler().post(() -> saveLog(context, false, false));
             errorMessage = "Read failed." + NO_SD_CARD + "<============ Crash here";
             videoLogList.add(new LogMsg("Read failed.", mLog.e));
             tmp += ("App Version:" + context.getString(R.string.app_name) + "\r\n");
@@ -438,7 +439,7 @@ public class Utils {
                 isError = true;
                 getSdCard = !getSDPath().equals("");
                 videoLogList.add(new LogMsg("Write failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
-                new Handler().post(() -> saveLog(context, false,false));
+                new Handler().post(() -> saveLog(context, false, false));
                 errorMessage = "Write failed. " + NO_SD_CARD + "<============ Crash here";
             }
         } else {
@@ -446,6 +447,7 @@ public class Utils {
         }
     }
 
+    @SuppressLint("DefaultLocale")
     public static String getCalendarTime() {
         String d, h, i, s;
         Calendar calendar = Calendar.getInstance();
@@ -457,15 +459,18 @@ public class Utils {
         return d + h + i + s + "";
     }
 
+    @SuppressLint("DefaultLocale")
     public static String getCalendarTime(boolean isCameraOne) {
-        String d, h, i, s;
+        String y, m, d, h, i, s;
         Calendar calendar = Calendar.getInstance();
-        d = String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH));
+        y = String.format("%02d", calendar.get(Calendar.YEAR));
+        m = String.format("%02d", (calendar.get(Calendar.MONTH) - 1));
+        d = String.format("%02d", calendar.get(Calendar.DATE));
         h = String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY));
         i = String.format("%02d", calendar.get(Calendar.MINUTE));
         s = String.format("%02d", calendar.get(Calendar.SECOND));
 
-        return "v" + d + h + i + s + (isCameraOne ? "f" : "s");
+        return "v" + y + m + d + h + i + s + (isCameraOne ? "f" : "s");
     }
 
     public static String getPath() {
@@ -524,7 +529,7 @@ public class Utils {
 
     public static int getFrameRate(String path) {
         int frameRate = 0;
-        if(!getSDPath().equals("")) {
+        if (!getSDPath().equals("")) {
             try {
                 MediaExtractor extractor = null;
                 FileInputStream fis = null;
@@ -533,6 +538,8 @@ public class Utils {
                     fis = new FileInputStream(new File(path));
                     extractor.setDataSource(fis.getFD());
                 } catch (IOException e) {
+                    e.printStackTrace();
+                    isError = true;
                     getSdCard = !getSDPath().equals("");
                     errorMessage = "getFrameRate failed.";
                     videoLogList.add(new LogMsg("getFrameRate failed.", mLog.e));
@@ -551,6 +558,7 @@ public class Utils {
                     fis.close();
             } catch (Exception e) {
                 e.printStackTrace();
+                isError = true;
                 getSdCard = !getSDPath().equals("");
                 errorMessage = "getFrameRate failed.";
                 videoLogList.add(new LogMsg("getFrameRate failed.", mLog.e));
