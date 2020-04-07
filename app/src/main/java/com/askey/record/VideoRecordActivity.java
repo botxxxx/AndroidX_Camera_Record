@@ -677,12 +677,12 @@ public class VideoRecordActivity extends Activity {
             if (!fCamera) {
                 list.add("Camera Access error, Please check camera " + firstCamera + ". <============ Crash here");
                 if (firstCamera.equals("2"))
-                    list.add("you can try Reboot device to walk up external camera.");
+                    list.add("You can try Reboot device to walk up external camera.");
             }
             if (!sCamera) {
                 list.add("Camera Access error, Please check camera " + secondCamera + ". <============ Crash here");
                 if (secondCamera.equals("2"))
-                    list.add("you can try Reboot device to walk up external camera.");
+                    list.add("You can try Reboot device to walk up external camera.");
             }
             if (!errorMessage.equals(""))
                 list.add(errorMessage);
@@ -799,11 +799,8 @@ public class VideoRecordActivity extends Activity {
             new Handler().post(() -> stopRecordAndSaveLog(false));
             errorMessage = "Camera Access error, Please check camera " + cameraId + ". <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
-//            if (onDebug) {
-//                final String dates = resetDate + "";
-//                final boolean records = onRecord;
-//                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
-//            }
+            if (cameraId.equals("2"))
+                errorMessage += "\nYou can try Reboot device to walk up external camera.";
         }
         Log.e(TAG, "openCamera X");
     }

@@ -96,6 +96,7 @@
         4.find getFrameRate 0 error on delete file time out.
         5.fix reset camera not recording error.
         6.fix run number not continue error.
+        7.add checkSdCard background service.
     -->
     <string name="app_name">CDR9020_QTR(v1.7.3)</string>
 </resources>
