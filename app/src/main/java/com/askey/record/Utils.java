@@ -32,10 +32,10 @@ import static com.askey.record.VideoRecordActivity.saveLog;
 
 public class Utils {
 
-    public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
-            NEW_FRAME_RATE = {"13.7fps", "27.5fps"}; // , "9.1fps", "6.8fps", "5.5fps", "4.5fps"
     public static final double[] DFRAME_RATE = {16, 27.5},
             NEW_DFRAME_RATE = {13.7, 27.5}; // , 9.1, 6.8, 5.5, 4.5
+    public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
+            NEW_FRAME_RATE = {"13.7fps", "27.5fps"}; // , "9.1fps", "6.8fps", "5.5fps", "4.5fps"
     public static final String FRAMESKIP = "persist.our.camera.frameskip";
     public static final String COMMAND_VIDEO_RECORD_TEST = "com.askey.record.t";
     public static final String COMMAND_VIDEO_RECORD_START = "com.askey.record.s";
@@ -62,11 +62,13 @@ public class Utils {
     public static String secondCamera = "1";
     public static String lastfirstCamera = "0";
     public static String lastsecondCamera = "1";
+    public static String firstFile = "";
+    public static String secondFile = "";
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList = null;
     public static int isFinish = 999, delayTime = 60000, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isError = false, isNew = true, getSdCard = false;
-    public static boolean fCamera = true, sCamera = true;
+    public static boolean isReady = false, isRecord = false, isError = false, isNew = true;
+    public static boolean fCamera = true, sCamera = true, getSdCard = false;
     public static String errorMessage = "";
 
     static {
@@ -75,23 +77,6 @@ public class Utils {
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
-
-//    public static void toast(Context context, String t, mLog type) {
-//        videoLogList.add(new LogMsg(t, type));
-////        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
-//        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
-//    }
-//
-//    public static void toast(Context context, String t) {
-//        videoLogList.add(new LogMsg(t, mLog.i));
-////        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, t + "", Toast.LENGTH_SHORT).show());
-//        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
-//    }
-//
-//    public static void toast(Context context) {
-////        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "Is Recording Now.", Toast.LENGTH_SHORT).show());
-//        //new Handler().post(() -> VideoRecordActivity.saveLog(context, false));
-//    }
 
     public static int getSuccessful() {
         return successful;
@@ -169,16 +154,6 @@ public class Utils {
             getSdCard = false;
         }
     }
-
-    public static void checkLogFile(ArrayList list) {
-        list.add("Please check file at your SD card");
-//        if (input.length() > 0) {
-//            String[] read = input.split("\r\n");
-//            for (String s : read)
-//                list.add(s);
-//        }
-    }
-
 
     public static void checkLogFile(Context context, File file, ArrayList list) {
         String input = readConfigFile(context, file);
@@ -451,7 +426,7 @@ public class Utils {
     public static String getCalendarTime() {
         String d, h, i, s;
         Calendar calendar = Calendar.getInstance();
-        d = String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH));
+        d = String.format("%02d", calendar.get(Calendar.DATE));
         h = String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY));
         i = String.format("%02d", calendar.get(Calendar.MINUTE));
         s = String.format("%02d", calendar.get(Calendar.SECOND));
@@ -503,29 +478,29 @@ public class Utils {
         return path;
     }
 
-    public static int getVideo(Context context, String path) {
-        int duration = 0;
-        try {
-            if (!getSDPath().equals("")) {
-                try {
-                    MediaPlayer mp = MediaPlayer.create(context, Uri.parse(path));
-                    if (mp != null) {
-                        duration = mp.getDuration();
-                        mp.release();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    videoLogList.add(new LogMsg("getVideo error.", mLog.e));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            getSdCard = !getSDPath().equals("");
-            errorMessage = "getVideo error.";
-            videoLogList.add(new LogMsg("getVideo error.", mLog.e));
-        }
-        return duration;
-    }
+//    public static int getVideo(Context context, String path) {
+//        int duration = 0;
+//        try {
+//            if (!getSDPath().equals("")) {
+//                try {
+//                    MediaPlayer mp = MediaPlayer.create(context, Uri.parse(path));
+//                    if (mp != null) {
+//                        duration = mp.getDuration();
+//                        mp.release();
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    videoLogList.add(new LogMsg("getVideo error.", mLog.e));
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            getSdCard = !getSDPath().equals("");
+//            errorMessage = "getVideo error.";
+//            videoLogList.add(new LogMsg("getVideo error.", mLog.e));
+//        }
+//        return duration;
+//    }
 
     public static int getFrameRate(String path) {
         int frameRate = 0;
@@ -576,25 +551,6 @@ public class Utils {
         String fileName = new File(fullName).getName();
         int dotIndex = fileName.lastIndexOf('.');
         return (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1);
-    }
-
-    public static long dirSize(File dir) {
-        if (dir.exists()) {
-            long result = 0;
-            File[] fileList = dir.listFiles();
-            for (int i = 0; i < fileList.length; i++) {
-                // Recursive call if it's a directory
-                File file = fileList[i];
-                if (file.isDirectory()) {
-                    result += dirSize(file);
-                } else {
-                    // Sum the file size in bytes
-                    result += fileList[i].length();
-                }
-            }
-            return result; // return the file size
-        }
-        return 0;
     }
 
 }

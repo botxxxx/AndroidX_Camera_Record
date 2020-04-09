@@ -2,35 +2,25 @@ package com.askey.record;
 
 
 import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.StatFs;
-import android.widget.TextView;
 
 import com.askey.widget.LogMsg;
 import com.askey.widget.mLog;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
-import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
-import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
-import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
-import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
+import static com.askey.record.Utils.NO_SD_CARD;
 import static com.askey.record.Utils.errorMessage;
-import static com.askey.record.Utils.getPath;
+import static com.askey.record.Utils.firstFile;
 import static com.askey.record.Utils.getSDPath;
 import static com.askey.record.Utils.getSdCard;
 import static com.askey.record.Utils.isError;
-import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.sdData;
+import static com.askey.record.Utils.secondFile;
 import static com.askey.record.Utils.videoLogList;
-import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 
 public class checkSdCardService extends IntentService {
 
@@ -56,7 +46,8 @@ public class checkSdCardService extends IntentService {
                         File file = fileList[i];
                         if (!fileList[i].isDirectory()) {
                             if (Utils.getFileExtension(file.toString()).equals("mp4"))
-                                tmp.add(file.toString());
+                                if (!file.toString().equals(firstFile) || !file.toString().equals(secondFile))
+                                    tmp.add(file.toString());
                         }
                     }
                     if (tmp.size() >= 2) {
@@ -71,19 +62,26 @@ public class checkSdCardService extends IntentService {
                 e.printStackTrace();
                 isError = true;
                 getSdCard = !getSDPath().equals("");
-                isError = true;
-                videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
+                if (getSdCard) {
+                    videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
 //                new Handler().post(() -> saveLog(this, false, false));
-                errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
+                    errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
 //                ((TextView) findViewById(R.id.record_status)).setText("Error");
+                } else {
+                    videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
+                }
             }
         } else {
             isError = true;
             getSdCard = !getSDPath().equals("");
-            videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
-//            new Handler().post(() -> saveLog(this, false, false));
-            errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
-//            ((TextView) findViewById(R.id.record_status)).setText("Error");
+            if (getSdCard) {
+                videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
+//                new Handler().post(() -> saveLog(this, false, false));
+                errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
+//                ((TextView) findViewById(R.id.record_status)).setText("Error");
+            } else {
+                videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
+            }
         }
     }
 
@@ -124,16 +122,16 @@ public class checkSdCardService extends IntentService {
                     checkSdCardFromFileList();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if(null != videoLogList)
-                    videoLogList.add(new LogMsg("checkSdCardFromFileList error.", mLog.e));
+                    if (null != videoLogList)
+                        videoLogList.add(new LogMsg("checkSdCardFromFileList error.", mLog.e));
                 }
             });
             t.start();
             t.join();
         } catch (Exception e) {
             e.printStackTrace();
-            if(null != videoLogList)
-            videoLogList.add(new LogMsg("checkSdCard Service error.", mLog.e));
+            if (null != videoLogList)
+                videoLogList.add(new LogMsg("checkSdCard Service error.", mLog.e));
         }
     }
 }

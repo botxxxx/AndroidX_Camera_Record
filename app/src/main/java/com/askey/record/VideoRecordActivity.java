@@ -23,7 +23,7 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.StatFs;
+import android.os.Message;
 import android.os.SystemProperties;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -70,13 +70,13 @@ import static com.askey.record.Utils.NEW_FRAME_RATE;
 import static com.askey.record.Utils.NO_SD_CARD;
 import static com.askey.record.Utils.TAG;
 import static com.askey.record.Utils.checkConfigFile;
-import static com.askey.record.Utils.checkLogFile;
 import static com.askey.record.Utils.configName;
 import static com.askey.record.Utils.delayTime;
 import static com.askey.record.Utils.errorMessage;
 import static com.askey.record.Utils.fCamera;
 import static com.askey.record.Utils.failed;
 import static com.askey.record.Utils.firstCamera;
+import static com.askey.record.Utils.firstFile;
 import static com.askey.record.Utils.firstFilePath;
 import static com.askey.record.Utils.getCalendarTime;
 import static com.askey.record.Utils.getFailed;
@@ -101,7 +101,9 @@ import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.readConfigFile;
 import static com.askey.record.Utils.reformatConfigFile;
 import static com.askey.record.Utils.sCamera;
+import static com.askey.record.Utils.sdData;
 import static com.askey.record.Utils.secondCamera;
+import static com.askey.record.Utils.secondFile;
 import static com.askey.record.Utils.secondFilePath;
 import static com.askey.record.Utils.setConfigFile;
 import static com.askey.record.Utils.successful;
@@ -111,7 +113,7 @@ import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 public class VideoRecordActivity extends Activity {
     public static int onRun = 0, onReset = 0;
     public static boolean onRecord = false, onRestart = false, onDebug = true;
-    private static String codeDate0, codeDate1, soundDate, resetDate;
+    private static String codeDate0, codeDate1, resetDate;
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
@@ -119,8 +121,8 @@ public class VideoRecordActivity extends Activity {
     private CameraDevice.StateCallback mStateCallback0, mStateCallback1;
     private CaptureRequest.Builder mPreviewBuilder0, mPreviewBuilder1;
     private MediaRecorder mMediaRecorder0, mMediaRecorder1;
-    private Handler mainHandler, backgroundHandler0, backgroundHandler1;
-    private Handler recordHandler0, recordHandler1, demoHandler;
+    private Handler mainHandler,sdHandler , demoHandler, backgroundHandler0, backgroundHandler1;
+    private Handler recordHandler0, recordHandler1,  stopRecordHandler0, stopRecordHandler1;
     private HandlerThread thread0, thread1;
     private HomeListen home;
     private mTimerTask timerTask = null;
@@ -190,7 +192,7 @@ public class VideoRecordActivity extends Activity {
         failed = 0;
         firstFilePath.clear();
         secondFilePath.clear();
-        new soundHandler(soundDate);
+//        sdHandler.sendMessageDelayed(null,5000);
     }
 
     private void isRecordStart(boolean auto) {
@@ -350,7 +352,7 @@ public class VideoRecordActivity extends Activity {
                         if (isError) {
                             final String dates = resetDate + "";
                             final boolean records = onRecord;
-                            new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                            new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                         }
                     }
 
@@ -407,7 +409,7 @@ public class VideoRecordActivity extends Activity {
                         if (isError) {
                             final String dates = resetDate + "";
                             final boolean records = onRecord;
-                            new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                            new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                         }
                     }
 
@@ -434,7 +436,7 @@ public class VideoRecordActivity extends Activity {
             if (onDebug) {
                 final String dates = resetDate + "";
                 final boolean records = onRecord;
-                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
     }
@@ -523,7 +525,30 @@ public class VideoRecordActivity extends Activity {
                 startRecord(secondCamera);
             }
         };
-        soundDate = getCalendarTime();
+        stopRecordHandler0= new Handler() {
+            public void handleMessage(android.os.Message msg) {
+                stopRecord(false, msg.obj.toString(), msg.arg1+"");
+            }
+        };
+        stopRecordHandler1= new Handler() {
+            public void handleMessage(android.os.Message msg) {
+                stopRecord(false, msg.obj.toString(), msg.arg1+"");
+            }
+        };
+        sdHandler = new Handler(){
+            public void handleMessage(android.os.Message msg) {
+                if (!isError) {
+                    if (getSDPath().equals("")) {
+                        isError = true;
+                        getSdCard = false;
+                        isFinish = 0;
+                        if(isRecord)
+                        stopRecordAndSaveLog(false);
+                       this.sendMessageDelayed(null,5000);
+                    }
+                }
+            }
+        };
         codeDate0 = getCalendarTime();
         codeDate1 = getCalendarTime();
         resetDate = getCalendarTime();
@@ -672,7 +697,8 @@ public class VideoRecordActivity extends Activity {
             });
             ArrayList<String> list = new ArrayList();
             list.add("App Version:" + this.getString(R.string.app_name));
-            if (getSdCard) checkLogFile(list);
+            if (getSdCard)
+                list.add("Please check file at your SD card");
             else list.add(NO_SD_CARD);
             if (!fCamera) {
                 list.add("Camera Access error, Please check camera " + firstCamera + ". <============ Crash here");
@@ -825,19 +851,23 @@ public class VideoRecordActivity extends Activity {
                     videoLogList.add(new LogMsg("#stopRecord", mLog.v));
                     Log.d(TAG, "stopRecord");
                 } else
-                    new Handler().post(() -> moveFile(getPath() + logName, getSDPath() + logName, false));
+                    moveFile(getPath() + logName, getSDPath() + logName, false);
 
                 if (isCameraOne(cameraID)) {
                     if (mMediaRecorder0 != null) {
                         mMediaRecorder0.stop();
                         mMediaRecorder0.release();
                         videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
+                    } else {
+                        videoLogList.add(new LogMsg("mMediaRecorder " + firstCamera + " is null."));
                     }
                 } else {
                     if (mMediaRecorder1 != null) {
                         mMediaRecorder1.stop();
                         mMediaRecorder1.release();
                         videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
+                    } else {
+                        videoLogList.add(new LogMsg("mMediaRecorder " + secondCamera + " is null."));
                     }
                 }
                 checkAndClear(cameraID);
@@ -870,7 +900,7 @@ public class VideoRecordActivity extends Activity {
             if (onDebug) {
                 final String dates = resetDate + "";
                 final boolean records = onRecord;
-                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
     }
@@ -883,7 +913,7 @@ public class VideoRecordActivity extends Activity {
             }
             codeDate0 = getCalendarTime();
             codeDate1 = getCalendarTime();
-            new Handler().post(() -> moveFile(getPath() + logName, getSDPath() + logName, false));
+            moveFile(getPath() + logName, getSDPath() + logName, false);
             if (!isError && getSdCard) {
                 ((TextView) findViewById(R.id.record_status)).setText("Stop");
                 if (isRecord) {
@@ -941,7 +971,7 @@ public class VideoRecordActivity extends Activity {
             if (onDebug) {
                 final String dates = resetDate + "";
                 final boolean records = onRecord;
-                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
     }
@@ -1100,6 +1130,7 @@ public class VideoRecordActivity extends Activity {
                     CaptureRequest.Builder mPreviewBuilders = mPreviewBuilder;
                     CameraCaptureSession[] mPreviewSessions = {mPreviewSession};
                     MediaRecorder mediaRecorder = isCameraOne(cameraId) ? mMediaRecorder0 : mMediaRecorder1;
+                    Handler stopHandler  = isCameraOne(cameraId) ? stopRecordHandler0 : stopRecordHandler1;
                     try {
                         mCameraDevice.createCaptureSession(surfaces,
                                 new CameraCaptureSession.StateCallback() {
@@ -1108,14 +1139,13 @@ public class VideoRecordActivity extends Activity {
                                         // 当摄像头已经准备好时，开始显示预览
                                         mPreviewSessions[0] = session;
                                         setCaptureRequest(mPreviewBuilders, mPreviewSessions[0], backgroundHandler);
-                                        mediaRecorder.start();
+                                        if (mediaRecorder != null)
+                                            mediaRecorder.start();
 
-                                        final String codeDate = getCodeDate(cameraId);
-                                        new Handler().postDelayed(() -> {
-                                            runOnUiThread(() -> {
-                                                stopRecord(false, codeDate, cameraId);
-                                            });
-                                        }, delayTime);
+                                        Message msg = stopHandler.obtainMessage();
+                                        msg.arg1 = Integer.parseInt(cameraId);
+                                        msg.obj = getCodeDate(cameraId);
+                                        stopHandler.sendMessageDelayed(msg,delayTime);
                                     }
 
                                     @Override
@@ -1134,7 +1164,7 @@ public class VideoRecordActivity extends Activity {
                         if (onDebug) {
                             final String dates = resetDate + "";
                             final boolean records = onRecord;
-                            new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                            new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                         }
                     }
                 } else {
@@ -1146,7 +1176,7 @@ public class VideoRecordActivity extends Activity {
                     if (onDebug) {
                         final String dates = resetDate + "";
                         final boolean records = onRecord;
-                        new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                        new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                     }
                 }
             } catch (Exception e) {
@@ -1159,7 +1189,7 @@ public class VideoRecordActivity extends Activity {
                 if (onDebug) {
                     final String dates = resetDate + "";
                     final boolean records = onRecord;
-                    new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                    new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                 }
             }
         }
@@ -1172,55 +1202,55 @@ public class VideoRecordActivity extends Activity {
         context.startService(intent);
     }
 
-    private void delete(String path, boolean check, boolean fromSDcard) {
-        try {
-            if (path != "") {
-                File video = new File(path);
-                if (video.exists()) {
-                    if (check) {
-                        fileCheck(path);
-                    }
-                    if (fromSDcard)
-                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[3], mLog.w));
-                    else
-                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[5], mLog.w));
-                    video.delete();
-                } else {
-                    videoLogList.add(new LogMsg("Video not find.", mLog.e));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            getSdCard = !getSDPath().equals("");
-            isError = true;
-            videoLogList.add(new LogMsg("#delete " + path + " error. <============ Crash here", mLog.e));
-            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
-            errorMessage = "Delete file error. <============ Crash here";
-            ((TextView) findViewById(R.id.record_status)).setText("Error");
-        }
-    }
+//    private void delete(String path, boolean check, boolean fromSDcard) {
+//        try {
+//            if (path != "") {
+//                File video = new File(path);
+//                if (video.exists()) {
+//                    if (check) {
+//                        fileCheck(path);
+//                    }
+//                    if (fromSDcard)
+//                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[3], mLog.w));
+//                    else
+//                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[5], mLog.w));
+//                    video.delete();
+//                } else {
+//                    videoLogList.add(new LogMsg("Video not find.", mLog.e));
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            getSdCard = !getSDPath().equals("");
+//            isError = true;
+//            videoLogList.add(new LogMsg("#delete " + path + " error. <============ Crash here", mLog.e));
+//            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
+//            errorMessage = "Delete file error. <============ Crash here";
+//            ((TextView) findViewById(R.id.record_status)).setText("Error");
+//        }
+//    }
 
-    private void deleteAndLeftTwo() {
-        ArrayList<String> filepath = new ArrayList();
-        if (firstFilePath.size() == 3) {
-            delete(firstFilePath.get(0), true, false);
-            for (int f = 1; f < firstFilePath.size(); f++) {
-                filepath.add(firstFilePath.get(f));
-            }
-            firstFilePath.clear();
-            firstFilePath.addAll(filepath);
-            filepath.clear();
-        }
-        if (secondFilePath.size() == 3) {
-            delete(secondFilePath.get(0), true, false);
-            for (int f = 1; f < secondFilePath.size(); f++) {
-                filepath.add(secondFilePath.get(f));
-            }
-            secondFilePath.clear();
-            secondFilePath.addAll(filepath);
-            filepath.clear();
-        }
-    }
+//    private void deleteAndLeftTwo() {
+//        ArrayList<String> filepath = new ArrayList();
+//        if (firstFilePath.size() == 3) {
+//            delete(firstFilePath.get(0), true, false);
+//            for (int f = 1; f < firstFilePath.size(); f++) {
+//                filepath.add(firstFilePath.get(f));
+//            }
+//            firstFilePath.clear();
+//            firstFilePath.addAll(filepath);
+//            filepath.clear();
+//        }
+//        if (secondFilePath.size() == 3) {
+//            delete(secondFilePath.get(0), true, false);
+//            for (int f = 1; f < secondFilePath.size(); f++) {
+//                filepath.add(secondFilePath.get(f));
+//            }
+//            secondFilePath.clear();
+//            secondFilePath.addAll(filepath);
+//            filepath.clear();
+//        }
+//    }
 
     private void checkAndClear(String cameraID) {
         if (isCameraOne(cameraID)) {
@@ -1254,46 +1284,46 @@ public class VideoRecordActivity extends Activity {
         secondFilePath.clear();
     }
 
-    private void checkVideoFromFileList(String filePath) {
-        ArrayList<String> tmp = new ArrayList();
-        File[] fileList = new File(filePath).listFiles();
-        for (int i = 0; i < fileList.length; i++) {
-            // Recursive call if it's a directory
-            File file = fileList[i];
-            if (!fileList[i].isDirectory()) {
-                if (Utils.getFileExtension(file.toString()).equals("mp4"))
-                    tmp.add(file.toString());
-            }
-        }
-        for (String video : tmp) {
-            delete(video, false, true);
-        }
-    }
+//    private void checkVideoFromFileList(String filePath) {
+//        ArrayList<String> tmp = new ArrayList();
+//        File[] fileList = new File(filePath).listFiles();
+//        for (int i = 0; i < fileList.length; i++) {
+//            // Recursive call if it's a directory
+//            File file = fileList[i];
+//            if (!fileList[i].isDirectory()) {
+//                if (Utils.getFileExtension(file.toString()).equals("mp4"))
+//                    tmp.add(file.toString());
+//            }
+//        }
+//        for (String video : tmp) {
+//            delete(video, false, true);
+//        }
+//    }
 
-    private void checkSdCardFromArrayList(String filePath) {
-        StatFs stat = new StatFs(filePath);
-        long sdAvailSize = stat.getAvailableBlocksLong()
-                * stat.getBlockSizeLong();
-        int gigaAvailable = (int) (sdAvailSize / 1073741824);
-        //  videoLogList.add(new LogMsg("SD Free Space:" + gigaAvailable);
-        if (gigaAvailable < 3) {
-            videoLogList.add(new LogMsg("SD Card(" + gigaAvailable + "gb) is Full."));
-            new Handler().post(() -> stopRecord(false));
-            ArrayList<String> tmp = new ArrayList();
-            delete(firstFilePath.get(0), false, true);
-            delete(secondFilePath.get(0), false, true);
-            for (int i = 1; i < firstFilePath.size(); i++)
-                tmp.add(firstFilePath.get(i));
-            firstFilePath.clear();
-            firstFilePath = tmp;
-            tmp = new ArrayList();
-            for (int i = 1; i < secondFilePath.size(); i++)
-                tmp.add(secondFilePath.get(i));
-            secondFilePath.clear();
-            secondFilePath = tmp;
-            checkSdCardFromArrayList(filePath);
-        }
-    }
+//    private void checkSdCardFromArrayList(String filePath) {
+//        StatFs stat = new StatFs(filePath);
+//        long sdAvailSize = stat.getAvailableBlocksLong()
+//                * stat.getBlockSizeLong();
+//        int gigaAvailable = (int) (sdAvailSize / 1073741824);
+//        //  videoLogList.add(new LogMsg("SD Free Space:" + gigaAvailable);
+//        if (gigaAvailable < 3) {
+//            videoLogList.add(new LogMsg("SD Card(" + gigaAvailable + "gb) is Full."));
+//            new Handler().post(() -> stopRecord(false));
+//            ArrayList<String> tmp = new ArrayList();
+//            delete(firstFilePath.get(0), false, true);
+//            delete(secondFilePath.get(0), false, true);
+//            for (int i = 1; i < firstFilePath.size(); i++)
+//                tmp.add(firstFilePath.get(i));
+//            firstFilePath.clear();
+//            firstFilePath = tmp;
+//            tmp = new ArrayList();
+//            for (int i = 1; i < secondFilePath.size(); i++)
+//                tmp.add(secondFilePath.get(i));
+//            secondFilePath.clear();
+//            secondFilePath = tmp;
+//            checkSdCardFromArrayList(filePath);
+//        }
+//    }
 
     private MediaRecorder setUpMediaRecorder(String cameraId) {
         MediaRecorder mediaRecorder = null;
@@ -1305,46 +1335,46 @@ public class VideoRecordActivity extends Activity {
             if (!getSDPath().equals("")) {
                 file = getSDPath() + getCalendarTime(isCameraOne(cameraId)) + ".mp4";
                 videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w));
+
+                (isCameraOne(cameraId) ? firstFilePath : secondFilePath).add(file);
+                if (isCameraOne(cameraId))
+                    firstFile = file + "";
+                else
+                    secondFile = file + "";
+                // Step 1: Unlock and set camera to MediaRecorder
+                CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
+                mediaRecorder = new MediaRecorder();
+                // Step 2: Set sources
+                if (isCameraOne(cameraId))
+                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+                mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                if (isCameraOne(cameraId))
+                    mediaRecorder.setAudioEncoder(profile.audioCodec);
+                mediaRecorder.setVideoEncoder(profile.videoCodec);
+                mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
+                if (isCameraOne(cameraId))
+                    mediaRecorder.setAudioEncodingBitRate(profile.audioBitRate);
+                mediaRecorder.setVideoEncodingBitRate((int) (profile.videoBitRate / 3.3));
+                if (isCameraOne(cameraId)) {
+                    mediaRecorder.setAudioChannels(profile.audioChannels);
+                    mediaRecorder.setAudioSamplingRate(profile.audioSampleRate);
+                }
+                /*设置要捕获的视频的帧速率*/ // default is 24.6
+                mediaRecorder.setVideoFrameRate(!isNew ? isFrame == 0 ? 10 : 28 : 27); // 1 -> 12fps, 10 -> 16fps
+                // Step 4: Set output file
+                mediaRecorder.setOutputFile(file);
+                // Step 5: Prepare configured MediaRecorder
+                mediaRecorder.prepare();
             } else {
                 getSdCard = !getSDPath().equals("");
                 isError = true;
-                videoLogList.add(new LogMsg("MediaRecorder error. <============ Crash here", mLog.e));
+                videoLogList.add(new LogMsg("MediaRecorder error. " + NO_SD_CARD + " <============ Crash here", mLog.e));
                 new Handler().post(() -> stopRecordAndSaveLog(false));
-                errorMessage = "MediaRecorder error. <============ Crash here";
+                errorMessage = "MediaRecorder error. " + NO_SD_CARD + " <============ Crash here";
                 ((TextView) findViewById(R.id.record_status)).setText("Error");
-                if (onDebug) {
-                    final String dates = resetDate + "";
-                    final boolean records = onRecord;
-                    new Handler().postDelayed(() -> restartApp(dates,records), 3000);
-                }
                 return null;
             }
-            (isCameraOne(cameraId) ? firstFilePath : secondFilePath).add(file);
-            // Step 1: Unlock and set camera to MediaRecorder
-            CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
-            mediaRecorder = new MediaRecorder();
-            // Step 2: Set sources
-            if (isCameraOne(cameraId))
-                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-            if (isCameraOne(cameraId))
-                mediaRecorder.setAudioEncoder(profile.audioCodec);
-            mediaRecorder.setVideoEncoder(profile.videoCodec);
-            mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
-            if (isCameraOne(cameraId))
-                mediaRecorder.setAudioEncodingBitRate(profile.audioBitRate);
-            mediaRecorder.setVideoEncodingBitRate((int) (profile.videoBitRate / 3.3));
-            if (isCameraOne(cameraId)) {
-                mediaRecorder.setAudioChannels(profile.audioChannels);
-                mediaRecorder.setAudioSamplingRate(profile.audioSampleRate);
-            }
-            /*设置要捕获的视频的帧速率*/ // default is 24.6
-            mediaRecorder.setVideoFrameRate(!isNew ? isFrame == 0 ? 10 : 28 : 27); // 1 -> 12fps, 10 -> 16fps
-            // Step 4: Set output file
-            mediaRecorder.setOutputFile(file);
-            // Step 5: Prepare configured MediaRecorder
-            mediaRecorder.prepare();
         } catch (Exception e) {
             e.printStackTrace();
             getSdCard = !getSDPath().equals("");
@@ -1353,10 +1383,14 @@ public class VideoRecordActivity extends Activity {
             new Handler().post(() -> stopRecordAndSaveLog(false));
             errorMessage = "MediaRecorder " + cameraId + " error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (onDebug) {
-                final String dates = resetDate + "";
-                final boolean records = onRecord;
-                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+            if (getSdCard) {
+                if (onDebug) {
+                    final String dates = resetDate + "";
+                    final boolean records = onRecord;
+                    new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                }
+            } else {
+                videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
             }
         }
         return mediaRecorder;
@@ -1383,7 +1417,7 @@ public class VideoRecordActivity extends Activity {
             if (onDebug) {
                 final String dates = resetDate + "";
                 final boolean records = onRecord;
-                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
         if (null != texture) {
@@ -1437,7 +1471,7 @@ public class VideoRecordActivity extends Activity {
                     if (onDebug) {
                         final String dates = resetDate + "";
                         final boolean records = onRecord;
-                        new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                        new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                     }
                 }
             }
@@ -1458,7 +1492,7 @@ public class VideoRecordActivity extends Activity {
             if (onDebug) {
                 final String dates = resetDate + "";
                 final boolean records = onRecord;
-                new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
     }
@@ -1484,7 +1518,7 @@ public class VideoRecordActivity extends Activity {
                     if (onDebug) {
                         final String dates = resetDate + "";
                         final boolean records = onRecord;
-                        new Handler().postDelayed(() -> restartApp(dates,records), 3000);
+                        new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                     }
                 }
                 //計算にゆらぎがあるので小数点第1位で丸める
@@ -1517,30 +1551,6 @@ public class VideoRecordActivity extends Activity {
 
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 
-        }
-    }
-
-    private class soundHandler {
-        private String getSoundDate() {
-            return soundDate;
-        }
-
-        public soundHandler(String date) {
-            final String sounds = date;
-            new Handler().postDelayed(() -> {
-                if (sounds.equals(getSoundDate())) {
-                    soundDate = getCalendarTime();
-                    if (isRecord && !isError) {
-                        if (getSDPath().equals("")) {
-                            isError = true;
-                            getSdCard = false;
-                            isFinish = 0;
-                            new Handler().post(() -> stopRecordAndSaveLog(false));
-                        }
-                        new soundHandler(soundDate);
-                    }
-                }
-            }, 5000);
         }
     }
 
