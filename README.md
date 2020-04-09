@@ -68,13 +68,32 @@
         3.record Time from 10min change to 1min.
         4.save log & config on /storage/emulated/0/DCIM/
         5.copy log to sd card when record finish or stop.
+        6.videoBitRate is 20Mbps.
     [v1.6.0]
         1.SystemProperties default is 1.
-        2.videoBitRate default is 6.
+        2.videoBitRate is 10Mbps.
         3.saveLog is running in the background.
         4.Create singleRecording Handler.
         5.fix mediaRecorder no release error.
         6.disable mHomeBtnReceiver, BroadcastReceiver
         7.fix click cancel button doesn't save @cancel in log message error.
         8.test the record on 30min will restartActivity function.
+    [v1.7.0]
+        1.Enable mHomeBtnReceiver.
+        2.videoBitRate is 6Mbps.
+        3.fix System properties can't be resolved error.
+    [v1.7.1]
+        1.fix stopRecord bug.
+    [v1.7.2]
+        1.fix Camera Access error function was not reset problem.
+        2.fix application has stopped problem.
+        3.try to restart application when (startRecord, stopRecord, MediaRecorder, setCaptureRequest, takePreview) error.
+    [v1.7.3]
+        1.fix saveLogService, copyFileService, checkSdCardService shutdown error.
+        2.fix stopRecord time out error.
+        3.try to restart application when (CameraDevice.StateCallback) error.
+        4.find getFrameRate 0 error on delete file time out.
+        5.fix reset camera not recording error.
+        6.fix run number not continue error.
+        7.add checkSdCard background service.
     -->
