@@ -101,7 +101,6 @@ import static com.askey.record.Utils.logName;
 import static com.askey.record.Utils.readConfigFile;
 import static com.askey.record.Utils.reformatConfigFile;
 import static com.askey.record.Utils.sCamera;
-import static com.askey.record.Utils.sdData;
 import static com.askey.record.Utils.secondCamera;
 import static com.askey.record.Utils.secondFile;
 import static com.askey.record.Utils.secondFilePath;
@@ -121,8 +120,8 @@ public class VideoRecordActivity extends Activity {
     private CameraDevice.StateCallback mStateCallback0, mStateCallback1;
     private CaptureRequest.Builder mPreviewBuilder0, mPreviewBuilder1;
     private MediaRecorder mMediaRecorder0, mMediaRecorder1;
-    private Handler mainHandler,sdHandler , demoHandler, backgroundHandler0, backgroundHandler1;
-    private Handler recordHandler0, recordHandler1,  stopRecordHandler0, stopRecordHandler1;
+    private Handler mainHandler, sdHandler, demoHandler, backgroundHandler0, backgroundHandler1;
+    private Handler recordHandler0, recordHandler1, stopRecordHandler0, stopRecordHandler1;
     private HandlerThread thread0, thread1;
     private HomeListen home;
     private mTimerTask timerTask = null;
@@ -525,30 +524,17 @@ public class VideoRecordActivity extends Activity {
                 startRecord(secondCamera);
             }
         };
-        stopRecordHandler0= new Handler() {
+        stopRecordHandler0 = new Handler() {
             public void handleMessage(android.os.Message msg) {
-                stopRecord(false, msg.obj.toString(), msg.arg1+"");
+                stopRecord(false, msg.obj.toString(), msg.arg1 + "");
             }
         };
-        stopRecordHandler1= new Handler() {
+        stopRecordHandler1 = new Handler() {
             public void handleMessage(android.os.Message msg) {
-                stopRecord(false, msg.obj.toString(), msg.arg1+"");
+                stopRecord(false, msg.obj.toString(), msg.arg1 + "");
             }
         };
-        sdHandler = new Handler(){
-            public void handleMessage(android.os.Message msg) {
-                if (!isError) {
-                    if (getSDPath().equals("")) {
-                        isError = true;
-                        getSdCard = false;
-                        isFinish = 0;
-                        if(isRecord)
-                        stopRecordAndSaveLog(false);
-                       this.sendMessageDelayed(null,5000);
-                    }
-                }
-            }
-        };
+
         codeDate0 = getCalendarTime();
         codeDate1 = getCalendarTime();
         resetDate = getCalendarTime();
@@ -777,14 +763,16 @@ public class VideoRecordActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         isFinish = 0;
-        if (mStateCallback0 != null)
+        if (mStateCallback0 != null) {
             mStateCallback0.onDisconnected(mCameraDevice0);
-        if (mStateCallback1 != null)
+            mStateCallback0 = null;
+        }
+        if (mStateCallback1 != null) {
             mStateCallback1.onDisconnected(mCameraDevice1);
+            mStateCallback1 = null;
+        }
         closePreviewSession(firstCamera);
         closePreviewSession(secondCamera);
-        mStateCallback0 = null;
-        mStateCallback1 = null;
         if (mMediaRecorder0 != null) {
             mMediaRecorder0.stop();
             mMediaRecorder0.release();
@@ -1130,7 +1118,7 @@ public class VideoRecordActivity extends Activity {
                     CaptureRequest.Builder mPreviewBuilders = mPreviewBuilder;
                     CameraCaptureSession[] mPreviewSessions = {mPreviewSession};
                     MediaRecorder mediaRecorder = isCameraOne(cameraId) ? mMediaRecorder0 : mMediaRecorder1;
-                    Handler stopHandler  = isCameraOne(cameraId) ? stopRecordHandler0 : stopRecordHandler1;
+                    Handler stopHandler = isCameraOne(cameraId) ? stopRecordHandler0 : stopRecordHandler1;
                     try {
                         mCameraDevice.createCaptureSession(surfaces,
                                 new CameraCaptureSession.StateCallback() {
@@ -1145,7 +1133,7 @@ public class VideoRecordActivity extends Activity {
                                         Message msg = stopHandler.obtainMessage();
                                         msg.arg1 = Integer.parseInt(cameraId);
                                         msg.obj = getCodeDate(cameraId);
-                                        stopHandler.sendMessageDelayed(msg,delayTime);
+                                        stopHandler.sendMessageDelayed(msg, delayTime);
                                     }
 
                                     @Override
