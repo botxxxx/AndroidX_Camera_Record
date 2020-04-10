@@ -85,7 +85,7 @@ public class saveLogService extends IntentService {
         context.startService(intent);
     }
 
-    @Override
+    
     protected void onHandleIntent(Intent intent) {
         int mainPid = 0;
         try {
@@ -100,16 +100,14 @@ public class saveLogService extends IntentService {
                     saveLog(videoLogList, reFormat, move);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if(null != videoLogList)
-                    videoLogList.add(new LogMsg("saveLog error.", mLog.e));
                 }
             });
             t.start();
             t.join();
         } catch (Exception e) {
             e.printStackTrace();
-            if(null != videoLogList)
-            videoLogList.add(new LogMsg("saveLog Service error.", mLog.e));
+            if (null != videoLogList)
+                videoLogList.add(new LogMsg("saveLog Service error.", mLog.e));
         } finally {
             if (mainPid > 0) android.os.Process.killProcess(mainPid);
         }

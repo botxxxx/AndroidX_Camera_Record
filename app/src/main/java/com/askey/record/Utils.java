@@ -37,12 +37,7 @@ public class Utils {
     public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
             NEW_FRAME_RATE = {"13.7fps", "27.5fps"}; // , "9.1fps", "6.8fps", "5.5fps", "4.5fps"
     public static final String FRAMESKIP = "persist.our.camera.frameskip";
-    public static final String COMMAND_VIDEO_RECORD_TEST = "com.askey.record.t";
-    public static final String COMMAND_VIDEO_RECORD_START = "com.askey.record.s";
-    public static final String COMMAND_VIDEO_RECORD_FINISH = "com.askey.record.f";
-    public static final String COMMAND_VIDEO_RECORD_TESTa = "com.askey.record.T";
-    public static final String COMMAND_VIDEO_RECORD_STARTa = "com.askey.record.S";
-    public static final String COMMAND_VIDEO_RECORD_FINISHa = "com.askey.record.F";
+
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_RESET = "RestartActivity.reset";
     public static final String EXTRA_VIDEO_RECORD = "RestartActivity.record";
@@ -477,30 +472,6 @@ public class Utils {
         }
         return path;
     }
-
-//    public static int getVideo(Context context, String path) {
-//        int duration = 0;
-//        try {
-//            if (!getSDPath().equals("")) {
-//                try {
-//                    MediaPlayer mp = MediaPlayer.create(context, Uri.parse(path));
-//                    if (mp != null) {
-//                        duration = mp.getDuration();
-//                        mp.release();
-//                    }
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                    videoLogList.add(new LogMsg("getVideo error.", mLog.e));
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            getSdCard = !getSDPath().equals("");
-//            errorMessage = "getVideo error.";
-//            videoLogList.add(new LogMsg("getVideo error.", mLog.e));
-//        }
-//        return duration;
-//    }
 
     public static int getFrameRate(String path) {
         int frameRate = 0;

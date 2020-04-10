@@ -20,7 +20,7 @@ public class restartActivity extends Activity {
         return intent;
     }
 
-    @Override
+    
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // 1. メインプロセスを Kill する

@@ -2,6 +2,7 @@ package com.askey.record;
 
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.os.StatFs;
 
@@ -12,6 +13,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
+import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
 import static com.askey.record.Utils.NO_SD_CARD;
 import static com.askey.record.Utils.errorMessage;
 import static com.askey.record.Utils.firstFile;
@@ -29,6 +32,14 @@ public class checkSdCardService extends IntentService {
         super("checkSdCardService");
     }
 
+    private void saveLog(Context context) {
+        Intent intent = new Intent();
+        intent.setClassName(context.getPackageName(), saveLogService.class.getName());
+        intent.putExtra(EXTRA_VIDEO_VERSION, context.getString(R.string.app_name));
+        intent.putExtra(EXTRA_VIDEO_REFORMAT, false);
+        context.startService(intent);
+    }
+
     private void checkSdCardFromFileList() {
         getSdCard = !getSDPath().equals("");
         if (getSdCard) {
@@ -38,7 +49,9 @@ public class checkSdCardService extends IntentService {
                         * stat.getBlockSizeLong();
                 double gigaAvailable = (sdAvailSize >> 30);
                 if (gigaAvailable < sdData) {
-                    videoLogList.add(new LogMsg("SD Card is Full."));
+                    if (null != videoLogList) {
+                        videoLogList.add(new LogMsg("SD Card is Full."));
+                    }
                     ArrayList<String> tmp = new ArrayList();
                     File[] fileList = new File(getSDPath()).listFiles();
                     for (int i = 0; i < fileList.length; i++) {
@@ -53,8 +66,8 @@ public class checkSdCardService extends IntentService {
                     if (tmp.size() >= 2) {
                         Object[] list = tmp.toArray();
                         Arrays.sort(list);
-                        delete((String) list[0], false, true);
-                        delete((String) list[1], false, true);
+                        delete((String) list[0], true);
+                        delete((String) list[1], true);
                         checkSdCardFromFileList();
                     }
                 }
@@ -63,51 +76,54 @@ public class checkSdCardService extends IntentService {
                 isError = true;
                 getSdCard = !getSDPath().equals("");
                 if (getSdCard) {
-                    videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
-//                new Handler().post(() -> saveLog(this, false, false));
+                    if (null != videoLogList) {
+                        videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
+                        saveLog(this);
+                    }
                     errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
 //                ((TextView) findViewById(R.id.record_status)).setText("Error");
                 } else {
-                    videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
+                    if (null != videoLogList) {
+                        videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
+                        saveLog(this);
+                    }
+                    errorMessage = NO_SD_CARD;
                 }
             }
         } else {
             isError = true;
-            getSdCard = !getSDPath().equals("");
-            if (getSdCard) {
-                videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
-//                new Handler().post(() -> saveLog(this, false, false));
-                errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
-//                ((TextView) findViewById(R.id.record_status)).setText("Error");
-            } else {
+            if (null != videoLogList) {
                 videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
+                saveLog(this);
             }
+            errorMessage = NO_SD_CARD;
         }
     }
 
-    private void delete(String path, boolean check, boolean fromSDcard) {
+    private void delete(String path, boolean fromSDcard) {
         try {
             if (path != "") {
                 File video = new File(path);
                 if (video.exists()) {
-//                    if (check) {
-//                        fileCheck(path);
-//                    }
-                    if (fromSDcard)
-                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[3], mLog.w));
-                    else
-                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[5], mLog.w));
+                    if (null != videoLogList)
+                        if (fromSDcard)
+                            videoLogList.add(new LogMsg("Delete: " + path.split("/")[3], mLog.w));
+                        else
+                            videoLogList.add(new LogMsg("Delete: " + path.split("/")[5], mLog.w));
                     video.delete();
                 } else {
-                    videoLogList.add(new LogMsg("Video not find.", mLog.e));
+                    if (null != videoLogList)
+                        videoLogList.add(new LogMsg("Video not find.", mLog.e));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            getSdCard = !getSDPath().equals("");
             isError = true;
-            videoLogList.add(new LogMsg("#delete " + path + " error. <============ Crash here", mLog.e));
-//            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
+            getSdCard = !getSDPath().equals("");
+            if (null != videoLogList) {
+                videoLogList.add(new LogMsg("#delete " + path + " error. <============ Crash here", mLog.e));
+                saveLog(this);
+            }
             errorMessage = "Delete file error. <============ Crash here";
 //            ((TextView) findViewById(R.id.record_status)).setText("Error");
         }
@@ -122,16 +138,20 @@ public class checkSdCardService extends IntentService {
                     checkSdCardFromFileList();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (null != videoLogList)
+                    if (null != videoLogList) {
                         videoLogList.add(new LogMsg("checkSdCardFromFileList error.", mLog.e));
+                        saveLog(this);
+                    }
                 }
             });
             t.start();
             t.join();
         } catch (Exception e) {
             e.printStackTrace();
-            if (null != videoLogList)
-                videoLogList.add(new LogMsg("checkSdCard Service error.", mLog.e));
+            if (null != videoLogList) {
+                videoLogList.add(new LogMsg("checkSdCardService error.", mLog.e));
+                saveLog(this);
+            }
         }
     }
 }

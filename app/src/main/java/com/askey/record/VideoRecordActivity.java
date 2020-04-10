@@ -527,10 +527,7 @@ public class VideoRecordActivity extends Activity {
         mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
         mTextureView1 = findViewById(R.id.surfaceView1);
         mTextureView1.setSurfaceTextureListener(new mSurfaceTextureListener(secondCamera));
-//        AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-//        findViewById(R.id.listBackground).setOnClickListener((View v) -> {
-//            runOnUiThread(() -> showDialogLog());
-//        });
+
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
             videoLogList.add(new LogMsg("@cancel", mLog.v));
             stopRecordAndSaveLog(true);
@@ -589,7 +586,7 @@ public class VideoRecordActivity extends Activity {
             }
         };
         this.registerReceiver(new BroadcastReceiver() {
-            @Override
+
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {  //Battery
                     videoLogList.add(new LogMsg("Battery:" + intent.getIntExtra("level", 0) + "%", mLog.e));
@@ -654,12 +651,7 @@ public class VideoRecordActivity extends Activity {
             videoLogList.add(new LogMsg("#dialog_log", mLog.v));
             View view = LayoutInflater.from(this).inflate(R.layout.layout_getlog, null);
             final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen).setView(view).setCancelable(true).create();
-//            view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
-//                videoLogList.add(new LogMsg("@log_reset", mLog.v));
-//                videoLogList.add(new LogMsg("#reset LogFile", mLog.v));
-//                saveLog(getApplicationContext(), true);
-//                dialog.dismiss();
-//            });
+
             view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // ok
                 videoLogList.add(new LogMsg("@log_ok", mLog.v));
                 dialog.dismiss();
@@ -968,31 +960,27 @@ public class VideoRecordActivity extends Activity {
     private void fileCheck(String path) {
         try {
             File video = new File(path);
-            int framerate = 0;
-//            , duration = 0;
-//            String convertMinutes = "00", convertSeconds = "00";
+            int frameRate = 0;
+
             if (video.exists()) {
                 try {
-                    framerate = getFrameRate(path);
-//                    duration = getVideo(this, path);
+                    frameRate = getFrameRate(path);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
                     new Handler().post(() -> saveLog(getApplicationContext(), false, false));
                     errorMessage = "CheckFile error.";
                 }
-//                convertMinutes = String.format("%02d", TimeUnit.MILLISECONDS.toMinutes(duration) -
-//                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)));
-//                convertSeconds = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(duration) -
-//                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
+
                 double[] range = isNew ? NEW_DFRAME_RATE : DFRAME_RATE;
                 boolean check = false;
-                if (framerate >= range[isFrame]) {
-                    if (framerate <= range[isFrame] + 3) {
+                if (frameRate >= range[isFrame]) {
+                    if (frameRate <= range[isFrame] + 3) {
                         check = true;
                     }
-                } else if (framerate < range[isFrame]) {
-                    if (framerate >= range[isFrame] - 3) {
+                } else if (frameRate < range[isFrame]) {
+                    if (frameRate >= range[isFrame] - 3) {
                         check = true;
                     }
                 }
@@ -1003,7 +991,7 @@ public class VideoRecordActivity extends Activity {
             } else {
                 failed++;
             }
-            videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] + " frameRate:" + framerate +
+            videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] + " frameRate:" + frameRate +
                     " success:" + getSuccessful() + " fail:" + getFailed() + " reset:" + getReset(), mLog.i));
             new Handler().post(() -> saveLog(getApplicationContext(), false, false));
         } catch (Exception e) {
@@ -1055,13 +1043,7 @@ public class VideoRecordActivity extends Activity {
                     Log.e(TAG, "texture is null, return");
                     return;
                 }
-                // 创建预览需要的CaptureRequest.Builder
-                // TEMPLATE_PREVIEW：創建預覽的請求
-                // TEMPLATE_STILL_CAPTURE：創建一個適合於靜態圖像捕獲的請求，圖像質量優先於幀速率。
-                // TEMPLATE_RECORD：創建視頻錄製的請求
-                // TEMPLATE_VIDEO_SNAPSHOT：創建視視頻錄製時截屏的請求
-                // TEMPLATE_ZERO_SHUTTER_LAG：創建一個適用於零快門延遲的請求。在不影響預覽幀率的情況下最大化圖像質量。
-                // TEMPLATE_MANUAL：創建一個基本捕獲請求，這種請求中所有的自動控制都是禁用的(自動曝光，自動白平衡、自動焦點)。
+
                 texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
                 Surface surface = new Surface(texture);
                 List<Surface> surfaces = new ArrayList<>();
@@ -1105,7 +1087,7 @@ public class VideoRecordActivity extends Activity {
                     try {
                         mCameraDevice.createCaptureSession(surfaces,
                                 new CameraCaptureSession.StateCallback() {
-                                    @Override
+
                                     public void onConfigured(CameraCaptureSession session) {
                                         // 当摄像头已经准备好时，开始显示预览
                                         mPreviewSessions[0] = session;
@@ -1119,7 +1101,7 @@ public class VideoRecordActivity extends Activity {
                                         stopHandler.sendMessageDelayed(msg, delayTime);
                                     }
 
-                                    @Override
+
                                     public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
                                         videoLogList.add(new LogMsg("Camera " + cameraId + " Record onConfigureFailed.", mLog.e));
                                         new Handler().post(() -> saveLog(getApplicationContext(), false, false));
@@ -1173,56 +1155,6 @@ public class VideoRecordActivity extends Activity {
         context.startService(intent);
     }
 
-//    private void delete(String path, boolean check, boolean fromSDcard) {
-//        try {
-//            if (path != "") {
-//                File video = new File(path);
-//                if (video.exists()) {
-//                    if (check) {
-//                        fileCheck(path);
-//                    }
-//                    if (fromSDcard)
-//                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[3], mLog.w));
-//                    else
-//                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[5], mLog.w));
-//                    video.delete();
-//                } else {
-//                    videoLogList.add(new LogMsg("Video not find.", mLog.e));
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            getSdCard = !getSDPath().equals("");
-//            isError = true;
-//            videoLogList.add(new LogMsg("#delete " + path + " error. <============ Crash here", mLog.e));
-//            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
-//            errorMessage = "Delete file error. <============ Crash here";
-//            ((TextView) findViewById(R.id.record_status)).setText("Error");
-//        }
-//    }
-
-//    private void deleteAndLeftTwo() {
-//        ArrayList<String> filepath = new ArrayList();
-//        if (firstFilePath.size() == 3) {
-//            delete(firstFilePath.get(0), true, false);
-//            for (int f = 1; f < firstFilePath.size(); f++) {
-//                filepath.add(firstFilePath.get(f));
-//            }
-//            firstFilePath.clear();
-//            firstFilePath.addAll(filepath);
-//            filepath.clear();
-//        }
-//        if (secondFilePath.size() == 3) {
-//            delete(secondFilePath.get(0), true, false);
-//            for (int f = 1; f < secondFilePath.size(); f++) {
-//                filepath.add(secondFilePath.get(f));
-//            }
-//            secondFilePath.clear();
-//            secondFilePath.addAll(filepath);
-//            filepath.clear();
-//        }
-//    }
-
     private void checkAndClear(String cameraID) {
         if (isCameraOne(cameraID)) {
             try {
@@ -1254,47 +1186,6 @@ public class VideoRecordActivity extends Activity {
         firstFilePath.clear();
         secondFilePath.clear();
     }
-
-//    private void checkVideoFromFileList(String filePath) {
-//        ArrayList<String> tmp = new ArrayList();
-//        File[] fileList = new File(filePath).listFiles();
-//        for (int i = 0; i < fileList.length; i++) {
-//            // Recursive call if it's a directory
-//            File file = fileList[i];
-//            if (!fileList[i].isDirectory()) {
-//                if (Utils.getFileExtension(file.toString()).equals("mp4"))
-//                    tmp.add(file.toString());
-//            }
-//        }
-//        for (String video : tmp) {
-//            delete(video, false, true);
-//        }
-//    }
-
-//    private void checkSdCardFromArrayList(String filePath) {
-//        StatFs stat = new StatFs(filePath);
-//        long sdAvailSize = stat.getAvailableBlocksLong()
-//                * stat.getBlockSizeLong();
-//        int gigaAvailable = (int) (sdAvailSize / 1073741824);
-//        //  videoLogList.add(new LogMsg("SD Free Space:" + gigaAvailable);
-//        if (gigaAvailable < 3) {
-//            videoLogList.add(new LogMsg("SD Card(" + gigaAvailable + "gb) is Full."));
-//            new Handler().post(() -> stopRecord(false));
-//            ArrayList<String> tmp = new ArrayList();
-//            delete(firstFilePath.get(0), false, true);
-//            delete(secondFilePath.get(0), false, true);
-//            for (int i = 1; i < firstFilePath.size(); i++)
-//                tmp.add(firstFilePath.get(i));
-//            firstFilePath.clear();
-//            firstFilePath = tmp;
-//            tmp = new ArrayList();
-//            for (int i = 1; i < secondFilePath.size(); i++)
-//                tmp.add(secondFilePath.get(i));
-//            secondFilePath.clear();
-//            secondFilePath = tmp;
-//            checkSdCardFromArrayList(filePath);
-//        }
-//    }
 
     private MediaRecorder setUpMediaRecorder(String cameraId) {
         MediaRecorder mediaRecorder = null;
@@ -1420,14 +1311,14 @@ public class VideoRecordActivity extends Activity {
                     // CaptureRequest.CONTROL_MODE
                     mCameraDevice.createCaptureSession(Arrays.asList(surface),
                             new CameraCaptureSession.StateCallback() {
-                                @Override
+
                                 public void onConfigured(CameraCaptureSession session) {
                                     // 当摄像头已经准备好时，开始显示预览
                                     mPreviewSessions[0] = session;
                                     setCaptureRequest(mPreviewBuilders, mPreviewSessions[0], backgroundHandler);
                                 }
 
-                                @Override
+
                                 public void onConfigureFailed(CameraCaptureSession session) {
                                     videoLogList.add(new LogMsg("Preview " + cameraId + " onConfigureFailed", mLog.e));
                                 }
@@ -1474,7 +1365,7 @@ public class VideoRecordActivity extends Activity {
 
     private class mTimerTask extends TimerTask {
 
-        @Override
+
         public void run() {
             // mHandlerを通じてUI Threadへ処理をキューイング
             runOnUiThread(() -> {

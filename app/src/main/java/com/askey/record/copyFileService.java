@@ -69,7 +69,7 @@ public class copyFileService extends IntentService {
         }
     }
 
-    @Override
+    
     protected void onHandleIntent(Intent intent) {
         video = intent.getStringExtra(EXTRA_VIDEO_COPY);
         pathname = intent.getStringExtra(EXTRA_VIDEO_PASTE);
