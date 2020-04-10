@@ -120,7 +120,7 @@ public class VideoRecordActivity extends Activity {
     private CameraDevice.StateCallback mStateCallback0, mStateCallback1;
     private CaptureRequest.Builder mPreviewBuilder0, mPreviewBuilder1;
     private MediaRecorder mMediaRecorder0, mMediaRecorder1;
-    private Handler mainHandler, sdHandler, demoHandler, backgroundHandler0, backgroundHandler1;
+    private Handler mainHandler, demoHandler, backgroundHandler0, backgroundHandler1;
     private Handler recordHandler0, recordHandler1, stopRecordHandler0, stopRecordHandler1;
     private HandlerThread thread0, thread1;
     private HomeListen home;
