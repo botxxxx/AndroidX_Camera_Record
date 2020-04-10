@@ -49,30 +49,6 @@
                     </RelativeLayout>
                 </RelativeLayout>
             </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <ListView
-                        android:id="@+id/list"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:divider="@color/gone"
-                        android:dividerHeight="0px"
-                        android:visibility="gone" />
-
-                    <Button
-                        android:id="@+id/listBackground"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@color/gone" />
-                </RelativeLayout>
-            </TableRow>
         </RelativeLayout>
 
         <LinearLayout

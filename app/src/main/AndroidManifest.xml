@@ -27,6 +27,7 @@
         <activity
             android:name=".VideoRecordActivity"
             android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|keyboardHidden|screenSize|keyboard"
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

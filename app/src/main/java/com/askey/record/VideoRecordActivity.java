@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -257,6 +258,12 @@ public class VideoRecordActivity extends Activity {
         setContentView(R.layout.activity_video_record);
         setHomeListener();
         initial();
+    }
+
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Log.d(TAG, "onConfigurationChanged: E");
+        // do nothing
     }
 
     protected void onCreate(Bundle savedInstanceState) {

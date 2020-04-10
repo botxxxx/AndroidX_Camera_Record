@@ -97,6 +97,8 @@
         5.fix reset camera not recording error.
         6.fix run number not continue error.
         7.add checkSdCard background service.
+    [v1.7.5]
+        1.fix apk restart for bt connect/disconnect.
     -->
-    <string name="app_name">CDR9020_QTR(v1.7.3)</string>
+    <string name="app_name">CDR9020_QTR(v1.7.5)</string>
 </resources>
