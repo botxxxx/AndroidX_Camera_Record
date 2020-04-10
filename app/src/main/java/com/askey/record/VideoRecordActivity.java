@@ -169,15 +169,6 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    private void fullScreenCall() {
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-    }
-
     private void setRecord() {
         isRecord = true;
         checkConfigFile(VideoRecordActivity.this, new File(getPath(), configName), false);
@@ -191,7 +182,6 @@ public class VideoRecordActivity extends Activity {
         failed = 0;
         firstFilePath.clear();
         secondFilePath.clear();
-//        sdHandler.sendMessageDelayed(null,5000);
     }
 
     private void isRecordStart(boolean auto) {
@@ -265,7 +255,6 @@ public class VideoRecordActivity extends Activity {
     @SuppressLint("InflateParams")
     private void setStart() {
         setContentView(R.layout.activity_video_record);
-        fullScreenCall();
         setHomeListener();
         initial();
     }
@@ -461,19 +450,6 @@ public class VideoRecordActivity extends Activity {
                 intent.putExtra(EXTRA_VIDEO_RECORD, record);
                 context.startActivity(intent);
             }
-    }
-
-    private void restartCamera(String CameraID) {
-        if ((fCamera ^ sCamera) || (fCamera && sCamera)) {
-//            stopRecordAndSaveLog(false); //TODO
-            onReset++;
-            Context context = getApplicationContext();
-            Intent intent = restartActivity.createIntent(context);
-            intent.putExtra(EXTRA_VIDEO_RUN, isRun);
-            intent.putExtra(EXTRA_VIDEO_RESET, onReset);
-            intent.putExtra(EXTRA_VIDEO_RECORD, onRecord);
-            context.startActivity(intent);
-        }
     }
 
     @SuppressLint("HandlerLeak")
