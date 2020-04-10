@@ -85,7 +85,7 @@ public class saveLogService extends IntentService {
         context.startService(intent);
     }
 
-    
+
     protected void onHandleIntent(Intent intent) {
         int mainPid = 0;
         try {
