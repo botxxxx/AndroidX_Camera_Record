@@ -96,4 +96,6 @@
         5.fix reset camera not recording error.
         6.fix run number not continue error.
         7.add checkSdCard background service.
+    [v1.7.5]
+        1.fix apk restart for bt connect/disconnect.
     -->
