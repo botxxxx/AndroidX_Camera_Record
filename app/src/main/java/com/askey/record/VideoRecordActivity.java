@@ -121,15 +121,16 @@ public class VideoRecordActivity extends Activity {
     private CameraDevice.StateCallback mStateCallback0, mStateCallback1;
     private CaptureRequest.Builder mPreviewBuilder0, mPreviewBuilder1;
     private MediaRecorder mMediaRecorder0, mMediaRecorder1;
-    private Handler mainHandler, demoHandler, backgroundHandler0, backgroundHandler1;
+    private Handler mainHandler, demoHandler;
     private Handler recordHandler0, recordHandler1, stopRecordHandler0, stopRecordHandler1;
+    private Handler backgroundHandler0, backgroundHandler1;
     private HandlerThread thread0, thread1;
     private HomeListen home;
     private mTimerTask timerTask = null;
     private Timer mTimer = null;
     private float mLaptime = 0.0f;
 
-    public static void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, TextView editText4) {
+    private void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, TextView editText4) {
         String input = readConfigFile(context, new File(getPath(), configName));
         if (input.length() > 0) {
             String[] read = input.split("\r\n");
@@ -492,9 +493,9 @@ public class VideoRecordActivity extends Activity {
         videoLogList.add(new LogMsg("Initial now.", mLog.v));
         thread0 = new HandlerThread("CameraPreview0");
         thread0.start();
-        backgroundHandler0 = new Handler(thread0.getLooper());
         thread1 = new HandlerThread("CameraPreview1");
         thread1.start();
+        backgroundHandler0 = new Handler(thread0.getLooper());
         backgroundHandler1 = new Handler(thread1.getLooper());
         mainHandler = new Handler(getMainLooper());
         recordHandler0 = new Handler() {
@@ -1048,14 +1049,12 @@ public class VideoRecordActivity extends Activity {
                 texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
                 Surface surface = new Surface(texture);
                 List<Surface> surfaces = new ArrayList<>();
-                CameraCaptureSession mPreviewSession;
                 CameraDevice mCameraDevice;
                 CaptureRequest.Builder mPreviewBuilder;
                 Surface recorderSurface;
                 Handler backgroundHandler;
                 if (isCameraOne(cameraId)) {
                     backgroundHandler = backgroundHandler0;
-                    mPreviewSession = mPreviewSession0;
                     mCameraDevice = mCameraDevice0;
                     mMediaRecorder0 = setUpMediaRecorder(firstCamera);
                     mPreviewBuilder0 = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
@@ -1067,7 +1066,6 @@ public class VideoRecordActivity extends Activity {
                     mPreviewBuilder = mPreviewBuilder0;
                 } else {
                     backgroundHandler = backgroundHandler1;
-                    mPreviewSession = mPreviewSession1;
                     mCameraDevice = mCameraDevice1;
                     mMediaRecorder1 = setUpMediaRecorder(secondCamera);
                     mPreviewBuilder1 = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
@@ -1081,25 +1079,36 @@ public class VideoRecordActivity extends Activity {
                 // Start a capture session
                 // Once the session starts, we can update the UI and start recording
                 if (mPreviewBuilder != null) {
-                    CaptureRequest.Builder mPreviewBuilders = mPreviewBuilder;
-                    CameraCaptureSession[] mPreviewSessions = {mPreviewSession};
-                    MediaRecorder mediaRecorder = isCameraOne(cameraId) ? mMediaRecorder0 : mMediaRecorder1;
-                    Handler stopHandler = isCameraOne(cameraId) ? stopRecordHandler0 : stopRecordHandler1;
+
                     try {
                         mCameraDevice.createCaptureSession(surfaces,
                                 new CameraCaptureSession.StateCallback() {
 
                                     public void onConfigured(CameraCaptureSession session) {
                                         // 当摄像头已经准备好时，开始显示预览
-                                        mPreviewSessions[0] = session;
-                                        setCaptureRequest(mPreviewBuilders, mPreviewSessions[0], backgroundHandler);
-                                        if (mediaRecorder != null)
-                                            mediaRecorder.start();
+                                        if (isCameraOne(cameraId)) {
+                                            mPreviewSession0 = session;
+                                        } else {
+                                            mPreviewSession1 = session;
+                                        }
+                                        updatePreview(mPreviewBuilder, session, backgroundHandler);
 
-                                        Message msg = stopHandler.obtainMessage();
-                                        msg.arg1 = Integer.parseInt(cameraId);
-                                        msg.obj = getCodeDate(cameraId);
-                                        stopHandler.sendMessageDelayed(msg, delayTime);
+                                        if (isCameraOne(cameraId)) {
+                                            Message msg = stopRecordHandler0.obtainMessage();
+                                            msg.arg1 = Integer.parseInt(cameraId);
+                                            msg.obj = getCodeDate(cameraId);
+                                            stopRecordHandler0.sendMessageDelayed(msg, delayTime);
+                                            if (mMediaRecorder0 != null)
+                                                mMediaRecorder0.start();
+                                        } else {
+                                            Message msg = stopRecordHandler1.obtainMessage();
+                                            msg.arg1 = Integer.parseInt(cameraId);
+                                            msg.obj = getCodeDate(cameraId);
+                                            stopRecordHandler1.sendMessageDelayed(msg, delayTime);
+                                            if (mMediaRecorder1 != null)
+                                                mMediaRecorder1.start();
+                                        }
+
                                     }
 
 
@@ -1288,16 +1297,13 @@ public class VideoRecordActivity extends Activity {
             Surface surface = new Surface(texture);
 
             CaptureRequest.Builder mPreviewBuilder;
-            CameraCaptureSession mPreviewSession;
             CameraDevice mCameraDevice;
             Handler backgroundHandler;
             if (isCameraOne(cameraId)) {
                 backgroundHandler = backgroundHandler0;
-                mPreviewSession = mPreviewSession0;
                 mCameraDevice = mCameraDevice0;
             } else {
                 backgroundHandler = backgroundHandler1;
-                mPreviewSession = mPreviewSession1;
                 mCameraDevice = mCameraDevice1;
             }
             if (!isError) {
@@ -1306,17 +1312,18 @@ public class VideoRecordActivity extends Activity {
 
                     mPreviewBuilder.addTarget(surface);
 
-                    final CaptureRequest.Builder mPreviewBuilders = mPreviewBuilder;
-                    final CameraCaptureSession[] mPreviewSessions = {mPreviewSession};
-
                     // CaptureRequest.CONTROL_MODE
                     mCameraDevice.createCaptureSession(Arrays.asList(surface),
                             new CameraCaptureSession.StateCallback() {
 
                                 public void onConfigured(CameraCaptureSession session) {
                                     // 当摄像头已经准备好时，开始显示预览
-                                    mPreviewSessions[0] = session;
-                                    setCaptureRequest(mPreviewBuilders, mPreviewSessions[0], backgroundHandler);
+                                    if (isCameraOne(cameraId)) {
+                                        mPreviewSession0 = session;
+                                    } else {
+                                        mPreviewSession1 = session;
+                                    }
+                                    updatePreview(mPreviewBuilder, session, backgroundHandler);
                                 }
 
 
@@ -1341,7 +1348,7 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    protected void setCaptureRequest(CaptureRequest.Builder mPreviewBuilder, CameraCaptureSession mPreviewSession, Handler backgroundHandler) {
+    protected void updatePreview(CaptureRequest.Builder mPreviewBuilder, CameraCaptureSession mPreviewSession, Handler backgroundHandler) {
         mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
         try {
             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, backgroundHandler);
