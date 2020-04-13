@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
         debug {
-            storeFile file('/home/hongren_su/askey/TestTool/cdr9020_qtr/app/libs/debug.keystore')
+            storeFile file('libs/debug.keystore')
             storePassword 'android'
             keyAlias = 'platform'
             keyPassword 'android'
@@ -13,6 +13,7 @@ android {
     defaultConfig {
         applicationId "com.askey.record"
         minSdkVersion 27
+        //noinspection OldTargetApi
         targetSdkVersion 27
         versionCode 2
         versionName "1.0"
@@ -41,15 +42,15 @@ tasks.withType(JavaCompile) {
 dependencies {
     compileOnly files('libs/layoutlib.jar')
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    //noinspection GradleCompatible
+    //noinspection GradleDependency,GradleCompatible
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    //noinspection GradleCompatible
+    //noinspection GradleDependency,GradleCompatible
     implementation 'com.android.support.constraint:constraint-layout-solver:1.0.2'
-    //noinspection GradleCompatible
+    //noinspection GradleDependency,GradleCompatible
     implementation 'com.android.support:design:27.1.0'
-    //noinspection GradleCompatible
+    //noinspection GradleDependency,GradleCompatible
     implementation 'com.android.support:support-v4:27.1.0'
-    //noinspection GradleCompatible
+    //noinspection GradleDependency,GradleCompatible
     implementation 'com.android.support:appcompat-v7:27.1.0'
     testImplementation 'junit:junit:4.13-rc-1'
 }
