@@ -378,7 +378,7 @@ public class VideoRecordActivity extends Activity {
                         takePreview(secondCamera);
                         if (!isReady) {
                             isReady = true;
-                            new Handler().postDelayed(() -> demoHandler.obtainMessage().sendToTarget(), 3000);
+                            new Handler().postDelayed(() -> demoHandler.obtainMessage().sendToTarget(), 500);
                         }
                     }
 
@@ -533,7 +533,7 @@ public class VideoRecordActivity extends Activity {
             stopRecordAndSaveLog(true);
         });
         findViewById(R.id.record).setOnClickListener((View v) -> {
-            runOnUiThread(() -> isRecordStart(false));
+            isRecordStart(false);
         });
         findViewById(R.id.setting).setOnClickListener((View v) -> {
             if (getSdCard && !isError) {
@@ -720,9 +720,10 @@ public class VideoRecordActivity extends Activity {
 
     public static void saveLog(Context context, boolean reFormat, boolean kill) {
         if (!getSDPath().equals("")) {
+            String version = context.getString(R.string.app_name);
             Intent intent = new Intent();
             intent.setClassName(context.getPackageName(), saveLogService.class.getName());
-            intent.putExtra(EXTRA_VIDEO_VERSION, context.getString(R.string.app_name));
+            intent.putExtra(EXTRA_VIDEO_VERSION, version);
             intent.putExtra(EXTRA_VIDEO_REFORMAT, reFormat);
             if (kill)
                 intent.putExtra(EXTRA_MAIN_PID, android.os.Process.myPid());
