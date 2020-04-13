@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('/home/hongren_su/askey/TestTool/cdr9020_qtr/app/libs/debug.keystore')
+            storePassword 'android'
+            keyAlias = 'platform'
+            keyPassword 'android'
+        }
+    }
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.askey.record"
