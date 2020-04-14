@@ -97,9 +97,12 @@
         5.fix reset camera not recording error.
         6.fix run number not continue error.
         7.add checkSdCard background service.
+        8.fix file names are not consecutive may delete new file error.
     [v1.7.5]
         1.fix apk restart for bt connect/disconnect.
-        2.Optimize video preview memory.
+        2.optimize memory.(min: 70MB, max:150MB) before:v1.7.2(min:80MB, max:182MB)
+        3.fix start activity(in 3 sec), click record button will stop record problem.
+        4.fix success, fail not continue error.
     -->
     <string name="app_name">CDR9020_QTR(v1.7.5)</string>
 </resources>
