@@ -57,12 +57,14 @@ import java.util.TimerTask;
 
 import static com.askey.record.Utils.DFRAME_RATE;
 import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
+import static com.askey.record.Utils.EXTRA_VIDEO_FAIL;
 import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
 import static com.askey.record.Utils.EXTRA_VIDEO_RECORD;
 import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
 import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
 import static com.askey.record.Utils.EXTRA_VIDEO_RESET;
 import static com.askey.record.Utils.EXTRA_VIDEO_RUN;
+import static com.askey.record.Utils.EXTRA_VIDEO_SUCCESS;
 import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
 import static com.askey.record.Utils.FRAMESKIP;
 import static com.askey.record.Utils.FRAME_RATE;
@@ -75,18 +77,19 @@ import static com.askey.record.Utils.configName;
 import static com.askey.record.Utils.delayTime;
 import static com.askey.record.Utils.errorMessage;
 import static com.askey.record.Utils.fCamera;
-import static com.askey.record.Utils.failed;
+import static com.askey.record.Utils.Fail;
 import static com.askey.record.Utils.firstCamera;
 import static com.askey.record.Utils.firstFile;
 import static com.askey.record.Utils.firstFilePath;
 import static com.askey.record.Utils.getCalendarTime;
-import static com.askey.record.Utils.getFailed;
+import static com.askey.record.Utils.getFail;
 import static com.askey.record.Utils.getFrameRate;
+import static com.askey.record.Utils.getIsRun;
 import static com.askey.record.Utils.getPath;
 import static com.askey.record.Utils.getReset;
 import static com.askey.record.Utils.getSDPath;
 import static com.askey.record.Utils.getSdCard;
-import static com.askey.record.Utils.getSuccessful;
+import static com.askey.record.Utils.getSuccess;
 import static com.askey.record.Utils.isError;
 import static com.askey.record.Utils.isFinish;
 import static com.askey.record.Utils.isFrame;
@@ -106,12 +109,12 @@ import static com.askey.record.Utils.secondCamera;
 import static com.askey.record.Utils.secondFile;
 import static com.askey.record.Utils.secondFilePath;
 import static com.askey.record.Utils.setConfigFile;
-import static com.askey.record.Utils.successful;
+import static com.askey.record.Utils.Success;
 import static com.askey.record.Utils.videoLogList;
 import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 
 public class VideoRecordActivity extends Activity {
-    public static int onRun = 0, onReset = 0;
+    public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
     public static boolean onRecord = false, onRestart = false, onDebug = true;
     private static String codeDate0, codeDate1, resetDate;
     private Size mPreviewSize;
@@ -176,12 +179,14 @@ public class VideoRecordActivity extends Activity {
         checkConfigFile(VideoRecordActivity.this, new File(getPath(), configName), false);
         if (onRecord) {
             isRun = onRun;
+            Success = onSuccess;
+            Fail = onFail;
         } else {
             isRun = 0;
+            Success = 0;
+            Fail = 0;
         }
         onRecord = true;
-        successful = 0;
-        failed = 0;
         firstFilePath.clear();
         secondFilePath.clear();
     }
@@ -454,7 +459,9 @@ public class VideoRecordActivity extends Activity {
                 Context context = getApplicationContext();
                 Intent intent = restartActivity.createIntent(context);
                 intent.putExtra(EXTRA_VIDEO_RUN, onRun);
+                intent.putExtra(EXTRA_VIDEO_FAIL, onFail);
                 intent.putExtra(EXTRA_VIDEO_RESET, onReset);
+                intent.putExtra(EXTRA_VIDEO_SUCCESS, onSuccess);
                 intent.putExtra(EXTRA_VIDEO_RECORD, record);
                 context.startActivity(intent);
             }
@@ -571,7 +578,9 @@ public class VideoRecordActivity extends Activity {
         secondFilePath = new ArrayList();
         videoLogList.add(new LogMsg("#initial complete", mLog.v));
         onRun = getIntent().getIntExtra(EXTRA_VIDEO_RUN, 0);
+        onFail = getIntent().getIntExtra(EXTRA_VIDEO_FAIL, 0);
         onReset = getIntent().getIntExtra(EXTRA_VIDEO_RESET, 0);
+        onSuccess = getIntent().getIntExtra(EXTRA_VIDEO_SUCCESS, 0);
         if (onReset != 0)
             videoLogList.add(new LogMsg("#noReset:" + onReset, mLog.v));
         onRecord = getIntent().getBooleanExtra(EXTRA_VIDEO_RECORD, false);
@@ -975,8 +984,8 @@ public class VideoRecordActivity extends Activity {
                     errorMessage = "CheckFile error.";
                 }
 
-                double[] range = isNew ? NEW_DFRAME_RATE : DFRAME_RATE;
                 boolean check = false;
+                double[] range = isNew ? NEW_DFRAME_RATE : DFRAME_RATE;
                 if (frameRate >= range[isFrame]) {
                     if (frameRate <= range[isFrame] + 3) {
                         check = true;
@@ -987,14 +996,14 @@ public class VideoRecordActivity extends Activity {
                     }
                 }
                 if (check)
-                    successful++;
+                    Success++;
                 else
-                    failed++;
+                    Fail++;
             } else {
-                failed++;
+                Fail++;
             }
             videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] + " frameRate:" + frameRate +
-                    " success:" + getSuccessful() + " fail:" + getFailed() + " reset:" + getReset(), mLog.i));
+                    " success:" + getSuccess() + " fail:" + getFail() + " reset:" + getReset(), mLog.i));
             new Handler().post(() -> saveLog(getApplicationContext(), false, false));
         } catch (Exception e) {
             e.printStackTrace();
@@ -1028,7 +1037,9 @@ public class VideoRecordActivity extends Activity {
                     runOnUiThread(() -> {
                         if (mTimer == null) {
                             isRun++;
-                            onRun = isRun;
+                            onFail = getFail();
+                            onRun = getIsRun();
+                            onSuccess = getSuccess();
                             //タイマーの初期化処理
                             timerTask = new mTimerTask();
                             mLaptime = 0.0f;

@@ -4,8 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Handler;
 import android.util.SparseIntArray;
 import android.view.Surface;
@@ -39,8 +37,10 @@ public class Utils {
     public static final String FRAMESKIP = "persist.our.camera.frameskip";
 
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
+    public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
     public static final String EXTRA_VIDEO_RESET = "RestartActivity.reset";
     public static final String EXTRA_VIDEO_RECORD = "RestartActivity.record";
+    public static final String EXTRA_VIDEO_SUCCESS = "RestartActivity.success";
     public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
     public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
     public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
@@ -51,7 +51,7 @@ public class Utils {
     public static final String configName = "VideoRecordConfig.ini";
     public static final String logName = "VideoRecordLog.ini";
     public static final double sdData = 1;
-    public static int isRun = 0, successful = 0, failed = 0;
+    public static int isRun = 0, Success = 0, Fail = 0;
     public static String TAG = "VideoRecord";
     public static String firstCamera = "0";
     public static String secondCamera = "1";
@@ -73,21 +73,13 @@ public class Utils {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
-    public static int getSuccessful() {
-        return successful;
-    }
+    public static int getFail() { return Fail; }
 
-    public static int getFailed() {
-        return failed;
-    }
+    public static int getIsRun() { return isRun; }
 
-    public static int getReset() {
-        return onReset;
-    }
+    public static int getSuccess() { return Success; }
 
-    public static int getIsRun() {
-        return isRun;
-    }
+    public static int getReset() { return onReset; }
 
     public static boolean isInteger(String s, boolean zero) {
         try {

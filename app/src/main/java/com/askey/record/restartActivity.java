@@ -5,11 +5,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import static com.askey.record.Utils.EXTRA_VIDEO_FAIL;
+import static com.askey.record.Utils.EXTRA_VIDEO_RESET;
+import static com.askey.record.Utils.EXTRA_VIDEO_RUN;
+import static com.askey.record.Utils.EXTRA_VIDEO_SUCCESS;
+
 public class restartActivity extends Activity {
     public static final String EXTRA_MAIN_PID = "RestartActivity.main_pid";
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
+    public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
     public static final String EXTRA_VIDEO_RESET = "RestartActivity.reset";
     public static final String EXTRA_VIDEO_RECORD = "RestartActivity.record";
+    public static final String EXTRA_VIDEO_SUCCESS = "RestartActivity.success";
 
     public static Intent createIntent(Context context) {
         Intent intent = new Intent();
@@ -28,6 +35,8 @@ public class restartActivity extends Activity {
         int mainPid = intent.getIntExtra(EXTRA_MAIN_PID, -1);
         int EXTRA_RUN = intent.getIntExtra(EXTRA_VIDEO_RUN, 0);
         int EXTRA_RESET = intent.getIntExtra(EXTRA_VIDEO_RESET, 0);
+        int EXTRA_FAIL = getIntent().getIntExtra(EXTRA_VIDEO_FAIL, 0);
+        int EXTRA_SUCCESS = getIntent().getIntExtra(EXTRA_VIDEO_SUCCESS, 0);
         boolean EXTRA_RECORD = intent.getBooleanExtra(EXTRA_VIDEO_RECORD, false);
         android.os.Process.killProcess(mainPid);
         // 2. MainActivity を再起動する
@@ -37,6 +46,8 @@ public class restartActivity extends Activity {
         restartIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         restartIntent.putExtra(EXTRA_VIDEO_RUN, EXTRA_RUN);
         restartIntent.putExtra(EXTRA_VIDEO_RESET, EXTRA_RESET);
+        restartIntent.putExtra(EXTRA_VIDEO_FAIL, EXTRA_FAIL);
+        restartIntent.putExtra(EXTRA_VIDEO_SUCCESS, EXTRA_SUCCESS);
         restartIntent.putExtra(EXTRA_VIDEO_RECORD, EXTRA_RECORD);
         context.startActivity(restartIntent);
         // 3. RestartActivity を終了する
