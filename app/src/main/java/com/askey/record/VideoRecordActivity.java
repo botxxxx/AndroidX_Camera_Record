@@ -115,7 +115,7 @@ import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 
 public class VideoRecordActivity extends Activity {
     public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
-    public static boolean onRecord = false, onRestart = false, onDebug = true;
+    public static boolean extraRecordStatus = false, onRestart = false, onDebug = true;
     private static String codeDate0, codeDate1, resetDate;
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
@@ -177,16 +177,17 @@ public class VideoRecordActivity extends Activity {
     private void setRecord() {
         isRecord = true;
         checkConfigFile(VideoRecordActivity.this, new File(getPath(), configName), false);
-        if (onRecord) {
+        if (extraRecordStatus) {
             isRun = onRun;
             Success = onSuccess;
             Fail = onFail;
         } else {
+            onReset = 0;
             isRun = 0;
             Success = 0;
             Fail = 0;
         }
-        onRecord = true;
+        extraRecordStatus = true;
         firstFilePath.clear();
         secondFilePath.clear();
     }
@@ -352,7 +353,7 @@ public class VideoRecordActivity extends Activity {
                         }
                         if (isError) {
                             final String dates = resetDate + "";
-                            final boolean records = onRecord;
+                            final boolean records = extraRecordStatus;
                             new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                         }
                     }
@@ -409,7 +410,7 @@ public class VideoRecordActivity extends Activity {
                         }
                         if (isError) {
                             final String dates = resetDate + "";
-                            final boolean records = onRecord;
+                            final boolean records = extraRecordStatus;
                             new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                         }
                     }
@@ -436,7 +437,7 @@ public class VideoRecordActivity extends Activity {
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
                 final String dates = resetDate + "";
-                final boolean records = onRecord;
+                final boolean records = extraRecordStatus;
                 new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
@@ -583,12 +584,12 @@ public class VideoRecordActivity extends Activity {
         onSuccess = getIntent().getIntExtra(EXTRA_VIDEO_SUCCESS, 0);
         if (onReset != 0)
             videoLogList.add(new LogMsg("#noReset:" + onReset, mLog.v));
-        onRecord = getIntent().getBooleanExtra(EXTRA_VIDEO_RECORD, false);
+        extraRecordStatus = getIntent().getBooleanExtra(EXTRA_VIDEO_RECORD, false);
         // show DEMO
         demoHandler = new Handler() {
             public void handleMessage(android.os.Message msg) {
                 this.post(() -> checkSdCardFromFileList());
-                if (!onRecord) {
+                if (!extraRecordStatus) {
                     this.post(() -> saveLog(getApplicationContext(), false, false));
                 } else {
                     isRecordStart(true);
@@ -852,7 +853,7 @@ public class VideoRecordActivity extends Activity {
                     isRun = 0;
                     isFinish = 0;
                     isRecord = false;
-                    onRecord = false;
+                    extraRecordStatus = false;
                     videoLogList.add(new LogMsg("#completed"));
                     end(preview);
                 }
@@ -860,7 +861,7 @@ public class VideoRecordActivity extends Activity {
                     isRun = 0;
                     isFinish = 0;
                     isRecord = false;
-                    onRecord = false;
+                    extraRecordStatus = false;
                     ((TextView) findViewById(R.id.record_status)).setText("Error");
                 }
             }
@@ -873,7 +874,7 @@ public class VideoRecordActivity extends Activity {
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
                 final String dates = resetDate + "";
-                final boolean records = onRecord;
+                final boolean records = extraRecordStatus;
                 new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
@@ -920,7 +921,7 @@ public class VideoRecordActivity extends Activity {
                         takeRecord();
                     } else {
                         isRecord = false;
-                        onRecord = false;
+                        extraRecordStatus = false;
                         videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                         videoLogList.add(new LogMsg("#completed"));
                         isRun = 0;
@@ -944,7 +945,7 @@ public class VideoRecordActivity extends Activity {
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
                 final String dates = resetDate + "";
-                final boolean records = onRecord;
+                final boolean records = extraRecordStatus;
                 new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
@@ -1137,7 +1138,7 @@ public class VideoRecordActivity extends Activity {
                         ((TextView) findViewById(R.id.record_status)).setText("Error");
                         if (onDebug) {
                             final String dates = resetDate + "";
-                            final boolean records = onRecord;
+                            final boolean records = extraRecordStatus;
                             new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                         }
                     }
@@ -1149,7 +1150,7 @@ public class VideoRecordActivity extends Activity {
                     ((TextView) findViewById(R.id.record_status)).setText("Error");
                     if (onDebug) {
                         final String dates = resetDate + "";
-                        final boolean records = onRecord;
+                        final boolean records = extraRecordStatus;
                         new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                     }
                 }
@@ -1162,7 +1163,7 @@ public class VideoRecordActivity extends Activity {
                 ((TextView) findViewById(R.id.record_status)).setText("Error");
                 if (onDebug) {
                     final String dates = resetDate + "";
-                    final boolean records = onRecord;
+                    final boolean records = extraRecordStatus;
                     new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                 }
             }
@@ -1269,7 +1270,7 @@ public class VideoRecordActivity extends Activity {
             if (getSdCard) {
                 if (onDebug) {
                     final String dates = resetDate + "";
-                    final boolean records = onRecord;
+                    final boolean records = extraRecordStatus;
                     new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                 }
             } else {
@@ -1299,7 +1300,7 @@ public class VideoRecordActivity extends Activity {
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
                 final String dates = resetDate + "";
-                final boolean records = onRecord;
+                final boolean records = extraRecordStatus;
                 new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
@@ -1351,7 +1352,7 @@ public class VideoRecordActivity extends Activity {
                     ((TextView) findViewById(R.id.record_status)).setText("Error");
                     if (onDebug) {
                         final String dates = resetDate + "";
-                        final boolean records = onRecord;
+                        final boolean records = extraRecordStatus;
                         new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                     }
                 }
@@ -1372,7 +1373,7 @@ public class VideoRecordActivity extends Activity {
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (onDebug) {
                 final String dates = resetDate + "";
-                final boolean records = onRecord;
+                final boolean records = extraRecordStatus;
                 new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
@@ -1398,7 +1399,7 @@ public class VideoRecordActivity extends Activity {
                     new Handler().post(() -> ((TextView) findViewById(R.id.record_status)).setText("Error"));
                     if (onDebug) {
                         final String dates = resetDate + "";
-                        final boolean records = onRecord;
+                        final boolean records = extraRecordStatus;
                         new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                     }
                 }
