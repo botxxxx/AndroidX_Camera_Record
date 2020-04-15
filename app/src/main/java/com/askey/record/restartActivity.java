@@ -5,11 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import static com.askey.record.Utils.EXTRA_VIDEO_FAIL;
-import static com.askey.record.Utils.EXTRA_VIDEO_RESET;
-import static com.askey.record.Utils.EXTRA_VIDEO_RUN;
-import static com.askey.record.Utils.EXTRA_VIDEO_SUCCESS;
-
 public class restartActivity extends Activity {
     public static final String EXTRA_MAIN_PID = "RestartActivity.main_pid";
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
