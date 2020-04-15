@@ -34,11 +34,19 @@ public class HomeListen {
     }
 
     public void start() {
-        mContext.registerReceiver(mHomeBtnReceiver, mHomeBtnIntentFilter);
+        try{
+            mContext.registerReceiver(mHomeBtnReceiver, mHomeBtnIntentFilter);
+        }catch (Exception e){
+
+        }
     }
 
     public void stop() {
-        mContext.unregisterReceiver(mHomeBtnReceiver);
+        try{
+            mContext.unregisterReceiver(mHomeBtnReceiver);
+        }catch (Exception e){
+
+        }
     }
 
     public void receive(Intent intent) {

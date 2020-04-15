@@ -452,9 +452,12 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void restartApp(String date, boolean record) {
-        if (date.equals(resetDate))
-            if ((fCamera ^ sCamera) || (fCamera && sCamera)) {
+        if (date.equals(resetDate)){
+            try{
                 home.stop();
+            }catch (Exception e){
+
+            }
                 onRestart = true;
                 onReset++;
                 Context context = getApplicationContext();
