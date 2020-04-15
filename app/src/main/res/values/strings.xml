@@ -103,6 +103,7 @@
         2.optimize memory.(min: 70MB, max:150MB) before:v1.7.2(min:80MB, max:182MB)
         3.fix start activity(in 3 sec), click record button will stop record problem.
         4.fix success, fail not continue error.
+        5.fix Home listener was not use the try block catch exception problem.
     -->
     <string name="app_name">CDR9020_QTR(v1.7.5)</string>
 </resources>
