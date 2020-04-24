@@ -18,7 +18,6 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Bundle;
@@ -452,23 +451,23 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void restartApp(String date, boolean record) {
-        if (date.equals(resetDate)){
-            try{
+        if (date.equals(resetDate)) {
+            try {
                 home.stop();
-            }catch (Exception e){
+            } catch (Exception e) {
 
             }
-                onRestart = true;
-                onReset++;
-                Context context = getApplicationContext();
-                Intent intent = restartActivity.createIntent(context);
-                intent.putExtra(EXTRA_VIDEO_RUN, onRun);
-                intent.putExtra(EXTRA_VIDEO_FAIL, onFail);
-                intent.putExtra(EXTRA_VIDEO_RESET, onReset);
-                intent.putExtra(EXTRA_VIDEO_SUCCESS, onSuccess);
-                intent.putExtra(EXTRA_VIDEO_RECORD, record);
-                context.startActivity(intent);
-            }
+            onRestart = true;
+            onReset++;
+            Context context = getApplicationContext();
+            Intent intent = restartActivity.createIntent(context);
+            intent.putExtra(EXTRA_VIDEO_RUN, onRun);
+            intent.putExtra(EXTRA_VIDEO_FAIL, onFail);
+            intent.putExtra(EXTRA_VIDEO_RESET, onReset);
+            intent.putExtra(EXTRA_VIDEO_SUCCESS, onSuccess);
+            intent.putExtra(EXTRA_VIDEO_RECORD, record);
+            context.startActivity(intent);
+        }
     }
 
     @SuppressLint("HandlerLeak")
@@ -787,9 +786,10 @@ public class VideoRecordActivity extends Activity {
              */
             Log.e(TAG, "camera ID: " + cameraId);
             Log.e(TAG, "number of camera: " + manager.getCameraIdList().length);
-            CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
-            StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            mPreviewSize = map.getOutputSizes(SurfaceTexture.class)[0];
+            if (isCameraOne(cameraId))
+                mPreviewSize = manager.getCameraCharacteristics(cameraId)
+                        .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                        .getOutputSizes(SurfaceTexture.class)[0];
             if (ActivityCompat.checkSelfPermission(this,
                     Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 return;
