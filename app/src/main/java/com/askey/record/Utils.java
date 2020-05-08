@@ -25,17 +25,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import static com.askey.record.VideoRecordActivity.SD_Mode;
 import static com.askey.record.VideoRecordActivity.onReset;
 import static com.askey.record.VideoRecordActivity.saveLog;
 
 public class Utils {
-
     public static final double[] DFRAME_RATE = {16, 27.5},
-            NEW_DFRAME_RATE = {13.7, 27.5}; // , 9.1, 6.8, 5.5, 4.5
+            NEW_DFRAME_RATE = {14, 28};
     public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
-            NEW_FRAME_RATE = {"13.7fps", "27.5fps"}; // , "9.1fps", "6.8fps", "5.5fps", "4.5fps"
-    public static final String FRAMESKIP = "persist.our.camera.frameskip";
-
+            NEW_FRAME_RATE = {"14fps", "28fps"};
+    public static final String[] FPS = {"140", "280"};
+    public static final String FRAMESKIP = "persist.our.camera.fps";
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
     public static final String EXTRA_VIDEO_RESET = "RestartActivity.reset";
@@ -73,13 +73,21 @@ public class Utils {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
-    public static int getFail() { return Fail; }
+    public static int getFail() {
+        return Fail;
+    }
 
-    public static int getIsRun() { return isRun; }
+    public static int getIsRun() {
+        return isRun;
+    }
 
-    public static int getSuccess() { return Success; }
+    public static int getSuccess() {
+        return Success;
+    }
 
-    public static int getReset() { return onReset; }
+    public static int getReset() {
+        return onReset;
+    }
 
     public static boolean isInteger(String s, boolean zero) {
         try {
@@ -442,25 +450,29 @@ public class Utils {
 
     public static String getSDPath() {
         String path = "";
-        try {
-            long start = System.currentTimeMillis();
-            long end = start + 10000;
-            Runtime run = Runtime.getRuntime();
-            String cmd = "ls /storage";
-            Process pr = run.exec(cmd);
-            BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            String line;
-            while ((line = buf.readLine()) != null) {
-                if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
-                    path = "/storage/" + line + "/";
-                    break;
+        if(SD_Mode) {
+            try {
+                long start = System.currentTimeMillis();
+                long end = start + 10000;
+                Runtime run = Runtime.getRuntime();
+                String cmd = "ls /storage";
+                Process pr = run.exec(cmd);
+                BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+                String line;
+                while ((line = buf.readLine()) != null) {
+                    if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
+                        path = "/storage/" + line + "/";
+                        break;
+                    }
+                    if (System.currentTimeMillis() > end) {
+                        break;
+                    }
                 }
-                if (System.currentTimeMillis() > end) {
-                    break;
-                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        }else{
+            path = getPath();
         }
         return path;
     }
@@ -479,7 +491,7 @@ public class Utils {
                     e.printStackTrace();
                     isError = true;
                     getSdCard = !getSDPath().equals("");
-                    errorMessage = "getFrameRate failed.";
+                    errorMessage = "getFrameRate failed.<============ Crash here";
                     videoLogList.add(new LogMsg("getFrameRate failed.", mLog.e));
                     return 0;
                 }
@@ -498,7 +510,7 @@ public class Utils {
                 e.printStackTrace();
                 isError = true;
                 getSdCard = !getSDPath().equals("");
-                errorMessage = "getFrameRate failed.";
+                errorMessage = "getFrameRate failed.<============ Crash here";
                 videoLogList.add(new LogMsg("getFrameRate failed.", mLog.e));
             }
         } else {

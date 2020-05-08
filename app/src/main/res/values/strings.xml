@@ -104,6 +104,10 @@
         3.fix start activity(in 3 sec), click record button will stop record problem.
         4.fix success, fail not continue error.
         5.fix Home key listener was not use the try block catch exception problem.
+    [v1.7.6]
+        1.set Camera FrameRate SystemProperties was changed to "persist.our.camera.fps".
+        2.Developer can set record video to Sd Card or Internal storage.
+        3.Developer can set errors will restart or stop.
     -->
-    <string name="app_name">CDR9020_QTR(v1.7.5)</string>
+    <string name="app_name">CDR9020_QTR(v1.7.6)</string>
 </resources>

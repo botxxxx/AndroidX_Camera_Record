@@ -65,6 +65,7 @@ import static com.askey.record.Utils.EXTRA_VIDEO_RESET;
 import static com.askey.record.Utils.EXTRA_VIDEO_RUN;
 import static com.askey.record.Utils.EXTRA_VIDEO_SUCCESS;
 import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
+import static com.askey.record.Utils.FPS;
 import static com.askey.record.Utils.FRAMESKIP;
 import static com.askey.record.Utils.FRAME_RATE;
 import static com.askey.record.Utils.NEW_DFRAME_RATE;
@@ -113,8 +114,12 @@ import static com.askey.record.Utils.videoLogList;
 import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 
 public class VideoRecordActivity extends Activity {
+    //TODO 使用SD Card儲存時 SD_Mode 設置為 true
+    public static boolean SD_Mode = true;
+    //TODO 使用錯誤重啟時 autoRestart 設置為 true
+    public static boolean autoRestart = true;
+    public static boolean extraRecordStatus = false, onRestart = false;
     public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
-    public static boolean extraRecordStatus = false, onRestart = false, onDebug = true;
     private static String codeDate0, codeDate1, resetDate;
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
@@ -284,7 +289,7 @@ public class VideoRecordActivity extends Activity {
             // -> adb shell su 0 getprop persist.our.camera.frameskip
             if (isNew) {
                 try {
-                    SystemProperties.set(FRAMESKIP, "1");
+                    SystemProperties.set(FRAMESKIP, FPS[0]);
                 } catch (Exception e) {
                     e.getStackTrace();
                     isError = true;
@@ -350,7 +355,7 @@ public class VideoRecordActivity extends Activity {
                             errorMessage = "Camera " + firstCamera + " close error.";
                             ((TextView) findViewById(R.id.record_status)).setText("Error");
                         }
-                        if (isError) {
+                        if (autoRestart && isError) {
                             final String dates = resetDate + "";
                             final boolean records = extraRecordStatus;
                             new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -407,7 +412,7 @@ public class VideoRecordActivity extends Activity {
                             errorMessage = "Camera " + secondCamera + " close error.";
                             ((TextView) findViewById(R.id.record_status)).setText("Error");
                         }
-                        if (isError) {
+                        if (autoRestart && isError) {
                             final String dates = resetDate + "";
                             final boolean records = extraRecordStatus;
                             new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -434,7 +439,7 @@ public class VideoRecordActivity extends Activity {
             new Handler().post(() -> stopRecordAndSaveLog(false));
             errorMessage = "CameraDevice.StateCallback " + callback + " error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (onDebug) {
+            if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
                 new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -622,13 +627,13 @@ public class VideoRecordActivity extends Activity {
             }
             if (check[1]) {
                 try {
-                    SystemProperties.set(FRAMESKIP, "1");
+                    SystemProperties.set(FRAMESKIP, FPS[0]);
                     if (isNew) {
                         String getFrameSkip = PropertyUtils.get(FRAMESKIP);
                         if (null != getFrameSkip) {
                             if (isInteger(getFrameSkip, false)) {
-                                //if frameskip is chehe or lastcamera != cameraid, delay 3s to change camera devices
-                                SystemProperties.set(FRAMESKIP, String.valueOf(isFrame == 0 ? 1 : 0));
+                                //if FrameSkip is change or LastCamera != CameraID, delay 3s to change camera devices
+                                SystemProperties.set(FRAMESKIP, FPS[isFrame]);
                                 videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
                             } else {
                                 videoLogList.add(new LogMsg("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e));
@@ -875,7 +880,7 @@ public class VideoRecordActivity extends Activity {
             new Handler().post(() -> stopRecordAndSaveLog(false));
             errorMessage = "Camera " + cameraID + " stopRecord error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (onDebug) {
+            if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
                 new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -946,7 +951,7 @@ public class VideoRecordActivity extends Activity {
             new Handler().post(() -> stopRecordAndSaveLog(false));
             errorMessage = "stopRecord all camera error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (onDebug) {
+            if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
                 new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -962,13 +967,15 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void moveFile(String video, String pathname, boolean remove) {
-        Context context = getApplicationContext();
-        Intent intent = new Intent();
-        intent.setClassName(context.getPackageName(), copyFileService.class.getName());
-        intent.putExtra(EXTRA_VIDEO_COPY, video);
-        intent.putExtra(EXTRA_VIDEO_PASTE, pathname);
-        intent.putExtra(EXTRA_VIDEO_REMOVE, remove);
-        context.startService(intent);
+        if (SD_Mode) {
+            Context context = getApplicationContext();
+            Intent intent = new Intent();
+            intent.setClassName(context.getPackageName(), copyFileService.class.getName());
+            intent.putExtra(EXTRA_VIDEO_COPY, video);
+            intent.putExtra(EXTRA_VIDEO_PASTE, pathname);
+            intent.putExtra(EXTRA_VIDEO_REMOVE, remove);
+            context.startService(intent);
+        }
     }
 
     @SuppressLint("DefaultLocale")
@@ -1126,7 +1133,6 @@ public class VideoRecordActivity extends Activity {
 
                                     }
 
-
                                     public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
                                         videoLogList.add(new LogMsg("Camera " + cameraId + " Record onConfigureFailed.", mLog.e));
                                         new Handler().post(() -> saveLog(getApplicationContext(), false, false));
@@ -1139,7 +1145,7 @@ public class VideoRecordActivity extends Activity {
                         new Handler().post(() -> stopRecordAndSaveLog(false));
                         errorMessage = "Camera " + cameraId + " startRecord error. <============ Crash here";
                         ((TextView) findViewById(R.id.record_status)).setText("Error");
-                        if (onDebug) {
+                        if (autoRestart) {
                             final String dates = resetDate + "";
                             final boolean records = extraRecordStatus;
                             new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -1151,7 +1157,7 @@ public class VideoRecordActivity extends Activity {
                     new Handler().post(() -> stopRecordAndSaveLog(false));
                     errorMessage = "Camera " + cameraId + " mPreviewBuilder is null. <============ Crash here";
                     ((TextView) findViewById(R.id.record_status)).setText("Error");
-                    if (onDebug) {
+                    if (autoRestart) {
                         final String dates = resetDate + "";
                         final boolean records = extraRecordStatus;
                         new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -1164,7 +1170,7 @@ public class VideoRecordActivity extends Activity {
                 new Handler().post(() -> stopRecordAndSaveLog(false));
                 errorMessage = "Camera " + cameraId + " startRecord error. <============ Crash here";
                 ((TextView) findViewById(R.id.record_status)).setText("Error");
-                if (onDebug) {
+                if (autoRestart) {
                     final String dates = resetDate + "";
                     final boolean records = extraRecordStatus;
                     new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -1271,7 +1277,7 @@ public class VideoRecordActivity extends Activity {
             errorMessage = "MediaRecorder " + cameraId + " error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
             if (getSdCard) {
-                if (onDebug) {
+                if (autoRestart) {
                     final String dates = resetDate + "";
                     final boolean records = extraRecordStatus;
                     new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -1301,7 +1307,7 @@ public class VideoRecordActivity extends Activity {
             new Handler().post(() -> stopRecordAndSaveLog(false));
             errorMessage = "takePreview " + cameraId + " error. <============ Crash here";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (onDebug) {
+            if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
                 new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -1353,7 +1359,7 @@ public class VideoRecordActivity extends Activity {
                     new Handler().post(() -> stopRecordAndSaveLog(false));
                     errorMessage = "Preview " + cameraId + " error.";
                     ((TextView) findViewById(R.id.record_status)).setText("Error");
-                    if (onDebug) {
+                    if (autoRestart) {
                         final String dates = resetDate + "";
                         final boolean records = extraRecordStatus;
                         new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -1374,7 +1380,7 @@ public class VideoRecordActivity extends Activity {
             new Handler().post(() -> stopRecordAndSaveLog(false));
             errorMessage = "setCaptureRequest error.";
             ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (onDebug) {
+            if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
                 new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -1400,7 +1406,7 @@ public class VideoRecordActivity extends Activity {
                     new Handler().post(() -> stopRecordAndSaveLog(false));
                     errorMessage = "Application has timed out.";
                     new Handler().post(() -> ((TextView) findViewById(R.id.record_status)).setText("Error"));
-                    if (onDebug) {
+                    if (autoRestart) {
                         final String dates = resetDate + "";
                         final boolean records = extraRecordStatus;
                         new Handler().postDelayed(() -> restartApp(dates, records), 3000);
@@ -1463,7 +1469,7 @@ public class VideoRecordActivity extends Activity {
                                     if (isInteger(getFrameSkip, false)) {
                                         //if frameskip is chehe or lastcamera != cameraid, delay 3s to change camera devices
                                         try {
-                                            SystemProperties.set(FRAMESKIP, String.valueOf(isFrame == 0 ? 1 : 0));
+                                            SystemProperties.set(FRAMESKIP, FPS[isFrame]);
                                         } catch (Exception e) {
                                             e.getStackTrace();
                                             isError = true;
