@@ -1091,9 +1091,9 @@ public class VideoRecordActivity extends Activity {
             try {
                 if (isCameraOne(cameraId)) {
                     wifiEnableOrDisable();
+                    btEnableOrDisable();
                     codeDate0 = getCalendarTime();
                 } else {
-                    btEnableOrDisable();
                     codeDate1 = getCalendarTime();
                 }
 
@@ -1184,7 +1184,7 @@ public class VideoRecordActivity extends Activity {
                                             Message msg = stopRecordHandler1.obtainMessage();
                                             msg.arg1 = Integer.parseInt(cameraId);
                                             msg.obj = getCodeDate(cameraId);
-                                            stopRecordHandler1.sendMessageDelayed(msg, delayTime);
+                                            stopRecordHandler1.sendMessageDelayed(msg, delayTime + 500);
                                             if (mMediaRecorder1 != null)
                                                 mMediaRecorder1.start();
                                         }

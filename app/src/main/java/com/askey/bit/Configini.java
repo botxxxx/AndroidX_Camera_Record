@@ -11,7 +11,7 @@ public class Configini {
     protected Context context;
     protected String firstCamera = "0";
     protected String secondCamera = "1";
-    protected int numberOfRuns = 999;
+    protected int numberOfRuns = 480;
     protected boolean isNew = true;
 
     public Configini(Context context) {
