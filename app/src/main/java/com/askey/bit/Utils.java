@@ -54,8 +54,8 @@ public class Utils {
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String configName = "BurnInTestConfig.ini";
     public static final String logName = "BurnInTestLog.ini";
-    public static final String CONFIG_TITLE ="[BurnIn_Test_Config]";
-    public static final String LOG_TITLE ="[BurnIn_Test_Log]";
+    public static final String CONFIG_TITLE = "[BurnIn_Test_Config]";
+    public static final String LOG_TITLE = "[BurnIn_Test_Log]";
     public static final double sdData = 1;
     public static int isRun = 0, Success = 0, Fail = 0;
     public static int wifiSuccess = 0, wifiFail = 0;
@@ -279,7 +279,7 @@ public class Utils {
                 }
             }
             if (update) {
-                String logString = "[VIDEO_RECORD_LOG]" + context.getString(R.string.app_name) + "\r\n";
+                String logString = LOG_TITLE + context.getString(R.string.app_name) + "\r\n";
                 videoLogList.add(new LogMsg("Reformat the Log file.", mLog.e));
                 for (LogMsg logs : videoLogList) {
                     String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
@@ -474,7 +474,7 @@ public class Utils {
 
     public static String getSDPath() {
         String path = "";
-        if(SD_Mode) {
+        if (SD_Mode) {
             try {
                 long start = System.currentTimeMillis();
                 long end = start + 10000;
@@ -495,7 +495,7 @@ public class Utils {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else{
+        } else {
             path = getPath();
         }
         return path;
