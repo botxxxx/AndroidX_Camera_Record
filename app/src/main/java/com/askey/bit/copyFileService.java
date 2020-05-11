@@ -1,4 +1,4 @@
-package com.askey.record;
+package com.askey.bit;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -14,13 +14,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
-import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
-import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
-import static com.askey.record.Utils.errorMessage;
-import static com.askey.record.Utils.getSDPath;
-import static com.askey.record.Utils.isError;
-import static com.askey.record.Utils.videoLogList;
+import static com.askey.bit.Utils.EXTRA_VIDEO_COPY;
+import static com.askey.bit.Utils.EXTRA_VIDEO_PASTE;
+import static com.askey.bit.Utils.EXTRA_VIDEO_REMOVE;
+import static com.askey.bit.Utils.errorMessage;
+import static com.askey.bit.Utils.getSDPath;
+import static com.askey.bit.Utils.isError;
+import static com.askey.bit.Utils.videoLogList;
 
 public class copyFileService extends IntentService {
     String video;

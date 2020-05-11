@@ -1,10 +1,11 @@
-package com.askey.record;
+package com.askey.bit;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -20,6 +21,7 @@ import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -54,64 +56,76 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.askey.record.Utils.DFRAME_RATE;
-import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
-import static com.askey.record.Utils.EXTRA_VIDEO_FAIL;
-import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
-import static com.askey.record.Utils.EXTRA_VIDEO_RECORD;
-import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
-import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
-import static com.askey.record.Utils.EXTRA_VIDEO_RESET;
-import static com.askey.record.Utils.EXTRA_VIDEO_RUN;
-import static com.askey.record.Utils.EXTRA_VIDEO_SUCCESS;
-import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
-import static com.askey.record.Utils.FPS;
-import static com.askey.record.Utils.FRAMESKIP;
-import static com.askey.record.Utils.FRAME_RATE;
-import static com.askey.record.Utils.NEW_DFRAME_RATE;
-import static com.askey.record.Utils.NEW_FRAME_RATE;
-import static com.askey.record.Utils.NO_SD_CARD;
-import static com.askey.record.Utils.TAG;
-import static com.askey.record.Utils.checkConfigFile;
-import static com.askey.record.Utils.configName;
-import static com.askey.record.Utils.delayTime;
-import static com.askey.record.Utils.errorMessage;
-import static com.askey.record.Utils.fCamera;
-import static com.askey.record.Utils.Fail;
-import static com.askey.record.Utils.firstCamera;
-import static com.askey.record.Utils.firstFile;
-import static com.askey.record.Utils.firstFilePath;
-import static com.askey.record.Utils.getCalendarTime;
-import static com.askey.record.Utils.getFail;
-import static com.askey.record.Utils.getFrameRate;
-import static com.askey.record.Utils.getIsRun;
-import static com.askey.record.Utils.getPath;
-import static com.askey.record.Utils.getReset;
-import static com.askey.record.Utils.getSDPath;
-import static com.askey.record.Utils.getSdCard;
-import static com.askey.record.Utils.getSuccess;
-import static com.askey.record.Utils.isError;
-import static com.askey.record.Utils.isFinish;
-import static com.askey.record.Utils.isFrame;
-import static com.askey.record.Utils.isInteger;
-import static com.askey.record.Utils.isNew;
-import static com.askey.record.Utils.isQuality;
-import static com.askey.record.Utils.isReady;
-import static com.askey.record.Utils.isRecord;
-import static com.askey.record.Utils.isRun;
-import static com.askey.record.Utils.lastfirstCamera;
-import static com.askey.record.Utils.lastsecondCamera;
-import static com.askey.record.Utils.logName;
-import static com.askey.record.Utils.readConfigFile;
-import static com.askey.record.Utils.reformatConfigFile;
-import static com.askey.record.Utils.sCamera;
-import static com.askey.record.Utils.secondCamera;
-import static com.askey.record.Utils.secondFile;
-import static com.askey.record.Utils.secondFilePath;
-import static com.askey.record.Utils.setConfigFile;
-import static com.askey.record.Utils.Success;
-import static com.askey.record.Utils.videoLogList;
-import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
+import static com.askey.bit.Utils.DFRAME_RATE;
+import static com.askey.bit.Utils.EXTRA_VIDEO_BT_FAIL;
+import static com.askey.bit.Utils.EXTRA_VIDEO_BT_SUCCESS;
+import static com.askey.bit.Utils.EXTRA_VIDEO_COPY;
+import static com.askey.bit.Utils.EXTRA_VIDEO_FAIL;
+import static com.askey.bit.Utils.EXTRA_VIDEO_PASTE;
+import static com.askey.bit.Utils.EXTRA_VIDEO_RECORD;
+import static com.askey.bit.Utils.EXTRA_VIDEO_REFORMAT;
+import static com.askey.bit.Utils.EXTRA_VIDEO_REMOVE;
+import static com.askey.bit.Utils.EXTRA_VIDEO_RESET;
+import static com.askey.bit.Utils.EXTRA_VIDEO_RUN;
+import static com.askey.bit.Utils.EXTRA_VIDEO_SUCCESS;
+import static com.askey.bit.Utils.EXTRA_VIDEO_VERSION;
+import static com.askey.bit.Utils.EXTRA_VIDEO_WIFI_FAIL;
+import static com.askey.bit.Utils.EXTRA_VIDEO_WIFI_SUCCESS;
+import static com.askey.bit.Utils.FPS;
+import static com.askey.bit.Utils.FRAMESKIP;
+import static com.askey.bit.Utils.FRAME_RATE;
+import static com.askey.bit.Utils.NEW_DFRAME_RATE;
+import static com.askey.bit.Utils.NEW_FRAME_RATE;
+import static com.askey.bit.Utils.NO_SD_CARD;
+import static com.askey.bit.Utils.TAG;
+import static com.askey.bit.Utils.checkConfigFile;
+import static com.askey.bit.Utils.configName;
+import static com.askey.bit.Utils.delayTime;
+import static com.askey.bit.Utils.errorMessage;
+import static com.askey.bit.Utils.fCamera;
+import static com.askey.bit.Utils.Fail;
+import static com.askey.bit.Utils.wifiFail;
+import static com.askey.bit.Utils.btFail;
+import static com.askey.bit.Utils.firstCamera;
+import static com.askey.bit.Utils.firstFile;
+import static com.askey.bit.Utils.firstFilePath;
+import static com.askey.bit.Utils.getCalendarTime;
+import static com.askey.bit.Utils.getFail;
+import static com.askey.bit.Utils.getWifiFail;
+import static com.askey.bit.Utils.getBtFail;
+import static com.askey.bit.Utils.getFrameRate;
+import static com.askey.bit.Utils.getIsRun;
+import static com.askey.bit.Utils.getPath;
+import static com.askey.bit.Utils.getReset;
+import static com.askey.bit.Utils.getSDPath;
+import static com.askey.bit.Utils.getSdCard;
+import static com.askey.bit.Utils.getSuccess;
+import static com.askey.bit.Utils.getWifiSuccess;
+import static com.askey.bit.Utils.getBtSuccess;
+import static com.askey.bit.Utils.isError;
+import static com.askey.bit.Utils.isFinish;
+import static com.askey.bit.Utils.isFrame;
+import static com.askey.bit.Utils.isInteger;
+import static com.askey.bit.Utils.isNew;
+import static com.askey.bit.Utils.isQuality;
+import static com.askey.bit.Utils.isReady;
+import static com.askey.bit.Utils.isRecord;
+import static com.askey.bit.Utils.isRun;
+import static com.askey.bit.Utils.lastfirstCamera;
+import static com.askey.bit.Utils.lastsecondCamera;
+import static com.askey.bit.Utils.logName;
+import static com.askey.bit.Utils.readConfigFile;
+import static com.askey.bit.Utils.reformatConfigFile;
+import static com.askey.bit.Utils.sCamera;
+import static com.askey.bit.Utils.secondCamera;
+import static com.askey.bit.Utils.secondFile;
+import static com.askey.bit.Utils.secondFilePath;
+import static com.askey.bit.Utils.setConfigFile;
+import static com.askey.bit.Utils.Success;
+import static com.askey.bit.Utils.wifiSuccess;
+import static com.askey.bit.Utils.btSuccess;
+import static com.askey.bit.Utils.videoLogList;
+import static com.askey.bit.restartActivity.EXTRA_MAIN_PID;
 
 public class VideoRecordActivity extends Activity {
     //TODO 使用SD Card儲存時 SD_Mode 設置為 true
@@ -119,9 +133,12 @@ public class VideoRecordActivity extends Activity {
     //TODO 使用錯誤重啟時 autoRestart 設置為 true
     public static boolean autoRestart = true;
     public static boolean extraRecordStatus = false, onRestart = false;
-    public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
+    public static int onRun = 0, onReset = 0, onSuccess = 0, onFail = 0;
+    public static int onWifiSuccess = 0, onWifiFail = 0, onBtSuccess = 0, onBtFail = 0;
     private static String codeDate0, codeDate1, resetDate;
     private Size mPreviewSize;
+    private WifiManager wifiManager;
+    private BluetoothAdapter mbtAdapter;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
     private CameraCaptureSession mPreviewSession0, mPreviewSession1;
@@ -185,11 +202,19 @@ public class VideoRecordActivity extends Activity {
             isRun = onRun;
             Success = onSuccess;
             Fail = onFail;
+            wifiSuccess = onWifiSuccess;
+            wifiFail = onWifiFail;
+            btSuccess = onBtSuccess;
+            btFail = onBtFail;
         } else {
             onReset = 0;
             isRun = 0;
             Success = 0;
             Fail = 0;
+            wifiSuccess = 0;
+            wifiFail = 0;
+            btSuccess = 0;
+            btFail = 0;
         }
         extraRecordStatus = true;
         firstFilePath.clear();
@@ -228,7 +253,10 @@ public class VideoRecordActivity extends Activity {
         videoLogList.add(new LogMsg("#checkPermission", mLog.v));
         int CAMERA = checkSelfPermission(Manifest.permission.CAMERA);
         int STORAGE = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        return permission(CAMERA) || permission(STORAGE);
+        int INTERNET = checkSelfPermission(Manifest.permission.INTERNET);
+        int BLUETOOTH = checkSelfPermission(Manifest.permission.BLUETOOTH);
+
+        return permission(CAMERA) || permission(STORAGE) || permission(INTERNET) || permission(BLUETOOTH);
     }
 
     @TargetApi(23)
@@ -299,7 +327,6 @@ public class VideoRecordActivity extends Activity {
                 }
             } //*reflection invoke
             setStart();
-
         }
     }
 
@@ -468,8 +495,12 @@ public class VideoRecordActivity extends Activity {
             Intent intent = restartActivity.createIntent(context);
             intent.putExtra(EXTRA_VIDEO_RUN, onRun);
             intent.putExtra(EXTRA_VIDEO_FAIL, onFail);
-            intent.putExtra(EXTRA_VIDEO_RESET, onReset);
             intent.putExtra(EXTRA_VIDEO_SUCCESS, onSuccess);
+            intent.putExtra(EXTRA_VIDEO_WIFI_FAIL, onWifiFail);
+            intent.putExtra(EXTRA_VIDEO_WIFI_SUCCESS, onWifiSuccess);
+            intent.putExtra(EXTRA_VIDEO_BT_FAIL, onBtFail);
+            intent.putExtra(EXTRA_VIDEO_BT_SUCCESS, onBtSuccess);
+            intent.putExtra(EXTRA_VIDEO_RESET, onReset);
             intent.putExtra(EXTRA_VIDEO_RECORD, record);
             context.startActivity(intent);
         }
@@ -477,6 +508,20 @@ public class VideoRecordActivity extends Activity {
 
     @SuppressLint("HandlerLeak")
     private void initial() {
+        try {
+            wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        } catch (Exception e) {
+            isError = true;
+            videoLogList.add(new LogMsg("wifiManager error.", mLog.e));
+            errorMessage = "wifiManager error.";
+        }
+        try {
+            mbtAdapter = BluetoothAdapter.getDefaultAdapter();
+        } catch (Exception e) {
+            isError = true;
+            videoLogList.add(new LogMsg("bluetoothAdapter error.", mLog.e));
+            errorMessage = "bluetoothAdapter error.";
+        }
         getSdCard = !getSDPath().equals("");
         ArrayList<View> items_frame = new ArrayList();
         ArrayList<View> items_quality = new ArrayList();
@@ -514,22 +559,22 @@ public class VideoRecordActivity extends Activity {
         backgroundHandler1 = new Handler(thread1.getLooper());
         mainHandler = new Handler(getMainLooper());
         recordHandler0 = new Handler() {
-            public void handleMessage(android.os.Message msg) {
+            public void handleMessage(Message msg) {
                 startRecord(firstCamera);
             }
         };
         recordHandler1 = new Handler() {
-            public void handleMessage(android.os.Message msg) {
+            public void handleMessage(Message msg) {
                 startRecord(secondCamera);
             }
         };
         stopRecordHandler0 = new Handler() {
-            public void handleMessage(android.os.Message msg) {
+            public void handleMessage(Message msg) {
                 stopRecord(false, msg.obj.toString(), msg.arg1 + "");
             }
         };
         stopRecordHandler1 = new Handler() {
-            public void handleMessage(android.os.Message msg) {
+            public void handleMessage(Message msg) {
                 stopRecord(false, msg.obj.toString(), msg.arg1 + "");
             }
         };
@@ -543,7 +588,6 @@ public class VideoRecordActivity extends Activity {
         mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
         mTextureView1 = findViewById(R.id.surfaceView1);
         mTextureView1.setSurfaceTextureListener(new mSurfaceTextureListener(secondCamera));
-
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
             videoLogList.add(new LogMsg("@cancel", mLog.v));
             stopRecordAndSaveLog(true);
@@ -589,12 +633,16 @@ public class VideoRecordActivity extends Activity {
         onFail = getIntent().getIntExtra(EXTRA_VIDEO_FAIL, 0);
         onReset = getIntent().getIntExtra(EXTRA_VIDEO_RESET, 0);
         onSuccess = getIntent().getIntExtra(EXTRA_VIDEO_SUCCESS, 0);
+        onWifiFail = getIntent().getIntExtra(EXTRA_VIDEO_WIFI_FAIL, 0);
+        onWifiSuccess = getIntent().getIntExtra(EXTRA_VIDEO_WIFI_SUCCESS, 0);
+        onBtFail = getIntent().getIntExtra(EXTRA_VIDEO_BT_FAIL, 0);
+        onBtSuccess = getIntent().getIntExtra(EXTRA_VIDEO_BT_SUCCESS, 0);
         if (onReset != 0)
             videoLogList.add(new LogMsg("#noReset:" + onReset, mLog.v));
         extraRecordStatus = getIntent().getBooleanExtra(EXTRA_VIDEO_RECORD, false);
         // show DEMO
         demoHandler = new Handler() {
-            public void handleMessage(android.os.Message msg) {
+            public void handleMessage(Message msg) {
                 this.post(() -> checkSdCardFromFileList());
                 if (!extraRecordStatus) {
                     this.post(() -> saveLog(getApplicationContext(), false, false));
@@ -1013,8 +1061,11 @@ public class VideoRecordActivity extends Activity {
             } else {
                 Fail++;
             }
-            videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] + " frameRate:" + frameRate +
-                    " success:" + getSuccess() + " fail:" + getFail() + " reset:" + getReset(), mLog.i));
+            videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] +
+                    " video_frameRate:" + frameRate + " video_success:" + getSuccess() + " video_fail:" + getFail() +
+                    " wifi_success:" + getWifiSuccess() + " wifi_fail:" + getWifiFail() +
+                    " bt_success:" + getBtSuccess() + " bt_fail:" + getBtFail() +
+                    " reset:" + getReset(), mLog.i));
             new Handler().post(() -> saveLog(getApplicationContext(), false, false));
         } catch (Exception e) {
             e.printStackTrace();
@@ -1038,19 +1089,26 @@ public class VideoRecordActivity extends Activity {
         if (!isError) {
             Log.d(TAG, "startRecord");
             try {
-                if (isCameraOne(cameraId))
+                if (isCameraOne(cameraId)) {
+                    wifiEnableOrDisable();
+                    btEnableOrDisable();
                     codeDate0 = getCalendarTime();
-                else
+                } else {
                     codeDate1 = getCalendarTime();
+                }
 
                 if (isCameraOne(cameraId)) {
                     checkSdCardFromFileList();
                     runOnUiThread(() -> {
                         if (mTimer == null) {
                             isRun++;
-                            onFail = getFail();
                             onRun = getIsRun();
+                            onFail = getFail();
                             onSuccess = getSuccess();
+                            onWifiFail = getWifiFail();
+                            onWifiSuccess = getWifiSuccess();
+                            onBtFail = getBtFail();
+                            onBtSuccess = getBtSuccess();
                             //タイマーの初期化処理
                             timerTask = new mTimerTask();
                             mLaptime = 0.0f;
@@ -1126,7 +1184,7 @@ public class VideoRecordActivity extends Activity {
                                             Message msg = stopRecordHandler1.obtainMessage();
                                             msg.arg1 = Integer.parseInt(cameraId);
                                             msg.obj = getCodeDate(cameraId);
-                                            stopRecordHandler1.sendMessageDelayed(msg, delayTime);
+                                            stopRecordHandler1.sendMessageDelayed(msg, delayTime + 500);
                                             if (mMediaRecorder1 != null)
                                                 mMediaRecorder1.start();
                                         }
@@ -1509,6 +1567,46 @@ public class VideoRecordActivity extends Activity {
 
         public void onPageScrollStateChanged(int state) {
 
+        }
+    }
+
+    private void wifiEnableOrDisable() {
+        if (wifiManager != null) {
+            try {
+                if (WifiManager.WIFI_STATE_ENABLED != wifiManager.getWifiState()) {
+                    wifiManager.setWifiEnabled(true);
+                } else {
+                    wifiManager.setWifiEnabled(false);
+                }
+                wifiSuccess++;
+            } catch (Exception e) {
+                e.printStackTrace();
+                wifiFail++;
+                videoLogList.add(new LogMsg("Error wifiEnableOrDisable fail."));
+            }
+        } else {
+            wifiFail++;
+            videoLogList.add(new LogMsg("Error wifiEnableOrDisable fail."));
+        }
+    }
+
+    private void btEnableOrDisable() {
+        if (mbtAdapter != null) {
+            try {
+                if (!mbtAdapter.isEnabled()) {
+                    mbtAdapter.enable();
+                } else {
+                    mbtAdapter.disable();
+                }
+                btSuccess++;
+            } catch (Exception e) {
+                e.printStackTrace();
+                btFail++;
+                videoLogList.add(new LogMsg("Error btEnableOrDisable fail."));
+            }
+        } else {
+            btFail++;
+            videoLogList.add(new LogMsg("Error btEnableOrDisable fail."));
         }
     }
 }

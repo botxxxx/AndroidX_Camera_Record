@@ -11,7 +11,7 @@ android {
     }
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.askey.record"
+        applicationId "com.askey.bit"
         minSdkVersion 27
         //noinspection OldTargetApi
         targetSdkVersion 27

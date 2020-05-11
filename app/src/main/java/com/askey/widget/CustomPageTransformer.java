@@ -2,7 +2,7 @@ package com.askey.widget;
 
 import android.view.View;
 
-import com.askey.record.R;
+import com.askey.bit.R;
 
 public class CustomPageTransformer implements VerticalViewPager.PageTransformer {
     @Override
