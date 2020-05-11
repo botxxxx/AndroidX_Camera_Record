@@ -1,5 +1,4 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="title_activity_video_record">VideoRecordActivity</string>
     <!--
     [CDR9020_QTR_v1.0.0]
         1.Rear Camera、External Camera同時錄影並儲存至外接SD Card
@@ -108,6 +107,8 @@
         1.set Camera FrameRate SystemProperties was changed to "persist.our.camera.fps".
         2.Developer can set record video to Sd Card or Internal storage.
         3.Developer can set errors will restart or stop.
+    [CDR9020_BIT_v1.0.0]
+        1.add wifi and bt on/off at runtime.
     -->
-    <string name="app_name">CDR9020_QTR(v1.7.6)</string>
+    <string name="app_name">CDR9020_BIT(v1.0.0)</string>
 </resources>

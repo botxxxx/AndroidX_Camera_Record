@@ -1,5 +1,4 @@
-package com.askey.record;
-
+package com.askey.bit;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -13,17 +12,18 @@ import java.io.FileOutputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
-import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
-import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
-import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
-import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
-import static com.askey.record.Utils.getPath;
-import static com.askey.record.Utils.getSDPath;
-import static com.askey.record.Utils.logName;
-import static com.askey.record.Utils.videoLogList;
-import static com.askey.record.VideoRecordActivity.SD_Mode;
-import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
+import static com.askey.bit.Utils.EXTRA_VIDEO_COPY;
+import static com.askey.bit.Utils.EXTRA_VIDEO_PASTE;
+import static com.askey.bit.Utils.EXTRA_VIDEO_REFORMAT;
+import static com.askey.bit.Utils.EXTRA_VIDEO_REMOVE;
+import static com.askey.bit.Utils.EXTRA_VIDEO_VERSION;
+import static com.askey.bit.Utils.LOG_TITLE;
+import static com.askey.bit.Utils.getPath;
+import static com.askey.bit.Utils.getSDPath;
+import static com.askey.bit.Utils.logName;
+import static com.askey.bit.Utils.videoLogList;
+import static com.askey.bit.VideoRecordActivity.SD_Mode;
+import static com.askey.bit.restartActivity.EXTRA_MAIN_PID;
 
 public class saveLogService extends IntentService {
     private String version;
@@ -39,7 +39,7 @@ public class saveLogService extends IntentService {
 
         File file = new File(getPath(), logName);
         if (!file.exists()) {
-            logString = "[VIDEO_RECORD_LOG]" + version + "\r\n";
+            logString = LOG_TITLE + version + "\r\n";
             try {
                 file.createNewFile();
                 mLogList.add(new LogMsg("Create the log file.", mLog.w));
@@ -64,7 +64,7 @@ public class saveLogService extends IntentService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if(SD_Mode) {
+        if (SD_Mode) {
             if (move)
                 try {
                     Thread tMove = new Thread(() -> {

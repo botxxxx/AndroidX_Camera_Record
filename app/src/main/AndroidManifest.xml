@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.askey.record"
+    package="com.askey.bit"
     android:sharedUserId="android.uid.system"
     tools:ignore="ProtectedPermissions">
 
@@ -17,6 +17,10 @@
     <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_MEDIA_STORAGE" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+
     <application
         android:allowBackup="true"
         android:exported="true"
@@ -25,7 +29,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity
-            android:name=".VideoRecordActivity"
+            android:name="com.askey.bit.VideoRecordActivity"
             android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|keyboardHidden|screenSize|keyboard"
             tools:ignore="LockedOrientationActivity">
@@ -36,14 +40,14 @@
         </activity>
 
         <activity
-            android:name=".restartActivity"
+            android:name="com.askey.bit.restartActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleInstance"
             android:process=":restart_process"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
-        <service android:name=".copyFileService"/>
-        <service android:name=".saveLogService"/>
-        <service android:name=".checkSdCardService"/>
+        <service android:name="com.askey.bit.copyFileService"/>
+        <service android:name="com.askey.bit.saveLogService"/>
+        <service android:name="com.askey.bit.checkSdCardService"/>
     </application>
 </manifest>

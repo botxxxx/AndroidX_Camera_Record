@@ -1,4 +1,4 @@
-package com.askey.record;
+package com.askey.bit;
 
 
 import android.app.IntentService;
@@ -13,17 +13,17 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
-import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
-import static com.askey.record.Utils.NO_SD_CARD;
-import static com.askey.record.Utils.errorMessage;
-import static com.askey.record.Utils.firstFile;
-import static com.askey.record.Utils.getSDPath;
-import static com.askey.record.Utils.getSdCard;
-import static com.askey.record.Utils.isError;
-import static com.askey.record.Utils.sdData;
-import static com.askey.record.Utils.secondFile;
-import static com.askey.record.Utils.videoLogList;
+import static com.askey.bit.Utils.EXTRA_VIDEO_REFORMAT;
+import static com.askey.bit.Utils.EXTRA_VIDEO_VERSION;
+import static com.askey.bit.Utils.NO_SD_CARD;
+import static com.askey.bit.Utils.errorMessage;
+import static com.askey.bit.Utils.firstFile;
+import static com.askey.bit.Utils.getSDPath;
+import static com.askey.bit.Utils.getSdCard;
+import static com.askey.bit.Utils.isError;
+import static com.askey.bit.Utils.sdData;
+import static com.askey.bit.Utils.secondFile;
+import static com.askey.bit.Utils.videoLogList;
 
 public class checkSdCardService extends IntentService {
 

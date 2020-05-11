@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-import com.askey.record.R;
+import com.askey.bit.R;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
