@@ -108,6 +108,7 @@
         1.set Camera FrameRate SystemProperties was changed to "persist.our.camera.fps".
         2.Developer can set record video to Sd Card or Internal storage.
         3.Developer can set errors will restart or stop.
+        4.fix record time to one minute.
     -->
     <string name="app_name">CDR9020_QTR(v1.7.6)</string>
 </resources>

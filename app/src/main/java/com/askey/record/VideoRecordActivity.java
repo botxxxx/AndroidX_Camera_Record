@@ -114,9 +114,9 @@ import static com.askey.record.Utils.videoLogList;
 import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 
 public class VideoRecordActivity extends Activity {
-    //TODO 使用SD Card儲存時 SD_Mode 設置為 true
+    //TODO 使用SD Card儲存 SD_Mode 設置為 true
     public static boolean SD_Mode = true;
-    //TODO 使用錯誤重啟時 autoRestart 設置為 true
+    //TODO 使用錯誤重啟 autoRestart 設置為 true
     public static boolean autoRestart = true;
     public static boolean extraRecordStatus = false, onRestart = false;
     public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
@@ -1126,7 +1126,7 @@ public class VideoRecordActivity extends Activity {
                                             Message msg = stopRecordHandler1.obtainMessage();
                                             msg.arg1 = Integer.parseInt(cameraId);
                                             msg.obj = getCodeDate(cameraId);
-                                            stopRecordHandler1.sendMessageDelayed(msg, delayTime);
+                                            stopRecordHandler1.sendMessageDelayed(msg, delayTime + 500);
                                             if (mMediaRecorder1 != null)
                                                 mMediaRecorder1.start();
                                         }
@@ -1393,7 +1393,6 @@ public class VideoRecordActivity extends Activity {
     }
 
     private class mTimerTask extends TimerTask {
-
 
         public void run() {
             // mHandlerを通じてUI Threadへ処理をキューイング

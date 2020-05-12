@@ -1,14 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
-    signingConfigs {
-        debug {
-            storeFile file('libs/debug.keystore')
-            storePassword 'android'
-            keyAlias = 'platform'
-            keyPassword 'android'
-        }
-    }
+
+    //TODO 使用非9020裝置需關閉SignKey選項
+//    signingConfigs {
+//        debug {
+//            storeFile file('libs/debug.keystore')
+//            storePassword 'android'
+//            keyAlias = 'platform'
+//            keyPassword 'android'
+//        }
+//    }
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.askey.record"

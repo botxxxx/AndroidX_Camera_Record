@@ -18,6 +18,7 @@ import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
 import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
 import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
 import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
+import static com.askey.record.Utils.LOG_TITLE;
 import static com.askey.record.Utils.getPath;
 import static com.askey.record.Utils.getSDPath;
 import static com.askey.record.Utils.logName;
@@ -39,7 +40,7 @@ public class saveLogService extends IntentService {
 
         File file = new File(getPath(), logName);
         if (!file.exists()) {
-            logString = "[VIDEO_RECORD_LOG]" + version + "\r\n";
+            logString = LOG_TITLE + version + "\r\n";
             try {
                 file.createNewFile();
                 mLogList.add(new LogMsg("Create the log file.", mLog.w));

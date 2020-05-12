@@ -2,6 +2,8 @@ package com.askey.record;
 
 import android.content.Context;
 
+import static com.askey.record.Utils.CONFIG_TITLE;
+
 public class Configini {
 
     protected Context context;
@@ -24,7 +26,7 @@ public class Configini {
 
     protected String[] config() {
         return new String[]{
-                "[VIDEO_RECORD_CONFIG]" + context.getString(R.string.app_name) + "\r\n",
+                CONFIG_TITLE+ context.getString(R.string.app_name) + "\r\n",
                 "#CameraID (0:Outer, 1:Inner, 2:External)\r\n",
                 "firstCameraID = " + firstCamera + "\r\n",
                 "secondCameraID = " + secondCamera + "\r\n", "\r\n",

@@ -50,9 +50,11 @@ public class Utils {
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String configName = "VideoRecordConfig.ini";
     public static final String logName = "VideoRecordLog.ini";
+    public static final String CONFIG_TITLE = "[Video_Record_Config]";
+    public static final String LOG_TITLE = "[Video_Record_Log]";
     public static final double sdData = 1;
     public static int isRun = 0, Success = 0, Fail = 0;
-    public static String TAG = "VideoRecord";
+    public static String TAG = "VideoRecordActivity";
     public static String firstCamera = "0";
     public static String secondCamera = "1";
     public static String lastfirstCamera = "0";
@@ -61,8 +63,8 @@ public class Utils {
     public static String secondFile = "";
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList = null;
-    public static int isFinish = 999, delayTime = 60000, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isError = false, isNew = true;
+    public static int isFinish = 999, delayTime = 60500, isFrame = 0, isQuality = 0;
+    public static boolean isReady = false, isRecord = false, isError = false, isNew = false;
     public static boolean fCamera = true, sCamera = true, getSdCard = false;
     public static String errorMessage = "";
 
@@ -166,7 +168,7 @@ public class Utils {
             if (input.length() > 0) {
                 String[] read = input.split("\r\n");
                 int target = 0, t;
-                String title = "[VIDEO_RECORD_CONFIG]";
+                String title = CONFIG_TITLE;
                 String first = "firstCameraID = ", second = "secondCameraID = ";
                 String code = "numberOfRuns = ", prop = "setProperty = ";
                 for (String s : read)
@@ -255,7 +257,7 @@ public class Utils {
                 }
             }
             if (update) {
-                String logString = "[VIDEO_RECORD_LOG]" + context.getString(R.string.app_name) + "\r\n";
+                String logString = LOG_TITLE + context.getString(R.string.app_name) + "\r\n";
                 videoLogList.add(new LogMsg("Reformat the Log file.", mLog.e));
                 for (LogMsg logs : videoLogList) {
                     String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
