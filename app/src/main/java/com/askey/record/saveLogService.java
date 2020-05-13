@@ -111,7 +111,7 @@ public class saveLogService extends IntentService {
         } catch (Exception e) {
             e.printStackTrace();
             if (null != videoLogList)
-                videoLogList.add(new LogMsg("saveLog Service error.", mLog.e));
+                videoLogList.add(new LogMsg("SaveLogService error.", mLog.e));
         } finally {
             if (mainPid > 0) android.os.Process.killProcess(mainPid);
         }

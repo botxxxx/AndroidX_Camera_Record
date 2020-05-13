@@ -42,6 +42,7 @@ public class Utils {
     public static final String EXTRA_VIDEO_RECORD = "RestartActivity.record";
     public static final String EXTRA_VIDEO_SUCCESS = "RestartActivity.success";
     public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
+    public static final String EXTRA_VIDEO_PATH = "RestartActivity.path";
     public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
     public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
     public static final String EXTRA_VIDEO_VERSION = "RestartActivity.version";
@@ -64,7 +65,7 @@ public class Utils {
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList = null;
     public static int isFinish = 999, delayTime = 60500, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isError = false, isNew = false;
+    public static boolean isReady = false, isRecord = false, isError = false, isNew = true;
     public static boolean fCamera = true, sCamera = true, getSdCard = false;
     public static String errorMessage = "";
 
@@ -477,51 +478,6 @@ public class Utils {
             path = getPath();
         }
         return path;
-    }
-
-    public static int getFrameRate(String path) {
-        int frameRate = 0;
-        if (!getSDPath().equals("")) {
-            try {
-                MediaExtractor extractor = null;
-                FileInputStream fis = null;
-                try {
-                    extractor = new MediaExtractor();
-                    fis = new FileInputStream(new File(path));
-                    extractor.setDataSource(fis.getFD());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    isError = true;
-                    getSdCard = !getSDPath().equals("");
-                    errorMessage = "getFrameRate failed.<============ Crash here";
-                    videoLogList.add(new LogMsg("getFrameRate failed.", mLog.e));
-                    return 0;
-                }
-                int numTracks = extractor.getTrackCount();
-                for (int i = 0; i < numTracks; i++) {
-                    MediaFormat format = extractor.getTrackFormat(i);
-                    if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
-                        frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
-                    }
-                }
-                if (extractor != null)
-                    extractor.release();
-                if (fis != null)
-                    fis.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                isError = true;
-                getSdCard = !getSDPath().equals("");
-                errorMessage = "getFrameRate failed.<============ Crash here";
-                videoLogList.add(new LogMsg("getFrameRate failed.", mLog.e));
-            }
-        } else {
-            isError = true;
-            getSdCard = !getSDPath().equals("");
-            errorMessage = "getFrameRate failed." + NO_SD_CARD + "<============ Crash here";
-            videoLogList.add(new LogMsg("getFrameRate failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
-        }
-        return frameRate;
     }
 
     public static String getFileExtension(String fullName) {

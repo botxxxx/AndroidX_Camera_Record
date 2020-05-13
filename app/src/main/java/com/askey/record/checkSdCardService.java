@@ -149,7 +149,7 @@ public class checkSdCardService extends IntentService {
         } catch (Exception e) {
             e.printStackTrace();
             if (null != videoLogList) {
-                videoLogList.add(new LogMsg("checkSdCardService error.", mLog.e));
+                videoLogList.add(new LogMsg("CheckSdCardService error.", mLog.e));
                 saveLog(this);
             }
         }

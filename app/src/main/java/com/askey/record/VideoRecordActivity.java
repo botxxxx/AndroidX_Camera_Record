@@ -54,10 +54,10 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.askey.record.Utils.DFRAME_RATE;
 import static com.askey.record.Utils.EXTRA_VIDEO_COPY;
 import static com.askey.record.Utils.EXTRA_VIDEO_FAIL;
 import static com.askey.record.Utils.EXTRA_VIDEO_PASTE;
+import static com.askey.record.Utils.EXTRA_VIDEO_PATH;
 import static com.askey.record.Utils.EXTRA_VIDEO_RECORD;
 import static com.askey.record.Utils.EXTRA_VIDEO_REFORMAT;
 import static com.askey.record.Utils.EXTRA_VIDEO_REMOVE;
@@ -68,7 +68,6 @@ import static com.askey.record.Utils.EXTRA_VIDEO_VERSION;
 import static com.askey.record.Utils.FPS;
 import static com.askey.record.Utils.FRAMESKIP;
 import static com.askey.record.Utils.FRAME_RATE;
-import static com.askey.record.Utils.NEW_DFRAME_RATE;
 import static com.askey.record.Utils.NEW_FRAME_RATE;
 import static com.askey.record.Utils.NO_SD_CARD;
 import static com.askey.record.Utils.TAG;
@@ -83,10 +82,8 @@ import static com.askey.record.Utils.firstFile;
 import static com.askey.record.Utils.firstFilePath;
 import static com.askey.record.Utils.getCalendarTime;
 import static com.askey.record.Utils.getFail;
-import static com.askey.record.Utils.getFrameRate;
 import static com.askey.record.Utils.getIsRun;
 import static com.askey.record.Utils.getPath;
-import static com.askey.record.Utils.getReset;
 import static com.askey.record.Utils.getSDPath;
 import static com.askey.record.Utils.getSdCard;
 import static com.askey.record.Utils.getSuccess;
@@ -862,8 +859,10 @@ public class VideoRecordActivity extends Activity {
                     isFinish = 0;
                     isRecord = false;
                     extraRecordStatus = false;
+                    videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                     videoLogList.add(new LogMsg("#completed"));
-                    end(preview);
+                    ((TextView) findViewById(R.id.record_status)).setText("completed");
+                    takePreview(cameraID);
                 }
                 if (isError || !getSdCard) {
                     isRun = 0;
@@ -928,12 +927,13 @@ public class VideoRecordActivity extends Activity {
                     if (isFinish == 999 || isRun <= isFinish) {
                         takeRecord();
                     } else {
+                        isRun = 0;
+                        isFinish = 0;
                         isRecord = false;
                         extraRecordStatus = false;
                         videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                         videoLogList.add(new LogMsg("#completed"));
-                        isRun = 0;
-                        isFinish = 0;
+                        ((TextView) findViewById(R.id.record_status)).setText("completed");
                         end(preview);
                     }
                 } else {
@@ -978,49 +978,12 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    @SuppressLint("DefaultLocale")
-    private void fileCheck(String path) {
-        try {
-            File video = new File(path);
-            int frameRate = 0;
-
-            if (video.exists()) {
-                try {
-                    frameRate = getFrameRate(path);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
-                    new Handler().post(() -> saveLog(getApplicationContext(), false, false));
-                    errorMessage = "CheckFile error.";
-                }
-
-                boolean check = false;
-                double[] range = isNew ? NEW_DFRAME_RATE : DFRAME_RATE;
-                if (frameRate >= range[isFrame]) {
-                    if (frameRate <= range[isFrame] + 3) {
-                        check = true;
-                    }
-                } else if (frameRate < range[isFrame]) {
-                    if (frameRate >= range[isFrame] - 3) {
-                        check = true;
-                    }
-                }
-                if (check)
-                    Success++;
-                else
-                    Fail++;
-            } else {
-                Fail++;
-            }
-            videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] + " frameRate:" + frameRate +
-                    " success:" + getSuccess() + " fail:" + getFail() + " reset:" + getReset(), mLog.i));
-            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
-        } catch (Exception e) {
-            e.printStackTrace();
-            videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
-            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
-        }
+    private void checkFile(String path){
+        Context context = getApplicationContext();
+        Intent intent = new Intent();
+        intent.setClassName(context.getPackageName(), checkFileService.class.getName());
+        intent.putExtra(EXTRA_VIDEO_PATH, path);
+        context.startService(intent);
     }
 
     private void closePreviewSession(String cameraId) {
@@ -1190,7 +1153,7 @@ public class VideoRecordActivity extends Activity {
         if (isCameraOne(cameraID)) {
             try {
                 for (String f : firstFilePath)
-                    fileCheck(f);
+                    checkFile(f);
             } catch (Exception e) {
                 videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
             } finally {
@@ -1200,7 +1163,7 @@ public class VideoRecordActivity extends Activity {
         if (!isCameraOne(cameraID)) {
             try {
                 for (String s : secondFilePath)
-                    fileCheck(s);
+                    checkFile(s);
             } catch (Exception e) {
                 videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
             } finally {
@@ -1211,9 +1174,9 @@ public class VideoRecordActivity extends Activity {
 
     private void checkAndClear() {
         for (String f : firstFilePath)
-            fileCheck(f);
+            checkFile(f);
         for (String s : secondFilePath)
-            fileCheck(s);
+            checkFile(s);
         firstFilePath.clear();
         secondFilePath.clear();
     }

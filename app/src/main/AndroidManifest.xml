@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.askey.record"
+    android:sharedUserId="android.uid.system"
     tools:ignore="ProtectedPermissions">
 
     <uses-feature android:name="android.hardware.camera" />
@@ -44,5 +45,6 @@
         <service android:name=".copyFileService"/>
         <service android:name=".saveLogService"/>
         <service android:name=".checkSdCardService"/>
+        <service android:name=".checkFileService"/>
     </application>
 </manifest>
