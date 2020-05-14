@@ -7,7 +7,6 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.askey.widget.LogMsg;
 import com.askey.widget.mLog;
@@ -148,16 +147,12 @@ public class Utils {
     }
 
     public static void setTestTime(int min) {
-        if (min > 0) {
-            if (min == 999)
-                videoLogList.add(new LogMsg("setRecord time: unlimited times.", mLog.d));
-            else {
-                videoLogList.add(new LogMsg("setRecord time: " + min + " min.", mLog.d));
-                isFinish = min;
-            }
-        } else {
-            videoLogList.add(new LogMsg("The test time must be a positive number.", mLog.e));
+        if (min == 999)
+            videoLogList.add(new LogMsg("setRecord time: unlimited times.", mLog.d));
+        else {
+            videoLogList.add(new LogMsg("setRecord time: " + min + " min.", mLog.d));
         }
+        isFinish = min;
     }
 
     public static void checkConfigFile(Context context, boolean first) {
@@ -272,6 +267,10 @@ public class Utils {
                     }
                     if (isInteger(code.split("\n")[0], true)) {
                         int min = Integer.parseInt(code.split("\n")[0]);
+                        if (min < 0) {
+                            videoLogList.add(new LogMsg("The test time must be a positive number.", mLog.e));
+                            reformat = true;
+                        }
                         setTestTime(min);
                     } else {
                         videoLogList.add(new LogMsg("Unknown Record Times.", mLog.e));
@@ -385,7 +384,7 @@ public class Utils {
         //toast(context, "Ready to write.", mLog.w);
         writeConfigFile(context, file, (
                 !reset ? new Config(context, editText_1.getText().toString(),
-                        editText_2.getText().toString(), isFinish, defaultProp) : new Config(context)).config());
+                        editText_2.getText().toString(), isFinish, isNew) : new Config(context)).config());
         //toast(context, "Write file is completed.", mLog.i);
     }
 

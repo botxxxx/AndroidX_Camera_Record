@@ -935,18 +935,14 @@ public class VideoRecordActivity extends Activity {
                     } catch (Exception e) {
                         videoLogList.add(new LogMsg("Check file is fail."));
                     }
-                    if (isFinish == 999 || isRun <= isFinish) {
-                        takeRecord();
-                    } else {
-                        isRun = 0;
-                        isFinish = 0;
-                        isRecord = false;
-                        extraRecordStatus = false;
-                        videoLogList.add(new LogMsg("#------------------------------", mLog.v));
-                        videoLogList.add(new LogMsg("#Complete"));
-                        ((TextView) findViewById(R.id.record_status)).setText("Complete");
-                        end(preview);
-                    }
+                    isRun = 0;
+                    isFinish = 0;
+                    isRecord = false;
+                    extraRecordStatus = false;
+                    videoLogList.add(new LogMsg("#------------------------------", mLog.v));
+                    videoLogList.add(new LogMsg("#Complete"));
+                    ((TextView) findViewById(R.id.record_status)).setText("Complete");
+                    end(preview);
                 } else {
                     isRun = 0;
                     isFinish = 0;
@@ -1028,7 +1024,6 @@ public class VideoRecordActivity extends Activity {
                             timerTask = new mTimerTask();
                             mLaptime = 0.0f;
                             mTimer = new Timer(true);
-                            mTimer.schedule(timerTask, 100, 100);
                             ((TextView) findViewById(R.id.record_timer)).setText("00");
                             ((TextView) findViewById(R.id.record_status)).setText("Recording");
                         }
@@ -1095,6 +1090,7 @@ public class VideoRecordActivity extends Activity {
                                             stopRecordHandler0.sendMessageDelayed(msg, delayTime);
                                             if (mMediaRecorder0 != null)
                                                 mMediaRecorder0.start();
+                                            mTimer.schedule(timerTask, 100, 100);
                                         } else {
                                             Message msg = stopRecordHandler1.obtainMessage();
                                             msg.arg1 = Integer.parseInt(cameraId);
