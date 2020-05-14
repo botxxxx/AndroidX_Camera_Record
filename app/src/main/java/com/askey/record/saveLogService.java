@@ -57,7 +57,7 @@ public class saveLogService extends IntentService {
             logString += (time + logs.msg + "\r\n");
         }
         try {
-            FileOutputStream output = new FileOutputStream(new File(getPath(), logName), !reFormat);
+            FileOutputStream output = new FileOutputStream(file, !reFormat);
             output.write(logString.getBytes());
             output.close();
             mLogList.clear();

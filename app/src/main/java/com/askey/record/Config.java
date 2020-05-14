@@ -4,26 +4,27 @@ import android.content.Context;
 
 import static com.askey.record.Utils.CONFIG_TITLE;
 import static com.askey.record.Utils.configName;
+import static com.askey.record.Utils.isNew;
 import static com.askey.record.Utils.logName;
 
-public class Configini {
+public class Config {
 
     protected Context context;
     protected String firstCamera = "0";
     protected String secondCamera = "1";
     protected int numberOfRuns = 999;
-    protected boolean isNew = true;
+    protected boolean New = isNew;
 
-    public Configini(Context context) {
+    public Config(Context context) {
         this.context = context;
     }
 
-    public Configini(Context context, String firstCamera, String secondCamera, int isRuns, boolean isNew) {
+    public Config(Context context, String firstCamera, String secondCamera, int isRuns, boolean isNew) {
         this.context = context;
         this.firstCamera = firstCamera;
         this.secondCamera = secondCamera;
         this.numberOfRuns = isRuns;
-        this.isNew = isNew;
+        this.New = isNew;
     }
 
     protected String[] config() {
@@ -35,7 +36,7 @@ public class Configini {
                 "#Total number of runs (1 record is 1 min)\r\n",
                 "numberOfRuns = " + numberOfRuns + "\r\n", "\r\n",
                 "#Set Property\r\n",
-                "setProperty = " + isNew + "\r\n", "\r\n",
+                "setProperty = " + New + "\r\n", "\r\n",
                 "#Video path\r\n",
                 "first camera = /sdcard/v(yyMMddHHmmss)f.mp4\r\n",
                 "second camera = /sdcard/v(yyMMddHHmmss)s.mp4\r\n", "\r\n",

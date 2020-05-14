@@ -22,51 +22,17 @@ import static com.askey.record.Utils.NO_SD_CARD;
 import static com.askey.record.Utils.Success;
 import static com.askey.record.Utils.getFail;
 import static com.askey.record.Utils.getReset;
+import static com.askey.record.Utils.getSDPath;
 import static com.askey.record.Utils.getSuccess;
 import static com.askey.record.Utils.isFrame;
 import static com.askey.record.Utils.isNew;
 import static com.askey.record.Utils.videoLogList;
-import static com.askey.record.VideoRecordActivity.SD_Mode;
 
 public class checkFileService extends IntentService {
     private String path;
 
     public checkFileService() {
         super("checkFileService");
-    }
-
-    public static String getPath() {
-        String path = "/storage/emulated/0/DCIM/";
-        return path;
-    }
-
-    public static String getSDPath() {
-        String path = "";
-        if (SD_Mode) {
-            try {
-                long start = System.currentTimeMillis();
-                long end = start + 10000;
-                Runtime run = Runtime.getRuntime();
-                String cmd = "ls /storage";
-                Process pr = run.exec(cmd);
-                BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-                String line;
-                while ((line = buf.readLine()) != null) {
-                    if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
-                        path = "/storage/" + line + "/";
-                        break;
-                    }
-                    if (System.currentTimeMillis() > end) {
-                        break;
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            path = getPath();
-        }
-        return path;
     }
 
     public static int getFrameRate(File file) {
@@ -82,7 +48,7 @@ public class checkFileService extends IntentService {
                 } catch (IOException e) {
                     e.printStackTrace();
                     if (null != videoLogList)
-                    videoLogList.add(new LogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
+                        videoLogList.add(new LogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
                     return 0;
                 }
                 int numTracks = extractor.getTrackCount();
@@ -99,11 +65,11 @@ public class checkFileService extends IntentService {
             } catch (Exception e) {
                 e.printStackTrace();
                 if (null != videoLogList)
-                videoLogList.add(new LogMsg("getFrameRate failed.<============ Crash here", mLog.e));
+                    videoLogList.add(new LogMsg("getFrameRate failed.<============ Crash here", mLog.e));
             }
         } else {
             if (null != videoLogList)
-            videoLogList.add(new LogMsg("getFrameRate failed " + NO_SD_CARD + ".", mLog.e));
+                videoLogList.add(new LogMsg("getFrameRate failed " + NO_SD_CARD + ".", mLog.e));
         }
         return frameRate;
     }
@@ -122,22 +88,21 @@ public class checkFileService extends IntentService {
                     if (null != videoLogList)
                         videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
                 }
-
-                boolean check = false;
-                double[] range = isNew ? NEW_DFRAME_RATE : DFRAME_RATE;
-                if (frameRate >= range[isFrame]) {
-                    if (frameRate <= range[isFrame] + 3) {
-                        check = true;
+                if (isNew) {
+                    boolean check = false;
+                    double[] range = isNew ? NEW_DFRAME_RATE : DFRAME_RATE;
+                    if (frameRate >= range[isFrame]) {
+                        if (frameRate <= range[isFrame] + 3) {
+                            check = true;
+                        }
+                    } else if (frameRate < range[isFrame]) {
+                        if (frameRate >= range[isFrame] - 3) {
+                            check = true;
+                        }
                     }
-                } else if (frameRate < range[isFrame]) {
-                    if (frameRate >= range[isFrame] - 3) {
-                        check = true;
-                    }
-                }
-                if (check)
-                    Success++;
-                else
-                    Fail++;
+                    if (check) Success++;
+                    else Fail++;
+                } else Success++;
             } else {
                 Fail++;
             }
@@ -148,6 +113,7 @@ public class checkFileService extends IntentService {
             e.printStackTrace();
             if (null != videoLogList)
                 videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
+            Fail++;
         }
     }
 
