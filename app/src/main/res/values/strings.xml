@@ -1,5 +1,4 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="title_activity_video_record">VideoRecordActivity</string>
     <!--
     [CDR9020_QTR_v1.0.0]
         1.Rear Camera、External Camera同時錄影並儲存至外接SD Card

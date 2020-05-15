@@ -634,7 +634,7 @@ public class VideoRecordActivity extends Activity {
                     try {
                         SystemProperties.set(FRAMESKIP, FPS[0]);
                     }catch (Exception e){
-
+                        videoLogList.add(new LogMsg("PropertyUtils fail.", mLog.e));
                     }
                     if (isNew) {
                         String getFrameSkip = PropertyUtils.get(FRAMESKIP);
