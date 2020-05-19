@@ -633,7 +633,7 @@ public class VideoRecordActivity extends Activity {
                 try {
                     try {
                         SystemProperties.set(FRAMESKIP, FPS[0]);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         videoLogList.add(new LogMsg("PropertyUtils fail.", mLog.e));
                     }
                     if (isNew) {
@@ -651,7 +651,7 @@ public class VideoRecordActivity extends Activity {
                         }
                     }
                     ArrayList<View> new_frame = new ArrayList();
-                    if(isNew) {
+                    if (isNew) {
                         for (String frame : new ArrayList<>(Arrays.asList( // or "3.9fps", "3.4fps", "1.7fps", "0.8fps"
                                 isNew ? NEW_FRAME_RATE : FRAME_RATE))) {
                             View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
@@ -779,11 +779,13 @@ public class VideoRecordActivity extends Activity {
         closePreviewSession(secondCamera);
         try {
             if (mMediaRecorder0 != null) {
+                mMediaRecorder0.stop();
                 mMediaRecorder0.release();
                 mMediaRecorder0 = null;
                 videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
             }
             if (mMediaRecorder1 != null) {
+                mMediaRecorder1.stop();
                 mMediaRecorder1.release();
                 mMediaRecorder1 = null;
                 videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
@@ -853,6 +855,7 @@ public class VideoRecordActivity extends Activity {
 
                 if (isCameraOne(cameraID)) {
                     if (mMediaRecorder0 != null) {
+                        mMediaRecorder0.stop();
                         mMediaRecorder0.release();
                         mMediaRecorder0 = null;
                         videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
@@ -861,6 +864,7 @@ public class VideoRecordActivity extends Activity {
                     }
                 } else {
                     if (mMediaRecorder1 != null) {
+                        mMediaRecorder1.stop();
                         mMediaRecorder1.release();
                         mMediaRecorder1 = null;
                         videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
@@ -915,6 +919,7 @@ public class VideoRecordActivity extends Activity {
                     Log.d(TAG, "stopRecord");
                     try {
                         if (mMediaRecorder0 != null) {
+                            mMediaRecorder0.stop();
                             mMediaRecorder0.release();
                             mMediaRecorder0 = null;
                             videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
@@ -924,6 +929,7 @@ public class VideoRecordActivity extends Activity {
                     }
                     try {
                         if (mMediaRecorder1 != null) {
+                            mMediaRecorder1.stop();
                             mMediaRecorder1.release();
                             mMediaRecorder1 = null;
                             videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
