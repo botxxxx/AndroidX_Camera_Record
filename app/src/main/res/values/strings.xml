@@ -107,8 +107,15 @@
         1.set Camera FrameRate SystemProperties was changed to "persist.our.camera.fps".
         2.Developer can set record video to Sd Card or Internal storage.
         3.Developer can set errors will restart or stop.
+        4.fix record time to one minute.
+        5.add checkFileService.
+        6.fix setProp & setRunOfNumber bug.
+        7.fix config bug.
+        8.fix video release bug.
     [CDR9020_BIT_v1.0.0]
         1.add wifi and bt on/off at runtime.
+        2.set defaultProp = false, defaultRun = 480(8h)
+        3.disable video fps and quality setting
     -->
     <string name="app_name">CDR9020_BIT(v1.0.0)</string>
 </resources>

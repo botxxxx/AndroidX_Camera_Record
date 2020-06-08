@@ -26,7 +26,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.os.SystemProperties;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.util.Size;
@@ -38,15 +37,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.askey.widget.CustomPageTransformer;
-import com.askey.widget.CustomTextView;
-import com.askey.widget.HomeListen;
-import com.askey.widget.LogMsg;
-import com.askey.widget.PropertyUtils;
-import com.askey.widget.VerticalViewPager;
-import com.askey.widget.mListAdapter;
-import com.askey.widget.mLog;
-import com.askey.widget.mPagerAdapter;
+import com.askey.widget.*;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -56,12 +47,12 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.askey.bit.Utils.DFRAME_RATE;
 import static com.askey.bit.Utils.EXTRA_VIDEO_BT_FAIL;
 import static com.askey.bit.Utils.EXTRA_VIDEO_BT_SUCCESS;
 import static com.askey.bit.Utils.EXTRA_VIDEO_COPY;
 import static com.askey.bit.Utils.EXTRA_VIDEO_FAIL;
 import static com.askey.bit.Utils.EXTRA_VIDEO_PASTE;
+import static com.askey.bit.Utils.EXTRA_VIDEO_PATH;
 import static com.askey.bit.Utils.EXTRA_VIDEO_RECORD;
 import static com.askey.bit.Utils.EXTRA_VIDEO_REFORMAT;
 import static com.askey.bit.Utils.EXTRA_VIDEO_REMOVE;
@@ -74,7 +65,6 @@ import static com.askey.bit.Utils.EXTRA_VIDEO_WIFI_SUCCESS;
 import static com.askey.bit.Utils.FPS;
 import static com.askey.bit.Utils.FRAMESKIP;
 import static com.askey.bit.Utils.FRAME_RATE;
-import static com.askey.bit.Utils.NEW_DFRAME_RATE;
 import static com.askey.bit.Utils.NEW_FRAME_RATE;
 import static com.askey.bit.Utils.NO_SD_CARD;
 import static com.askey.bit.Utils.TAG;
@@ -93,10 +83,8 @@ import static com.askey.bit.Utils.getCalendarTime;
 import static com.askey.bit.Utils.getFail;
 import static com.askey.bit.Utils.getWifiFail;
 import static com.askey.bit.Utils.getBtFail;
-import static com.askey.bit.Utils.getFrameRate;
 import static com.askey.bit.Utils.getIsRun;
 import static com.askey.bit.Utils.getPath;
-import static com.askey.bit.Utils.getReset;
 import static com.askey.bit.Utils.getSDPath;
 import static com.askey.bit.Utils.getSdCard;
 import static com.askey.bit.Utils.getSuccess;
@@ -128,17 +116,17 @@ import static com.askey.bit.Utils.videoLogList;
 import static com.askey.bit.restartActivity.EXTRA_MAIN_PID;
 
 public class VideoRecordActivity extends Activity {
-    //TODO 使用SD Card儲存時 SD_Mode 設置為 true
+    private WifiManager wifiManager;
+    private BluetoothAdapter mbtAdapter;
+    //TODO 使用SD Card儲存 SD_Mode 設置為 true
     public static boolean SD_Mode = true;
-    //TODO 使用錯誤重啟時 autoRestart 設置為 true
+    //TODO 使用錯誤重啟 autoRestart 設置為 true
     public static boolean autoRestart = true;
     public static boolean extraRecordStatus = false, onRestart = false;
-    public static int onRun = 0, onReset = 0, onSuccess = 0, onFail = 0;
+    public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
     public static int onWifiSuccess = 0, onWifiFail = 0, onBtSuccess = 0, onBtFail = 0;
     private static String codeDate0, codeDate1, resetDate;
     private Size mPreviewSize;
-    private WifiManager wifiManager;
-    private BluetoothAdapter mbtAdapter;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
     private CameraCaptureSession mPreviewSession0, mPreviewSession1;
@@ -153,6 +141,7 @@ public class VideoRecordActivity extends Activity {
     private mTimerTask timerTask = null;
     private Timer mTimer = null;
     private float mLaptime = 0.0f;
+    private int delayMillis = 3000;
 
     private void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, TextView editText4) {
         String input = readConfigFile(context, new File(getPath(), configName));
@@ -313,19 +302,6 @@ public class VideoRecordActivity extends Activity {
             showPermission();
         } else {
             checkConfigFile(this, true);
-            //TODO SETPROP
-            // -> adb shell su 0 getprop persist.our.camera.frameskip
-            if (isNew) {
-                try {
-                    SystemProperties.set(FRAMESKIP, FPS[0]);
-                } catch (Exception e) {
-                    e.getStackTrace();
-                    isError = true;
-                    videoLogList.add(new LogMsg("SystemProperties error.", mLog.e));
-                    new Handler().post(() -> saveLog(this, false, false));
-                    errorMessage = "SystemProperties error. Please check your BuildVersion is 0302.";
-                }
-            } //*reflection invoke
             setStart();
         }
     }
@@ -385,7 +361,7 @@ public class VideoRecordActivity extends Activity {
                         if (autoRestart && isError) {
                             final String dates = resetDate + "";
                             final boolean records = extraRecordStatus;
-                            new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                            new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
                         }
                     }
 
@@ -442,7 +418,7 @@ public class VideoRecordActivity extends Activity {
                         if (autoRestart && isError) {
                             final String dates = resetDate + "";
                             final boolean records = extraRecordStatus;
-                            new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                            new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
                         }
                     }
 
@@ -469,7 +445,7 @@ public class VideoRecordActivity extends Activity {
             if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
-                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
             }
         }
     }
@@ -538,18 +514,8 @@ public class VideoRecordActivity extends Activity {
             item.setText(quality);
             items_quality.add(vi);
         }
-        VerticalViewPager pager_Frame = findViewById(R.id.pager1);
-        pager_Frame.addOnPageChangeListener(new mOnPageChangeListener(0));
-        pager_Frame.setAdapter(new mPagerAdapter(items_frame));
-        pager_Frame.setPageTransformer(true, new CustomPageTransformer());
-
-        VerticalViewPager pager_Quality = findViewById(R.id.pager2);
-        pager_Quality.addOnPageChangeListener(new mOnPageChangeListener(1));
-        pager_Quality.setAdapter(new mPagerAdapter(items_quality));
-        pager_Quality.setPageTransformer(true, new CustomPageTransformer());
 
         // TODO findViewById
-        setLoading(false);
         videoLogList.add(new LogMsg("Initial now.", mLog.v));
         thread0 = new HandlerThread("CameraPreview0");
         thread0.start();
@@ -624,7 +590,7 @@ public class VideoRecordActivity extends Activity {
                 showDialogLog();
             }
         });
-        findViewById(R.id.loadingView).setVisibility(View.INVISIBLE);
+
         ((TextView) findViewById(R.id.record_status)).setText(getSDPath().equals("") ? "Error" : "Ready");
         firstFilePath = new ArrayList();
         secondFilePath = new ArrayList();
@@ -673,40 +639,6 @@ public class VideoRecordActivity extends Activity {
                     openCamera(secondCamera);
                 });
             }
-            if (check[1]) {
-                try {
-                    SystemProperties.set(FRAMESKIP, FPS[0]);
-                    if (isNew) {
-                        String getFrameSkip = PropertyUtils.get(FRAMESKIP);
-                        if (null != getFrameSkip) {
-                            if (isInteger(getFrameSkip, false)) {
-                                //if FrameSkip is change or LastCamera != CameraID, delay 3s to change camera devices
-                                SystemProperties.set(FRAMESKIP, FPS[isFrame]);
-                                videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
-                            } else {
-                                videoLogList.add(new LogMsg("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e));
-                            }
-                        } else {
-                            videoLogList.add(new LogMsg("getFrameSkip error, fs == null.", mLog.e));
-                        }
-                    }
-                    ArrayList<View> new_frame = new ArrayList();
-                    for (String frame : new ArrayList<>(Arrays.asList( // or "3.9fps", "3.4fps", "1.7fps", "0.8fps"
-                            isNew ? NEW_FRAME_RATE : FRAME_RATE))) {
-                        View vi = LayoutInflater.from(this).inflate(R.layout.style_vertical_item, null);
-                        CustomTextView item = vi.findViewById(R.id.customTextView);
-                        item.setText(frame);
-                        new_frame.add(vi);
-                    }
-                    ((VerticalViewPager) findViewById(R.id.pager1)).setAdapter(new mPagerAdapter(new_frame));
-                } catch (Exception e) {
-                    e.getStackTrace();
-                    isError = true;
-                    videoLogList.add(new LogMsg("SystemProperties error.", mLog.e));
-                    new Handler().post(() -> saveLog(this, false, false));
-                    errorMessage = "SystemProperties error. Please check your BuildVersion is 0302.";
-                }
-            }
         } else {
             new Handler().post(() -> saveLog(getApplicationContext(), false, false));
         }
@@ -751,10 +683,6 @@ public class VideoRecordActivity extends Activity {
             }
             dialog.show();
         }
-    }
-
-    private void setLoading(boolean visible) {
-        runOnUiThread(() -> findViewById(R.id.loadingView).setVisibility(visible ? View.VISIBLE : View.INVISIBLE));
     }
 
     private void takeRecord() {
@@ -931,7 +859,7 @@ public class VideoRecordActivity extends Activity {
             if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
-                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
             }
         }
     }
@@ -1002,7 +930,7 @@ public class VideoRecordActivity extends Activity {
             if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
-                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
             }
         }
     }
@@ -1026,54 +954,13 @@ public class VideoRecordActivity extends Activity {
         }
     }
 
-    @SuppressLint("DefaultLocale")
-    private void fileCheck(String path) {
-        try {
-            File video = new File(path);
-            int frameRate = 0;
-
-            if (video.exists()) {
-                try {
-                    frameRate = getFrameRate(path);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
-                    new Handler().post(() -> saveLog(getApplicationContext(), false, false));
-                    errorMessage = "CheckFile error.";
-                }
-
-                boolean check = false;
-                double[] range = isNew ? NEW_DFRAME_RATE : DFRAME_RATE;
-                if (frameRate >= range[isFrame]) {
-                    if (frameRate <= range[isFrame] + 3) {
-                        check = true;
-                    }
-                } else if (frameRate < range[isFrame]) {
-                    if (frameRate >= range[isFrame] - 3) {
-                        check = true;
-                    }
-                }
-                if (check)
-                    Success++;
-                else
-                    Fail++;
-            } else {
-                Fail++;
-            }
-            videoLogList.add(new LogMsg("CheckFile: " + path.split("/")[3] +
-                    " video_frameRate:" + frameRate + " video_success:" + getSuccess() + " video_fail:" + getFail() +
-                    " wifi_success:" + getWifiSuccess() + " wifi_fail:" + getWifiFail() +
-                    " bt_success:" + getBtSuccess() + " bt_fail:" + getBtFail() +
-                    " reset:" + getReset(), mLog.i));
-            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
-        } catch (Exception e) {
-            e.printStackTrace();
-            videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
-            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
-        }
+    private void checkFile(String path) {
+        Context context = getApplicationContext();
+        Intent intent = new Intent();
+        intent.setClassName(context.getPackageName(), checkFileService.class.getName());
+        intent.putExtra(EXTRA_VIDEO_PATH, path);
+        context.startService(intent);
     }
-
     private void closePreviewSession(String cameraId) {
         if (isCameraOne(cameraId) && mPreviewSession0 != null) {
             mPreviewSession0.close();
@@ -1091,9 +978,9 @@ public class VideoRecordActivity extends Activity {
             try {
                 if (isCameraOne(cameraId)) {
                     wifiEnableOrDisable();
-                    btEnableOrDisable();
                     codeDate0 = getCalendarTime();
                 } else {
+                    btEnableOrDisable();
                     codeDate1 = getCalendarTime();
                 }
 
@@ -1206,7 +1093,7 @@ public class VideoRecordActivity extends Activity {
                         if (autoRestart) {
                             final String dates = resetDate + "";
                             final boolean records = extraRecordStatus;
-                            new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                            new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
                         }
                     }
                 } else {
@@ -1218,7 +1105,7 @@ public class VideoRecordActivity extends Activity {
                     if (autoRestart) {
                         final String dates = resetDate + "";
                         final boolean records = extraRecordStatus;
-                        new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                        new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
                     }
                 }
             } catch (Exception e) {
@@ -1231,7 +1118,7 @@ public class VideoRecordActivity extends Activity {
                 if (autoRestart) {
                     final String dates = resetDate + "";
                     final boolean records = extraRecordStatus;
-                    new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                    new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
                 }
             }
         }
@@ -1248,7 +1135,7 @@ public class VideoRecordActivity extends Activity {
         if (isCameraOne(cameraID)) {
             try {
                 for (String f : firstFilePath)
-                    fileCheck(f);
+                    checkFile(f);
             } catch (Exception e) {
                 videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
             } finally {
@@ -1258,7 +1145,7 @@ public class VideoRecordActivity extends Activity {
         if (!isCameraOne(cameraID)) {
             try {
                 for (String s : secondFilePath)
-                    fileCheck(s);
+                    checkFile(s);
             } catch (Exception e) {
                 videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
             } finally {
@@ -1269,9 +1156,9 @@ public class VideoRecordActivity extends Activity {
 
     private void checkAndClear() {
         for (String f : firstFilePath)
-            fileCheck(f);
+            checkFile(f);
         for (String s : secondFilePath)
-            fileCheck(s);
+            checkFile(s);
         firstFilePath.clear();
         secondFilePath.clear();
     }
@@ -1338,7 +1225,7 @@ public class VideoRecordActivity extends Activity {
                 if (autoRestart) {
                     final String dates = resetDate + "";
                     final boolean records = extraRecordStatus;
-                    new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                    new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
                 }
             } else {
                 videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
@@ -1368,7 +1255,7 @@ public class VideoRecordActivity extends Activity {
             if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
-                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
             }
         }
         if (null != texture) {
@@ -1420,7 +1307,7 @@ public class VideoRecordActivity extends Activity {
                     if (autoRestart) {
                         final String dates = resetDate + "";
                         final boolean records = extraRecordStatus;
-                        new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                        new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
                     }
                 }
             }
@@ -1441,7 +1328,7 @@ public class VideoRecordActivity extends Activity {
             if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
-                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
             }
         }
     }
@@ -1467,7 +1354,7 @@ public class VideoRecordActivity extends Activity {
                     if (autoRestart) {
                         final String dates = resetDate + "";
                         final boolean records = extraRecordStatus;
-                        new Handler().postDelayed(() -> restartApp(dates, records), 3000);
+                        new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
                     }
                 }
                 //計算にゆらぎがあるので小数点第1位で丸める
@@ -1499,73 +1386,6 @@ public class VideoRecordActivity extends Activity {
         }
 
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
-        }
-    }
-
-    private class mOnPageChangeListener implements VerticalViewPager.OnPageChangeListener {
-        int pos;
-
-        public mOnPageChangeListener(int pos) {
-            this.pos = pos;
-        }
-
-        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-        }
-
-        public void onPageSelected(int position) {
-            switch (pos) {
-                case 0:
-                    if (!isRecord) {
-                        isFrame = position;
-                        if (isNew) {
-                            setLoading(true);
-                            new Handler().post(() -> {
-                                String getFrameSkip = PropertyUtils.get(FRAMESKIP);
-                                if (null != getFrameSkip) {
-                                    if (isInteger(getFrameSkip, false)) {
-                                        //if frameskip is chehe or lastcamera != cameraid, delay 3s to change camera devices
-                                        try {
-                                            SystemProperties.set(FRAMESKIP, FPS[isFrame]);
-                                        } catch (Exception e) {
-                                            e.getStackTrace();
-                                            isError = true;
-                                            videoLogList.add(new LogMsg("SystemProperties error.", mLog.e));
-                                            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
-                                            errorMessage = "SystemProperties error. Please check your BuildVersion is 0302.";
-                                        }
-                                        videoLogList.add(new LogMsg("getFrameSkip:" + PropertyUtils.get(FRAMESKIP), mLog.e));
-                                        mStateCallback0.onDisconnected(mCameraDevice0);
-                                        mStateCallback1.onDisconnected(mCameraDevice1);
-                                        new Handler().post(() -> openCamera(firstCamera));
-                                        new Handler().post(() -> openCamera(secondCamera));
-                                    } else {
-                                        videoLogList.add(new LogMsg("getFrameSkip error, fs(" + getFrameSkip + ") is not integer.", mLog.e));
-                                    }
-                                } else {
-                                    videoLogList.add(new LogMsg("getFrameSkip error, fs == null.", mLog.e));
-                                }
-                                setLoading(false);
-                            });
-                        }
-                    } else {
-                        ((VerticalViewPager) findViewById(R.id.pager1)).setCurrentItem(isFrame);
-                    }
-                    break;
-                case 1:
-                    if (!isRecord) {
-                        isQuality = position;
-                    } else {
-                        ((VerticalViewPager) findViewById(R.id.pager2)).setCurrentItem(isQuality);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        public void onPageScrollStateChanged(int state) {
 
         }
     }

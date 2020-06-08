@@ -2,14 +2,11 @@ package com.askey.bit;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
 import android.os.Handler;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.askey.widget.LogMsg;
 import com.askey.widget.mLog;
@@ -19,7 +16,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -30,6 +26,10 @@ import static com.askey.bit.VideoRecordActivity.onReset;
 import static com.askey.bit.VideoRecordActivity.saveLog;
 
 public class Utils {
+    //-------------------------------------------------------------------------------
+    public static final boolean defaultProp = false;
+    public static final int defaultRun = 480;
+    //-------------------------------------------------------------------------------
     public static final double[] DFRAME_RATE = {16, 27.5},
             NEW_DFRAME_RATE = {14, 28};
     public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
@@ -46,6 +46,7 @@ public class Utils {
     public static final String EXTRA_VIDEO_WIFI_SUCCESS = "RestartActivity.wifi.success";
     public static final String EXTRA_VIDEO_BT_SUCCESS = "RestartActivity.bt.success";
     public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
+    public static final String EXTRA_VIDEO_PATH = "RestartActivity.path";
     public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
     public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
     public static final String EXTRA_VIDEO_VERSION = "RestartActivity.version";
@@ -70,7 +71,7 @@ public class Utils {
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList = null;
     public static int isFinish = 999, delayTime = 60500, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isError = false, isNew = true;
+    public static boolean isReady = false, isRecord = false, isError = false, isNew = defaultProp;
     public static boolean fCamera = true, sCamera = true, getSdCard = false;
     public static String errorMessage = "";
 
@@ -79,6 +80,41 @@ public class Utils {
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
+    }
+
+    //TODO Default Path
+    public static String getPath() {
+        String path = "/storage/emulated/0/DCIM/";
+        return path;
+    }
+
+    public static String getSDPath() {
+        String path = "";
+        if (SD_Mode) {
+            try {
+                long start = System.currentTimeMillis();
+                long end = start + 10000;
+                Runtime run = Runtime.getRuntime();
+                String cmd = "ls /storage";
+                Process pr = run.exec(cmd);
+                BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+                String line;
+                while ((line = buf.readLine()) != null) {
+                    if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
+                        path = "/storage/" + line + "/";
+                        break;
+                    }
+                    if (System.currentTimeMillis() > end) {
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            path = getPath();
+        }
+        return path;
     }
 
     public static int getIsRun() {
@@ -127,26 +163,21 @@ public class Utils {
 
     public static boolean isBoolean(String s) {
         try {
-            if (Boolean.parseBoolean(s)) {
-                return true;
-            }
+            Boolean.valueOf(s);
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
-        return true;
     }
 
-    public static void setTestTime(Context context, int min) {
-        if (min > 0) {
-            isFinish = min;
-            if (min != 999)
-                videoLogList.add(new LogMsg("setRecord time: " + min + " min.", mLog.d));
-            else
-                videoLogList.add(new LogMsg("setRecord time: unlimited times.", mLog.d));
-        } else {
-            videoLogList.add(new LogMsg("The test time must be a positive number.", mLog.e));
+    public static void setTestTime(int min) {
+        if (min == 999)
+            videoLogList.add(new LogMsg("setRecord time: unlimited times.", mLog.d));
+        else {
+            videoLogList.add(new LogMsg("setRecord time: " + min + " min.", mLog.d));
         }
+        isFinish = min;
     }
 
     public static void checkConfigFile(Context context, boolean first) {
@@ -161,7 +192,7 @@ public class Utils {
                     e.printStackTrace();
                 }
                 videoLogList.add(new LogMsg("Create the config file.", mLog.w));
-                writeConfigFile(context, file, new Configini(context).config());
+                writeConfigFile(context, file, new Config(context).config());
             } else {
                 if (!isReady) {
                     videoLogList.add(new LogMsg("Find the config file.", mLog.d));
@@ -190,11 +221,11 @@ public class Utils {
             if (input.length() > 0) {
                 String[] read = input.split("\r\n");
                 int target = 0, t;
-                String title = "[VIDEO_RECORD_CONFIG]";
+                String title = CONFIG_TITLE;
                 String first = "firstCameraID = ", second = "secondCameraID = ";
                 String code = "numberOfRuns = ", prop = "setProperty = ";
                 for (String s : read)
-                    if (s.indexOf(title) != -1) {
+                    if (s.contains(title)) {
                         target++;
                         t = s.indexOf(title) + title.length();
                         title = s.substring(t);
@@ -261,17 +292,22 @@ public class Utils {
                     }
                     if (isInteger(code.split("\n")[0], true)) {
                         int min = Integer.parseInt(code.split("\n")[0]);
-                        setTestTime(context, min);
+                        if (min <= 0) {
+                            videoLogList.add(new LogMsg("The test time must be a positive number.", mLog.e));
+                            reformat = true;
+                        } else {
+                            setTestTime(min);
+                        }
                     } else {
                         videoLogList.add(new LogMsg("Unknown Record Times.", mLog.e));
                         reformat = true;
                     }
                     if (isBoolean(prop)) {
-                        if (Boolean.parseBoolean(prop)) {
-                            if (isNew != Boolean.parseBoolean(prop))
-                                isPropChange = true;
-                            isNew = Boolean.parseBoolean(prop);
-                        }
+                        boolean getProp = Boolean.valueOf(prop);
+                        if (isNew != getProp)
+                            isPropChange = true;
+                        isNew = getProp;
+
                     } else {
                         videoLogList.add(new LogMsg("Unknown setProperty.", mLog.e));
                         reformat = true;
@@ -361,33 +397,26 @@ public class Utils {
         EditText editText_1 = view.findViewById(R.id.dialog_editText_1);
         EditText editText_2 = view.findViewById(R.id.dialog_editText_2);
         EditText editText_3 = view.findViewById(R.id.dialog_editText_3);
-        TextView editText_4 = view.findViewById(R.id.dialog_editText_4);
-        int isFinish = 999;
-        boolean isNew = true;
+        int isFinish = defaultRun;
 
         if (!reset) {
             if (isInteger(editText_3.getText().toString(), false)) {
                 isFinish = Integer.parseInt(editText_3.getText().toString());
             } else {
-                isFinish = 999;
-            }
-            if (isBoolean(editText_4.getText().toString())) {
-                isNew = Boolean.parseBoolean(editText_4.getText().toString());
-            } else {
-                isNew = true;
+                isFinish = defaultRun;
             }
         }
 
         //toast(context, "Ready to write.", mLog.w);
         writeConfigFile(context, file, (
-                !reset ? new Configini(context, editText_1.getText().toString(),
-                        editText_2.getText().toString(), isFinish, isNew) : new Configini(context)).config());
+                !reset ? new Config(context, editText_1.getText().toString(),
+                        editText_2.getText().toString(), isFinish, isNew) : new Config(context)).config());
         //toast(context, "Write file is completed.", mLog.i);
     }
 
     public static void reformatConfigFile(Context context, File file) {
         //toast(context, "Config file error.", mLog.e);
-        writeConfigFile(context, file, new Configini(context).config());
+        writeConfigFile(context, file, new Config(context).config());
         videoLogList.add(new LogMsg("Reformat the Config file.", mLog.e));
     }
 
@@ -465,85 +494,6 @@ public class Utils {
         s = String.format("%02d", calendar.get(Calendar.SECOND));
 
         return "v" + y + m + d + h + i + s + (isCameraOne ? "f" : "s");
-    }
-
-    public static String getPath() {
-        String path = "/storage/emulated/0/DCIM/";
-        return path;
-    }
-
-    public static String getSDPath() {
-        String path = "";
-        if (SD_Mode) {
-            try {
-                long start = System.currentTimeMillis();
-                long end = start + 10000;
-                Runtime run = Runtime.getRuntime();
-                String cmd = "ls /storage";
-                Process pr = run.exec(cmd);
-                BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-                String line;
-                while ((line = buf.readLine()) != null) {
-                    if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
-                        path = "/storage/" + line + "/";
-                        break;
-                    }
-                    if (System.currentTimeMillis() > end) {
-                        break;
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            path = getPath();
-        }
-        return path;
-    }
-
-    public static int getFrameRate(String path) {
-        int frameRate = 0;
-        if (!getSDPath().equals("")) {
-            try {
-                MediaExtractor extractor = null;
-                FileInputStream fis = null;
-                try {
-                    extractor = new MediaExtractor();
-                    fis = new FileInputStream(new File(path));
-                    extractor.setDataSource(fis.getFD());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    isError = true;
-                    getSdCard = !getSDPath().equals("");
-                    errorMessage = "getFrameRate failed.<============ Crash here";
-                    videoLogList.add(new LogMsg("getFrameRate failed.", mLog.e));
-                    return 0;
-                }
-                int numTracks = extractor.getTrackCount();
-                for (int i = 0; i < numTracks; i++) {
-                    MediaFormat format = extractor.getTrackFormat(i);
-                    if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
-                        frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
-                    }
-                }
-                if (extractor != null)
-                    extractor.release();
-                if (fis != null)
-                    fis.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                isError = true;
-                getSdCard = !getSDPath().equals("");
-                errorMessage = "getFrameRate failed.<============ Crash here";
-                videoLogList.add(new LogMsg("getFrameRate failed.", mLog.e));
-            }
-        } else {
-            isError = true;
-            getSdCard = !getSDPath().equals("");
-            errorMessage = "getFrameRate failed." + NO_SD_CARD + "<============ Crash here";
-            videoLogList.add(new LogMsg("getFrameRate failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
-        }
-        return frameRate;
     }
 
     public static String getFileExtension(String fullName) {
