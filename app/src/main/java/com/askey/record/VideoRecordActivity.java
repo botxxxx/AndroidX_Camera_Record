@@ -462,7 +462,7 @@ public class VideoRecordActivity extends Activity {
         if (date.equals(resetDate)) {
             try {
                 home = null;
-            } catch (Exception e) {
+            } catch (Exception ignored) {
 
             }
             onRestart = true;
@@ -876,9 +876,7 @@ public class VideoRecordActivity extends Activity {
                 if (isFinish == 999 || isRun <= isFinish) {
                     startRecord(cameraID);
                 } else {
-                    if (!isCameraOne(cameraID)) {
-                        isRecordStart(false);
-                    }
+                    isRecordStart(true);
                 }
                 if (isError || !getSdCard) {
                     isRun = 0;
@@ -949,12 +947,11 @@ public class VideoRecordActivity extends Activity {
                     videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                     videoLogList.add(new LogMsg("#Complete"));
                     ((TextView) findViewById(R.id.record_status)).setText("Complete");
-                    end(preview);
                 } else {
                     isRun = 0;
                     isFinish = 0;
-                    end(preview);
                 }
+                end(preview);
             } else {
                 ((TextView) findViewById(R.id.record_status)).setText("Error");
             }
@@ -1163,25 +1160,17 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void checkAndClear(String cameraID) {
-        if (isCameraOne(cameraID)) {
-            try {
-                for (String f : firstFilePath)
+        try {
+            if (isRecord)
+                for (String f : isCameraOne(cameraID) ? firstFilePath : secondFilePath)
                     checkFile(f);
-            } catch (Exception e) {
-                videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
-            } finally {
+        } catch (Exception e) {
+            videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
+        } finally {
+            if (isCameraOne(cameraID))
                 firstFilePath.clear();
-            }
-        }
-        if (!isCameraOne(cameraID)) {
-            try {
-                for (String s : secondFilePath)
-                    checkFile(s);
-            } catch (Exception e) {
-                videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
-            } finally {
+            else
                 secondFilePath.clear();
-            }
         }
     }
 
