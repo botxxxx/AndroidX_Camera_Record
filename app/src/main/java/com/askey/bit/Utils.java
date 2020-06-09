@@ -177,7 +177,7 @@ public class Utils {
         else {
             videoLogList.add(new LogMsg("setRecord time: " + min + " min.", mLog.d));
         }
-        isFinish = min;
+        isFinish = min == 999 ? min : min * 2;
     }
 
     public static void checkConfigFile(Context context, boolean first) {
