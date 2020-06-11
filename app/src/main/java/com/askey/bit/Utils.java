@@ -61,7 +61,7 @@ public class Utils {
     public static int isRun = 0, Success = 0, Fail = 0;
     public static int wifiSuccess = 0, wifiFail = 0;
     public static int btSuccess = 0, btFail = 0;
-    public static String TAG = "VideoRecord";
+    public static String TAG = "CDR9020_BIT";
     public static String firstCamera = "0";
     public static String secondCamera = "1";
     public static String lastfirstCamera = "0";
