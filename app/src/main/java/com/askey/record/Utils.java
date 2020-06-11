@@ -52,7 +52,7 @@ public class Utils {
     public static final double sdData = 1;
     public static final boolean defaultProp = true;
     public static int isRun = 0, Success = 0, Fail = 0;
-    public static String TAG = "VideoRecordActivity";
+    public static String TAG = "CDR9020_QTR";
     public static String firstCamera = "0";
     public static String secondCamera = "1";
     public static String lastfirstCamera = "0";
