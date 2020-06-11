@@ -26,6 +26,10 @@ import static com.askey.record.VideoRecordActivity.onReset;
 import static com.askey.record.VideoRecordActivity.saveLog;
 
 public class Utils {
+    //-------------------------------------------------------------------------------
+    public static final boolean defaultProp = true;
+    public static final int defaultRun = 999;
+    //-------------------------------------------------------------------------------
     public static final double[] DFRAME_RATE = {16, 27.5},
             NEW_DFRAME_RATE = {14, 28};
     public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
@@ -44,13 +48,12 @@ public class Utils {
     public static final String EXTRA_VIDEO_VERSION = "RestartActivity.version";
     public static final String EXTRA_VIDEO_REFORMAT = "RestartActivity.reformat";
     public static final String NO_SD_CARD = "SD card is not available!";
+    public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String configName = "VideoRecordConfig.ini";
     public static final String logName = "VideoRecordLog.ini";
     public static final String CONFIG_TITLE = "[Video_Record_Config]";
     public static final String LOG_TITLE = "[Video_Record_Log]";
-    public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final double sdData = 1;
-    public static final boolean defaultProp = true;
     public static int isRun = 0, Success = 0, Fail = 0;
     public static String TAG = "CDR9020_QTR";
     public static String firstCamera = "0";
@@ -62,7 +65,7 @@ public class Utils {
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList = null;
     public static int isFinish = 999, delayTime = 60500, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isError = false, isNew = true;
+    public static boolean isReady = false, isRecord = false, isError = false, isNew = defaultProp;
     public static boolean fCamera = true, sCamera = true, getSdCard = false;
     public static String errorMessage = "";
 
@@ -371,13 +374,13 @@ public class Utils {
         EditText editText_1 = view.findViewById(R.id.dialog_editText_1);
         EditText editText_2 = view.findViewById(R.id.dialog_editText_2);
         EditText editText_3 = view.findViewById(R.id.dialog_editText_3);
-        int isFinish = 999;
+        int isFinish = defaultRun;
 
         if (!reset) {
             if (isInteger(editText_3.getText().toString(), false)) {
                 isFinish = Integer.parseInt(editText_3.getText().toString());
             } else {
-                isFinish = 999;
+                isFinish = defaultRun;
             }
         }
 
