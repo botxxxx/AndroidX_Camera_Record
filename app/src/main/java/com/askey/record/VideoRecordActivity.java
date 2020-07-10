@@ -20,11 +20,15 @@ import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.os.SystemProperties;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.util.Size;
@@ -112,7 +116,7 @@ import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 
 public class VideoRecordActivity extends Activity {
     //TODO 使用SD Card儲存 SD_Mode 設置為 true
-    public static boolean SD_Mode = true;
+    public static boolean SD_Mode = false;
     //TODO 使用錯誤重啟 autoRestart 設置為 true
     public static boolean autoRestart = true;
     public static boolean extraRecordStatus = false, onRestart = false;
@@ -607,15 +611,60 @@ public class VideoRecordActivity extends Activity {
                 }
             }
         };
-        this.registerReceiver(new BroadcastReceiver() {
+        class status {
+            int battery;
+            String type;
 
+            status(int battery, String type) {
+                this.battery = battery;
+                this.type = type;
+            }
+        }
+        status[] statusConstants = new status[]{
+                new status(BatteryManager.BATTERY_STATUS_UNKNOWN, "Unknown"),
+                new status(BatteryManager.BATTERY_STATUS_CHARGING, "Charging"),
+                new status(BatteryManager.BATTERY_STATUS_DISCHARGING, "Discharging"),
+                new status(BatteryManager.BATTERY_STATUS_NOT_CHARGING, "Not charging"),
+                new status(BatteryManager.BATTERY_STATUS_FULL, "Full")};
+        this.registerReceiver(new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {  //Battery
-                    videoLogList.add(new LogMsg("Battery:" + intent.getIntExtra("level", 0) + "%", mLog.e));
+                if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
+                    //level
+                    videoLogList.add(new LogMsg("Battery level:" + intent.getIntExtra("level", 0) + "%", mLog.e));
+                    //status
+                    String type = "";
+                    for (status i : statusConstants) {
+                        type = i.type;
+                        if (intent.getIntExtra("status", 0) == i.battery) {
+                            videoLogList.add(new LogMsg("Battery status:" + type, mLog.e));
+                            break;
+                        }
+                    }
+                    if (!type.equals(""))
+                        if (!type.equals("Charging")) {
+                            try {
+                                PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+                                pm.getClass().getMethod("goToSleep", long.class).invoke(pm, SystemClock.uptimeMillis());
+                            } catch (Exception ignored) {
+                            }
+                            stopRecordAndSaveLog(false);
+                            setAirplaneModeOn(true, VideoRecordActivity.this);
+                        }
                     new Handler().post(() -> saveLog(getApplicationContext(), false, false));
                 }
             }
         }, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+    }
+
+    private void setAirplaneModeOn(boolean enabling, Context context) {
+        // Change the system setting
+        Settings.Global.putInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON,
+                enabling ? 1 : 0);
+
+        // Post the intent
+        Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        intent.putExtra("state", enabling);
+        context.sendBroadcastAsUser(intent, android.os.Process.myUserHandle());
     }
 
     private void setSetting() {
@@ -1018,6 +1067,7 @@ public class VideoRecordActivity extends Activity {
                     codeDate1 = getCalendarTime();
 
                 if (isCameraOne(cameraId)) {
+                    setAirplaneModeOn(false, this);
                     checkSdCardFromFileList();
                     runOnUiThread(() -> {
                         if (mTimer == null) {
