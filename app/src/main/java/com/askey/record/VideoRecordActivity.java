@@ -116,7 +116,7 @@ import static com.askey.record.restartActivity.EXTRA_MAIN_PID;
 
 public class VideoRecordActivity extends Activity {
     //TODO 使用SD Card儲存 SD_Mode 設置為 true
-    public static boolean SD_Mode = false;
+    public static boolean SD_Mode = true;
     //TODO 使用錯誤重啟 autoRestart 設置為 true
     public static boolean autoRestart = true;
     public static boolean extraRecordStatus = false, onRestart = false;
@@ -640,15 +640,16 @@ public class VideoRecordActivity extends Activity {
                             break;
                         }
                     }
-                    if (!type.equals(""))
+                    // TODO Airplane
+                    if (!type.equals("") && isRecord)
                         if (!type.equals("Charging")) {
                             try {
                                 PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
                                 pm.getClass().getMethod("goToSleep", long.class).invoke(pm, SystemClock.uptimeMillis());
                             } catch (Exception ignored) {
                             }
-                            stopRecordAndSaveLog(false);
                             setAirplaneModeOn(true, VideoRecordActivity.this);
+                            stopRecordAndSaveLog(true);
                         }
                     new Handler().post(() -> saveLog(getApplicationContext(), false, false));
                 }
