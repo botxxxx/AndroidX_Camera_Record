@@ -102,7 +102,7 @@ public class checkSdCardService extends IntentService {
 
     private void delete(String path, boolean fromSDcard) {
         try {
-            if (path != "") {
+            if (!path.equals("")) {
                 File video = new File(path);
                 if (video.exists()) {
                     if (null != videoLogList)

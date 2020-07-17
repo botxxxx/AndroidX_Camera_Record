@@ -64,18 +64,18 @@ public class saveLogService extends IntentService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (SD_Mode) {
-            if (move)
-                try {
-                    Thread tMove = new Thread(() -> {
-                        moveFile(getPath() + logName, getSDPath() + logName, false);
-                    });
-                    tMove.start();
-                    tMove.join();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-        }
+//        if (SD_Mode) {
+//            if (move)
+//                try {
+//                    Thread tMove = new Thread(() -> {
+//                        moveFile(getPath() + logName, getSDPath() + logName, false);
+//                    });
+//                    tMove.start();
+//                    tMove.join();
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//        }
     }
 
     private void moveFile(String video, String pathname, boolean remove) {

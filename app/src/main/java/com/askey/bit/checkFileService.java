@@ -117,10 +117,11 @@ public class checkFileService extends IntentService {
             path = intent.getStringExtra(EXTRA_VIDEO_PATH);
 
             Thread t = new Thread(() -> {
-
                 try {
-                    checkFile(path);
-                    saveLog();
+                    if (null != videoLogList) {
+                        checkFile(path);
+                        saveLog();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

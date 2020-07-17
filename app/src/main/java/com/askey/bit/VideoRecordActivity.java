@@ -745,6 +745,10 @@ public class VideoRecordActivity extends Activity {
                 mMediaRecorder0 = null;
                 videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
             }
+        } catch (Exception e) {
+            videoLogList.add(new LogMsg("mMediaRecorder0 is error."));
+        }
+        try {
             if (mMediaRecorder1 != null) {
                 mMediaRecorder1.stop();
                 mMediaRecorder1.release();
@@ -752,7 +756,7 @@ public class VideoRecordActivity extends Activity {
                 videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            videoLogList.add(new LogMsg("mMediaRecorder1 is error."));
         }
         new Handler().post(() -> stopRecordAndSaveLog(false));
     }
@@ -811,27 +815,34 @@ public class VideoRecordActivity extends Activity {
                     ((TextView) findViewById(R.id.record_status)).setText("Stop");
                     videoLogList.add(new LogMsg("#stopRecord", mLog.v));
                     Log.d(TAG, "stopRecord");
-                } else
-                    moveFile(getPath() + logName, getSDPath() + logName, false);
+                }
+                    //else moveFile(getPath() + logName, getSDPath() + logName, false);
+                try {
+                    if (isCameraOne(cameraID)) {
+                        try {
+                            if (mMediaRecorder0 != null) {
+                                mMediaRecorder0.stop();
+                                mMediaRecorder0.release();
+                                mMediaRecorder0 = null;
+                                videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
+                            }
+                        } catch (Exception e) {
+                            videoLogList.add(new LogMsg("mMediaRecorder0 is error."));
+                        }
+                    } else {
+                        try {
+                            if (mMediaRecorder1 != null) {
+                                mMediaRecorder1.stop();
+                                mMediaRecorder1.release();
+                                mMediaRecorder1 = null;
+                                videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
+                            }
+                        } catch (Exception e) {
+                            videoLogList.add(new LogMsg("mMediaRecorder1 is error."));
+                        }
+                    }
+                } catch (Exception ignored) {
 
-                if (isCameraOne(cameraID)) {
-                    if (mMediaRecorder0 != null) {
-                        mMediaRecorder0.stop();
-                        mMediaRecorder0.release();
-                        mMediaRecorder0 = null;
-                        videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
-                    } else {
-                        videoLogList.add(new LogMsg("mMediaRecorder " + firstCamera + " is null."));
-                    }
-                } else {
-                    if (mMediaRecorder1 != null) {
-                        mMediaRecorder1.stop();
-                        mMediaRecorder1.release();
-                        mMediaRecorder1 = null;
-                        videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
-                    } else {
-                        videoLogList.add(new LogMsg("mMediaRecorder " + secondCamera + " is null."));
-                    }
                 }
                 checkAndClear(cameraID);
                 if (isFinish == 999 || isRun <= isFinish) {
@@ -871,7 +882,7 @@ public class VideoRecordActivity extends Activity {
             }
             codeDate0 = getCalendarTime();
             codeDate1 = getCalendarTime();
-            moveFile(getPath() + logName, getSDPath() + logName, false);
+            //moveFile(getPath() + logName, getSDPath() + logName, false);
             if (!isError && getSdCard) {
                 ((TextView) findViewById(R.id.record_status)).setText("Stop");
                 if (isRecord) {

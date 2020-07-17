@@ -116,6 +116,8 @@
         1.add wifi and bt on/off at runtime.
         2.set defaultProp = false, defaultRun = 480(8h)
         3.disable video fps and quality setting
+    [v1.0.1]
+        1.disable the CopyFile Service
     -->
-    <string name="app_name">CDR9020_BIT(v1.0.0)</string>
+    <string name="app_name">CDR9020_BIT(v1.0.1)</string>
 </resources>
