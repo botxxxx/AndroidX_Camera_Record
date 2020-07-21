@@ -64,30 +64,7 @@ public class saveLogService extends IntentService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        if (SD_Mode) {
-//            if (move)
-//                try {
-//                    Thread tMove = new Thread(() -> {
-//                        moveFile(getPath() + logName, getSDPath() + logName, false);
-//                    });
-//                    tMove.start();
-//                    tMove.join();
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//        }
     }
-
-    private void moveFile(String video, String pathname, boolean remove) {
-        Context context = getApplicationContext();
-        Intent intent = new Intent();
-        intent.setClassName(context.getPackageName(), copyFileService.class.getName());
-        intent.putExtra(EXTRA_VIDEO_COPY, video);
-        intent.putExtra(EXTRA_VIDEO_PASTE, pathname);
-        intent.putExtra(EXTRA_VIDEO_REMOVE, remove);
-        context.startService(intent);
-    }
-
 
     protected void onHandleIntent(Intent intent) {
         int mainPid = 0;

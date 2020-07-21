@@ -114,10 +114,12 @@
         8.fix video release bug.
     [CDR9020_BIT_v1.0.0]
         1.add wifi and bt on/off at runtime.
-        2.set defaultProp = false, defaultRun = 480(8h)
-        3.disable video fps and quality setting
+        2.set defaultProp = false, defaultRun = 480(8h).
+        3.disable video fps and quality setting.
     [v1.0.1]
-        1.disable the CopyFile Service
+        1.disable the CopyFile Service.
+    [v1.0.2]
+        1.fix copyFileServer ANR error.
     -->
-    <string name="app_name">CDR9020_BIT(v1.0.1)</string>
+    <string name="app_name">CDR9020_BIT(v1.0.2)</string>
 </resources>

@@ -49,32 +49,27 @@ import java.util.TimerTask;
 
 import static com.askey.bit.Utils.EXTRA_VIDEO_BT_FAIL;
 import static com.askey.bit.Utils.EXTRA_VIDEO_BT_SUCCESS;
-import static com.askey.bit.Utils.EXTRA_VIDEO_COPY;
 import static com.askey.bit.Utils.EXTRA_VIDEO_FAIL;
-import static com.askey.bit.Utils.EXTRA_VIDEO_PASTE;
 import static com.askey.bit.Utils.EXTRA_VIDEO_PATH;
 import static com.askey.bit.Utils.EXTRA_VIDEO_RECORD;
 import static com.askey.bit.Utils.EXTRA_VIDEO_REFORMAT;
-import static com.askey.bit.Utils.EXTRA_VIDEO_REMOVE;
 import static com.askey.bit.Utils.EXTRA_VIDEO_RESET;
 import static com.askey.bit.Utils.EXTRA_VIDEO_RUN;
 import static com.askey.bit.Utils.EXTRA_VIDEO_SUCCESS;
 import static com.askey.bit.Utils.EXTRA_VIDEO_VERSION;
 import static com.askey.bit.Utils.EXTRA_VIDEO_WIFI_FAIL;
 import static com.askey.bit.Utils.EXTRA_VIDEO_WIFI_SUCCESS;
-import static com.askey.bit.Utils.FPS;
-import static com.askey.bit.Utils.FRAMESKIP;
 import static com.askey.bit.Utils.FRAME_RATE;
 import static com.askey.bit.Utils.NEW_FRAME_RATE;
 import static com.askey.bit.Utils.NO_SD_CARD;
 import static com.askey.bit.Utils.TAG;
 import static com.askey.bit.Utils.checkConfigFile;
-import static com.askey.bit.Utils.checkLogFile;
 import static com.askey.bit.Utils.configName;
 import static com.askey.bit.Utils.delayTime;
 import static com.askey.bit.Utils.errorMessage;
 import static com.askey.bit.Utils.fCamera;
 import static com.askey.bit.Utils.Fail;
+import static com.askey.bit.Utils.getReset;
 import static com.askey.bit.Utils.wifiFail;
 import static com.askey.bit.Utils.btFail;
 import static com.askey.bit.Utils.firstCamera;
@@ -94,7 +89,6 @@ import static com.askey.bit.Utils.getBtSuccess;
 import static com.askey.bit.Utils.isError;
 import static com.askey.bit.Utils.isFinish;
 import static com.askey.bit.Utils.isFrame;
-import static com.askey.bit.Utils.isInteger;
 import static com.askey.bit.Utils.isNew;
 import static com.askey.bit.Utils.isQuality;
 import static com.askey.bit.Utils.isReady;
@@ -102,7 +96,6 @@ import static com.askey.bit.Utils.isRecord;
 import static com.askey.bit.Utils.isRun;
 import static com.askey.bit.Utils.lastfirstCamera;
 import static com.askey.bit.Utils.lastsecondCamera;
-import static com.askey.bit.Utils.logName;
 import static com.askey.bit.Utils.readConfigFile;
 import static com.askey.bit.Utils.reformatConfigFile;
 import static com.askey.bit.Utils.sCamera;
@@ -221,7 +214,6 @@ public class VideoRecordActivity extends Activity {
                         videoLogList.add(new LogMsg("#Start record", mLog.v));
                     setRecord();
                     takeRecord();
-
                 } else {
                     if (!auto)
                         videoLogList.add(new LogMsg("@Stop record", mLog.v));
@@ -650,7 +642,10 @@ public class VideoRecordActivity extends Activity {
             ArrayList<String> list = new ArrayList();
             if (getSdCard)
                 if (real)
-                    checkLogFile(VideoRecordActivity.this, new File(getPath(), logName), list);
+                    list.add("CheckFile -> video_success/fail:(" + getSuccess() + "/" + getFail() +
+                            ") wifi_success/fail:(" + getWifiSuccess() + "/" + getWifiFail() +
+                            ") bt_success/fail:(" + getBtSuccess() + "/" + getBtFail() +
+                            ") app_reset:(" + getReset() + ")");
                 else
                     list.add("App Version:" + this.getString(R.string.app_name));
             else list.add(NO_SD_CARD);
@@ -816,7 +811,7 @@ public class VideoRecordActivity extends Activity {
                     videoLogList.add(new LogMsg("#stopRecord", mLog.v));
                     Log.d(TAG, "stopRecord");
                 }
-                    //else moveFile(getPath() + logName, getSDPath() + logName, false);
+
                 try {
                     if (isCameraOne(cameraID)) {
                         try {
@@ -848,8 +843,8 @@ public class VideoRecordActivity extends Activity {
                 if (isFinish == 999 || isRun <= isFinish) {
                     startRecord(cameraID);
                 } else {
-                    isRecordStart(true);
                     showDialogLog(true);
+                    isRecordStart(true);
                 }
                 if (isError || !getSdCard) {
                     isRun = 0;
@@ -882,7 +877,7 @@ public class VideoRecordActivity extends Activity {
             }
             codeDate0 = getCalendarTime();
             codeDate1 = getCalendarTime();
-            //moveFile(getPath() + logName, getSDPath() + logName, false);
+
             if (!isError && getSdCard) {
                 ((TextView) findViewById(R.id.record_status)).setText("Stop");
                 if (isRecord) {
@@ -947,18 +942,6 @@ public class VideoRecordActivity extends Activity {
         new Handler().post(() -> saveLog(getApplicationContext(), false, false));
         if (preview) {
             takePreview();
-        }
-    }
-
-    private void moveFile(String video, String pathname, boolean remove) {
-        if (SD_Mode) {
-            Context context = getApplicationContext();
-            Intent intent = new Intent();
-            intent.setClassName(context.getPackageName(), copyFileService.class.getName());
-            intent.putExtra(EXTRA_VIDEO_COPY, video);
-            intent.putExtra(EXTRA_VIDEO_PASTE, pathname);
-            intent.putExtra(EXTRA_VIDEO_REMOVE, remove);
-            context.startService(intent);
         }
     }
 
@@ -1291,7 +1274,6 @@ public class VideoRecordActivity extends Activity {
                                     }
                                     updatePreview(mPreviewBuilder, session, backgroundHandler);
                                 }
-
 
                                 public void onConfigureFailed(CameraCaptureSession session) {
                                     videoLogList.add(new LogMsg("Preview " + cameraId + " onConfigureFailed", mLog.e));
