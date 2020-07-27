@@ -633,7 +633,8 @@ public class VideoRecordActivity extends Activity {
         if (!isRecord || real) {
             videoLogList.add(new LogMsg("#dialog_log", mLog.v));
             View view = LayoutInflater.from(this).inflate(R.layout.layout_getlog, null);
-            final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen).setView(view).setCancelable(true).create();
+            final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+                    .setView(view).setCancelable(true).create();
 
             view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // ok
                 videoLogList.add(new LogMsg("@log_ok", mLog.v));
@@ -1125,8 +1126,8 @@ public class VideoRecordActivity extends Activity {
     private void checkAndClear(String cameraID) {
         try {
             if (isRecord)
-                for (String f : isCameraOne(cameraID) ? firstFilePath : secondFilePath)
-                    checkFile(f);
+                for (String e : isCameraOne(cameraID) ? firstFilePath : secondFilePath)
+                    checkFile(e);
         } catch (Exception e) {
             videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
         } finally {
@@ -1138,12 +1139,17 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void checkAndClear() {
-        for (String f : firstFilePath)
-            checkFile(f);
-        for (String s : secondFilePath)
-            checkFile(s);
-        firstFilePath.clear();
-        secondFilePath.clear();
+        try {
+            for (String f : firstFilePath)
+                checkFile(f);
+            for (String s : secondFilePath)
+                checkFile(s);
+        } catch (Exception e) {
+            videoLogList.add(new LogMsg("CheckFile is error.", mLog.e));
+        } finally {
+            firstFilePath.clear();
+            secondFilePath.clear();
+        }
     }
 
     private MediaRecorder setUpMediaRecorder(String cameraId) {
