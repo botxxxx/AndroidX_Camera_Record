@@ -120,6 +120,8 @@
         1.disable the CopyFile Service.
     [v1.0.2]
         1.fix copyFileServer ANR error.
+    [v1.0.3]
+        1.fix MediaRecorder error.
     -->
-    <string name="app_name">CDR9020_BIT(v1.0.2)</string>
+    <string name="app_name">CDR9020_BIT(v1.0.3)</string>
 </resources>
