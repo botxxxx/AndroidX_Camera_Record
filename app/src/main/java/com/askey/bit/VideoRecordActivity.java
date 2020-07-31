@@ -39,12 +39,7 @@ import android.widget.TextView;
 
 import com.askey.widget.*;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,7 +70,6 @@ import static com.askey.bit.Utils.errorMessage;
 import static com.askey.bit.Utils.fCamera;
 import static com.askey.bit.Utils.Fail;
 import static com.askey.bit.Utils.getReset;
-import static com.askey.bit.Utils.logName;
 import static com.askey.bit.Utils.wifiFail;
 import static com.askey.bit.Utils.btFail;
 import static com.askey.bit.Utils.firstCamera;
@@ -813,22 +807,6 @@ public class VideoRecordActivity extends Activity {
                     ((TextView) findViewById(R.id.record_status)).setText("Stop");
                     videoLogList.add(new LogMsg("#stopRecord", mLog.v));
                     Log.d(TAG, "stopRecord");
-                } else {
-                    try {
-                        byte[] b = new byte[100]; // 設定緩衝大小
-                        FileInputStream fis = new FileInputStream(new File(getPath(), logName)); // 要讀取的檔案位置
-                        BufferedInputStream bis = new BufferedInputStream(fis); // 以緩衝串流讀取
-                        OutputStream os = new FileOutputStream(getSDPath() + logName); // 要寫出的檔案位置
-                        BufferedOutputStream bos = new BufferedOutputStream(os); // 以緩衝串流寫出
-                        while (bis.read(b) != -1) { // 依設定的緩衝大小讀取檔案
-                            bos.write(b); // 將資料寫入緩衝
-                        }
-                        bos.flush(); // 將緩衝區資料寫出
-                        bis.close(); // 關閉串流
-                        bos.close(); // 關閉串流
-                    } catch (Exception e) {
-                        videoLogList.add(new LogMsg("#copyFile is error.", mLog.v));
-                    }
                 }
 
                 try {

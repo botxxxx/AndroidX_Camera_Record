@@ -11,7 +11,6 @@ import com.askey.widget.mLog;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 
 import static com.askey.bit.Utils.*;
 

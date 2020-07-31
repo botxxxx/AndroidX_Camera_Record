@@ -1,7 +1,6 @@
 package com.askey.bit;
 
 import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
 
 import com.askey.widget.LogMsg;
@@ -12,14 +11,10 @@ import java.io.FileOutputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-import static com.askey.bit.Utils.EXTRA_VIDEO_COPY;
-import static com.askey.bit.Utils.EXTRA_VIDEO_PASTE;
 import static com.askey.bit.Utils.EXTRA_VIDEO_REFORMAT;
-import static com.askey.bit.Utils.EXTRA_VIDEO_REMOVE;
 import static com.askey.bit.Utils.EXTRA_VIDEO_VERSION;
 import static com.askey.bit.Utils.LOG_TITLE;
 import static com.askey.bit.Utils.getPath;
-import static com.askey.bit.Utils.getSDPath;
 import static com.askey.bit.Utils.logName;
 import static com.askey.bit.Utils.videoLogList;
 import static com.askey.bit.restartActivity.EXTRA_MAIN_PID;

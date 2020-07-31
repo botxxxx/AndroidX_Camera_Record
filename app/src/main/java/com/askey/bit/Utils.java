@@ -426,8 +426,8 @@ public class Utils {
         try {
             byte[] buffer = new byte[100];
             int length;
-            FileInputStream input = new FileInputStream(file);
-            BufferedInputStream bis = new BufferedInputStream(input);
+            FileInputStream fis = new FileInputStream(file);
+            BufferedInputStream bis = new BufferedInputStream(fis);
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             while ((length = bis.read(buffer)) != -1) {
                 bytes.write(buffer, 0, length);
@@ -435,7 +435,7 @@ public class Utils {
             tmp += bytes.toString();
             bytes.close();
             bis.close();
-            input.close();
+            fis.close();
         } catch (Exception e) {
             e.printStackTrace();
             isError = true;
