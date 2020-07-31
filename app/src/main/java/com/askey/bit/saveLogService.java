@@ -22,19 +22,15 @@ import static com.askey.bit.Utils.getPath;
 import static com.askey.bit.Utils.getSDPath;
 import static com.askey.bit.Utils.logName;
 import static com.askey.bit.Utils.videoLogList;
-import static com.askey.bit.VideoRecordActivity.SD_Mode;
 import static com.askey.bit.restartActivity.EXTRA_MAIN_PID;
 
 public class saveLogService extends IntentService {
-    private String version;
-    private boolean reFormat;
-
     public saveLogService() {
         // ActivityのstartService(intent);で呼び出されるコンストラクタはこちら
         super("saveLogService");
     }
 
-    private void saveLog(ArrayList<LogMsg> mLogList, boolean reFormat, boolean move) {
+    private void saveLog(ArrayList<LogMsg> mLogList, boolean reFormat, String version) {
         String logString;
         assert mLogList!=null;
         File file = new File(getPath(), logName);
@@ -70,20 +66,14 @@ public class saveLogService extends IntentService {
         int mainPid = 0;
         try {
             mainPid = intent.getIntExtra(EXTRA_MAIN_PID, -1);
-            version = intent.getStringExtra(EXTRA_VIDEO_VERSION);
-            reFormat = intent.getBooleanExtra(EXTRA_VIDEO_REFORMAT, false);
-
-            int finalMainPid = mainPid;
-            Thread t = new Thread(() -> {
-                final boolean move = finalMainPid > 0;
+            new Thread(() -> {
                 try {
-                    saveLog(videoLogList, reFormat, move);
+                    saveLog(videoLogList, intent.getBooleanExtra(EXTRA_VIDEO_REFORMAT, false),
+                            intent.getStringExtra(EXTRA_VIDEO_VERSION));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            });
-            t.start();
-            t.join();
+            }).start();
         } catch (Exception e) {
             e.printStackTrace();
             if (null != videoLogList)

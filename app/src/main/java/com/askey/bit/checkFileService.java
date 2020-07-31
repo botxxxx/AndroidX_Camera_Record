@@ -17,7 +17,6 @@ import static com.askey.bit.Utils.*;
 
 @SuppressLint("NewApi")
 public class checkFileService extends IntentService {
-    private String path;
 
     public checkFileService() {
         super("checkFileService");
@@ -30,11 +29,10 @@ public class checkFileService extends IntentService {
                 MediaExtractor extractor;
                 FileInputStream fis;
                 try {
-                    extractor = new MediaExtractor();
                     fis = new FileInputStream(file);
+                    extractor = new MediaExtractor();
                     extractor.setDataSource(fis.getFD());
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (Exception ignored) {
                     if (null != videoLogList)
                         videoLogList.add(new LogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
                     return 0;
@@ -43,13 +41,15 @@ public class checkFileService extends IntentService {
                 for (int i = 0; i < numTracks; i++) {
                     MediaFormat format = extractor.getTrackFormat(i);
                     if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
-                        frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
+                        try {
+                            frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
+                        } catch (Exception ignored) {
+                        }
                     }
                 }
                 extractor.release();
                 fis.close();
             } catch (Exception e) {
-                e.printStackTrace();
                 if (null != videoLogList)
                     videoLogList.add(new LogMsg("getFrameRate failed.<============ Crash here", mLog.e));
             }
@@ -69,8 +69,7 @@ public class checkFileService extends IntentService {
                 try {
                     frameRate = getFrameRate(video);
 
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Exception ignored) {
                     if (null != videoLogList)
                         videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
                 }
@@ -98,8 +97,7 @@ public class checkFileService extends IntentService {
                         ") wifi_success/fail:(" + getWifiSuccess() + "/" + getWifiFail() +
                         ") bt_success/fail:(" + getBtSuccess() + "/" + getBtFail() +
                         ") app_reset:(" + getReset() + ")", mLog.i));
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
             if (null != videoLogList)
                 videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
             Fail++;
@@ -114,22 +112,16 @@ public class checkFileService extends IntentService {
 
     protected void onHandleIntent(Intent intent) {
         try {
-            path = intent.getStringExtra(EXTRA_VIDEO_PATH);
-
-            Thread t = new Thread(() -> {
+            new Thread(() -> {
                 try {
                     if (null != videoLogList) {
-                        checkFile(path);
+                        checkFile(intent.getStringExtra(EXTRA_VIDEO_PATH));
                         saveLog();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Exception ignored) {
                 }
-            });
-            t.start();
-            t.join();
-        } catch (Exception e) {
-            e.printStackTrace();
+            }).start();
+        } catch (Exception ignored) {
             if (null != videoLogList)
                 videoLogList.add(new LogMsg("CheckFileService error.", mLog.e));
         } finally {

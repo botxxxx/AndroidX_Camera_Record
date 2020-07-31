@@ -45,8 +45,7 @@ public class checkSdCardService extends IntentService {
         if (getSdCard) {
             try {
                 StatFs stat = new StatFs(getSDPath());
-                long sdAvailSize = stat.getAvailableBlocksLong()
-                        * stat.getBlockSizeLong();
+                long sdAvailSize = stat.getAvailableBlocksLong() * stat.getBlockSizeLong();
                 double gigaAvailable = (sdAvailSize >> 30);
                 if (gigaAvailable < sdData) {
                     if (null != videoLogList) {
@@ -132,8 +131,7 @@ public class checkSdCardService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         try {
-
-            Thread t = new Thread(() -> {
+            new Thread(() -> {
                 try {
                     checkSdCardFromFileList();
                 } catch (Exception e) {
@@ -143,9 +141,7 @@ public class checkSdCardService extends IntentService {
                         saveLog(this);
                     }
                 }
-            });
-            t.start();
-            t.join();
+            }).start();
         } catch (Exception e) {
             e.printStackTrace();
             if (null != videoLogList) {

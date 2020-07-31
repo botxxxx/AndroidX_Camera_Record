@@ -11,6 +11,7 @@ import android.widget.EditText;
 import com.askey.widget.LogMsg;
 import com.askey.widget.mLog;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -423,15 +424,17 @@ public class Utils {
     public static String readConfigFile(Context context, File file) {
         String tmp = "";
         try {
-            FileInputStream input = new FileInputStream(file);
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[100];
             int length;
-            while ((length = input.read(buffer)) != -1) {
+            FileInputStream input = new FileInputStream(file);
+            BufferedInputStream bis = new BufferedInputStream(input);
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            while ((length = bis.read(buffer)) != -1) {
                 bytes.write(buffer, 0, length);
             }
             tmp += bytes.toString();
             bytes.close();
+            bis.close();
             input.close();
         } catch (Exception e) {
             e.printStackTrace();

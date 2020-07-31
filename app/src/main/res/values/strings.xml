@@ -113,15 +113,19 @@
         7.fix config bug.
         8.fix video release bug.
     [CDR9020_BIT_v1.0.0]
-        1.add wifi and bt on/off at runtime.
-        2.set defaultProp = false, defaultRun = 480(8h).
-        3.disable video fps and quality setting.
+        1.clone the project from CDR9020 QTR.
+        2.add bluetooth/wifi test.
+        3.show a list of dialog log message on the final run.
+        4.set defaultRun = 480(8h).
     [v1.0.1]
-        1.disable the CopyFile Service.
+        1.disable the copy log to Sd card Service.
+        //Reason: executing service com.askey.bit/.checkFileService.
     [v1.0.2]
-        1.fix copyFileServer ANR error.
+        1.fix long time to read logs problem.
     [v1.0.3]
-        1.fix MediaRecorder error.
+        1.add "android.hardware.camera.autofocus" permission to fix MediaRecorder error.
+        //Reason: MediaRecorder: SurfaceMediaSource could not be initialized!
+        2.add reset camera at Camera onConfigureFailed error.
     -->
     <string name="app_name">CDR9020_BIT(v1.0.3)</string>
 </resources>

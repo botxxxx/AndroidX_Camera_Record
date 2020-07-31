@@ -98,4 +98,18 @@
         7.add checkSdCard background service.
     [v1.7.5]
         1.fix apk restart for bt connect/disconnect.
+    [CDR9020_BIT_v1.0.0]
+        1.clone the project from CDR9020 QTR.
+        2.add bluetooth/wifi test.
+        3.show a list of dialog log message on the final run.
+        4.set defaultRun = 480(8h).
+    [v1.0.1]
+        1.disable the copy log to Sd card Service.
+        //Reason: executing service com.askey.bit/.checkFileService.
+    [v1.0.2]
+        1.fix long time to read logs problem.
+    [v1.0.3]
+        1.add "android.hardware.camera.autofocus" permission to fix MediaRecorder error.
+        //Reason: MediaRecorder: SurfaceMediaSource could not be initialized!
+        2.add reset camera at Camera onConfigureFailed error.
     -->
