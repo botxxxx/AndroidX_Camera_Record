@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -484,18 +485,10 @@ public class Utils {
         return d + h + i + s + "";
     }
 
-    @SuppressLint("DefaultLocale")
+    @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
     public static String getCalendarTime(boolean isCameraOne) {
-        String y, m, d, h, i, s;
         Calendar calendar = Calendar.getInstance();
-        y = String.format("%02d", calendar.get(Calendar.YEAR));
-        m = String.format("%02d", (calendar.get(Calendar.MONTH) - 1));
-        d = String.format("%02d", calendar.get(Calendar.DATE));
-        h = String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY));
-        i = String.format("%02d", calendar.get(Calendar.MINUTE));
-        s = String.format("%02d", calendar.get(Calendar.SECOND));
-
-        return "v" + y + m + d + h + i + s + (isCameraOne ? "f" : "s");
+        return "v" + new SimpleDateFormat("yyyyMMddHHmmss").format(calendar.getTime())+ (isCameraOne ? "f" : "s");
     }
 
     public static String getFileExtension(String fullName) {

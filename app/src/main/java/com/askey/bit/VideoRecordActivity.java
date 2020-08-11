@@ -117,7 +117,7 @@ public class VideoRecordActivity extends Activity {
     private WifiManager wifiManager;
     private BluetoothAdapter mbtAdapter;
     // 使用SD Card儲存 SD_Mode 設置為 true
-    public static boolean SD_Mode = true;
+    public static boolean SD_Mode = false;
     // 使用錯誤重啟 autoRestart 設置為 true
     public static boolean autoRestart = true;
     public static boolean extraRecordStatus = false, onRestart = false;
