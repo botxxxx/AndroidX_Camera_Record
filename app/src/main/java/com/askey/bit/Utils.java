@@ -93,8 +93,7 @@ public class Utils {
         String path = "";
         if (SD_Mode) {
             try {
-                long start = System.currentTimeMillis();
-                long end = start + 10000;
+                long end =  System.currentTimeMillis() + 10000;
                 Runtime run = Runtime.getRuntime();
                 String cmd = "ls /storage";
                 Process pr = run.exec(cmd);
@@ -473,16 +472,10 @@ public class Utils {
         }
     }
 
-    @SuppressLint("DefaultLocale")
+    @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
     public static String getCalendarTime() {
-        String d, h, i, s;
         Calendar calendar = Calendar.getInstance();
-        d = String.format("%02d", calendar.get(Calendar.DATE));
-        h = String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY));
-        i = String.format("%02d", calendar.get(Calendar.MINUTE));
-        s = String.format("%02d", calendar.get(Calendar.SECOND));
-
-        return d + h + i + s + "";
+        return new SimpleDateFormat("HHmmss").format(calendar.getTime())+ "";
     }
 
     @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
