@@ -23,11 +23,11 @@ import static com.askey.bit.Utils.isError;
 import static com.askey.bit.Utils.sdData;
 import static com.askey.bit.Utils.secondFile;
 import static com.askey.bit.Utils.videoLogList;
+import static com.askey.bit.VideoRecordActivity.SD_Mode;
 
 public class checkSdCardService extends IntentService {
 
     public checkSdCardService() {
-        // ActivityのstartService(intent);で呼び出されるコンストラクタはこちら
         super("checkSdCardService");
     }
 
@@ -50,22 +50,18 @@ public class checkSdCardService extends IntentService {
                     if (null != videoLogList) {
                         videoLogList.add(new LogMsg("SD Card is Full."));
                     }
-                    ArrayList<String> tmp = new ArrayList();
+                    ArrayList<String> tmp = new ArrayList<>();
                     File[] fileList = new File(getSDPath()).listFiles();
-                    for (int i = 0; i < fileList.length; i++) {
-                        // Recursive call if it's a directory
-                        File file = fileList[i];
-                        if (!fileList[i].isDirectory()) {
-                            if (Utils.getFileExtension(file.toString()).equals("mp4"))
-                                if (!file.toString().equals(firstFile) || !file.toString().equals(secondFile))
+                    for (File file : fileList) {
+                        if (!file.isDirectory()&& Utils.getFileExtension(file.toString()).equals("mp4"))
+                                if (!(file.toString().equals(firstFile) || file.toString().equals(secondFile)))
                                     tmp.add(file.toString());
-                        }
                     }
                     if (tmp.size() >= 2) {
                         Object[] list = tmp.toArray();
                         Arrays.sort(list);
-                        delete((String) list[0], true);
-                        delete((String) list[1], true);
+                        delete((String) (list != null ? list[0] : null), SD_Mode);
+                        delete((String) (list != null ? list[1] : null), SD_Mode);
                         checkSdCardFromFileList();
                     }
                 }
@@ -79,7 +75,6 @@ public class checkSdCardService extends IntentService {
                         saveLog(this);
                     }
                     errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
-//                ((TextView) findViewById(R.id.record_status)).setText("Error");
                 } else {
                     if (null != videoLogList) {
                         videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
@@ -123,31 +118,17 @@ public class checkSdCardService extends IntentService {
                 saveLog(this);
             }
             errorMessage = "Delete file error. <============ Crash here";
-//            ((TextView) findViewById(R.id.record_status)).setText("Error");
         }
     }
 
-    @Override
     protected void onHandleIntent(Intent intent) {
-        try {
             new Thread(() -> {
                 try {
                     checkSdCardFromFileList();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (null != videoLogList) {
-                        videoLogList.add(new LogMsg("checkSdCardFromFileList error.", mLog.e));
-                        saveLog(this);
-                    }
                 }
             }).start();
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (null != videoLogList) {
-                videoLogList.add(new LogMsg("checkSdCardService error.", mLog.e));
-                saveLog(this);
-            }
-        }
     }
 }
 

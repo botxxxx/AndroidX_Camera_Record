@@ -21,16 +21,15 @@ import static com.askey.bit.restartActivity.EXTRA_MAIN_PID;
 
 public class saveLogService extends IntentService {
     public saveLogService() {
-        // ActivityのstartService(intent);で呼び出されるコンストラクタはこちら
         super("saveLogService");
     }
 
     private void saveLog(ArrayList<LogMsg> mLogList, boolean reFormat, String version) {
-        String logString;
+        StringBuilder logString;
         assert mLogList!=null;
         File file = new File(getPath(), logName);
         if (!file.exists()) {
-            logString = LOG_TITLE + version + "\r\n";
+            logString = new StringBuilder(LOG_TITLE + version + "\r\n");
             try {
                 file.createNewFile();
                 mLogList.add(new LogMsg("Create the log file.", mLog.w));
@@ -38,17 +37,17 @@ public class saveLogService extends IntentService {
                 e.printStackTrace();
             }
         } else {
-            logString = "";
+            logString = new StringBuilder();
         }
 
         for (LogMsg logs : mLogList) {
             String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                     + " run:" + logs.runTime + " -> ";
-            logString += (time + logs.msg + "\r\n");
+            logString.append(time).append(logs.msg).append("\r\n");
         }
         try {
             FileOutputStream output = new FileOutputStream(new File(getPath(), logName), !reFormat);
-            output.write(logString.getBytes());
+            output.write(logString.toString().getBytes());
             output.close();
             mLogList.clear();
 

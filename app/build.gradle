@@ -17,7 +17,7 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         signingConfig signingConfigs.debug
     }
     buildTypes {
@@ -43,14 +43,14 @@ dependencies {
     //compileOnly files('libs/layoutlib.jar')
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     //noinspection GradleDependency,GradleCompatible
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     //noinspection GradleDependency,GradleCompatible
-    implementation 'com.android.support.constraint:constraint-layout-solver:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout-solver:1.1.3'
     //noinspection GradleDependency,GradleCompatible
-    implementation 'com.android.support:design:27.1.0'
+    implementation 'com.google.android.material:material:1.0.0'
     //noinspection GradleDependency,GradleCompatible
-    implementation 'com.android.support:support-v4:27.1.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     //noinspection GradleDependency,GradleCompatible
-    implementation 'com.android.support:appcompat-v7:27.1.0'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
     testImplementation 'junit:junit:4.13-rc-1'
 }

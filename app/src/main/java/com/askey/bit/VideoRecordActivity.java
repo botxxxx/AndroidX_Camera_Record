@@ -26,7 +26,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.support.v4.app.ActivityCompat;
+
+import androidx.core.app.ActivityCompat;
+
 import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
@@ -44,6 +46,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -109,12 +112,13 @@ import static com.askey.bit.Utils.btSuccess;
 import static com.askey.bit.Utils.videoLogList;
 import static com.askey.bit.restartActivity.EXTRA_MAIN_PID;
 
+@SuppressLint("SetTextI18n")
 public class VideoRecordActivity extends Activity {
     private WifiManager wifiManager;
     private BluetoothAdapter mbtAdapter;
-    //TODO 使用SD Card儲存 SD_Mode 設置為 true
+    // 使用SD Card儲存 SD_Mode 設置為 true
     public static boolean SD_Mode = true;
-    //TODO 使用錯誤重啟 autoRestart 設置為 true
+    // 使用錯誤重啟 autoRestart 設置為 true
     public static boolean autoRestart = true;
     public static boolean extraRecordStatus = false, onRestart = false;
     public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
@@ -125,12 +129,10 @@ public class VideoRecordActivity extends Activity {
     private CameraDevice mCameraDevice0, mCameraDevice1;
     private CameraCaptureSession mPreviewSession0, mPreviewSession1;
     private CameraDevice.StateCallback mStateCallback0, mStateCallback1;
-    private CaptureRequest.Builder mPreviewBuilder0, mPreviewBuilder1;
     private MediaRecorder mMediaRecorder0, mMediaRecorder1;
     private Handler mainHandler, demoHandler;
     private Handler recordHandler0, recordHandler1, stopRecordHandler0, stopRecordHandler1;
     private Handler backgroundHandler0, backgroundHandler1;
-    private HandlerThread thread0, thread1;
     private HomeListen home;
     private mTimerTask timerTask = null;
     private Timer mTimer = null;
@@ -145,25 +147,25 @@ public class VideoRecordActivity extends Activity {
             String first = "firstCameraID = ", second = "secondCameraID = ";
             String code = "numberOfRuns = ", prop = "setProperty = ";
             for (String s : read)
-                if (s.indexOf(first) != -1) {
+                if (s.contains(first)) {
                     t = s.indexOf(first) + first.length();
                     first = s.substring(t);
                     break;
                 }
             for (String s : read)
-                if (s.indexOf(second) != -1) {
+                if (s.contains(second)) {
                     t = s.indexOf(second) + second.length();
                     second = s.substring(t);
                     break;
                 }
             for (String s : read)
-                if (s.indexOf(code) != -1) {
+                if (s.contains(code)) {
                     t = s.indexOf(code) + code.length();
                     code = s.substring(t);
                     break;
                 }
             for (String s : read)
-                if (s.indexOf(prop) != -1) {
+                if (s.contains(prop)) {
                     t = s.indexOf(prop) + prop.length();
                     prop = s.substring(t);
                     break;
@@ -246,29 +248,27 @@ public class VideoRecordActivity extends Activity {
     private void showPermission() {
         videoLogList.add(new LogMsg("#showPermission", mLog.v));
         // We don't have permission so prompt the user
-        List<String> permissions = new ArrayList();
+        List<String> permissions = new ArrayList<>();
         permissions.add(Manifest.permission.CAMERA);
         permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         permissions.add(Manifest.permission.INTERNET);
         permissions.add(Manifest.permission.BLUETOOTH);
-        requestPermissions(permissions.toArray(new String[permissions.size()]), 0);
+        requestPermissions(permissions.toArray(new String[0]), 0);
     }
 
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        switch (requestCode) {
-            case 0:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // 許可授權
-                    setStart();
-                } else {
-                    // 沒有權限
-                    showPermission();
-                    videoLogList.add(new LogMsg("#no permissions!", mLog.e));
-                    videoLogList.add(new LogMsg("No permissions!"));
-                }
-                break;
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 0) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 許可授權
+                setStart();
+            } else {
+                // 沒有權限
+                showPermission();
+                videoLogList.add(new LogMsg("#no permissions!", mLog.e));
+                videoLogList.add(new LogMsg("No permissions!"));
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 
@@ -292,7 +292,7 @@ public class VideoRecordActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         isRun = 0;
-        videoLogList = new ArrayList();
+        videoLogList = new ArrayList<>();
         if (checkPermission()) {
             showPermission();
         } else {
@@ -501,9 +501,9 @@ public class VideoRecordActivity extends Activity {
         getSdCard = !getSDPath().equals("");
         // TODO findViewById
         videoLogList.add(new LogMsg("Initial now.", mLog.v));
-        thread0 = new HandlerThread("CameraPreview0");
+        HandlerThread thread0 = new HandlerThread("CameraPreview0");
         thread0.start();
-        thread1 = new HandlerThread("CameraPreview1");
+        HandlerThread thread1 = new HandlerThread("CameraPreview1");
         thread1.start();
         backgroundHandler0 = new Handler(thread0.getLooper());
         backgroundHandler1 = new Handler(thread1.getLooper());
@@ -543,9 +543,7 @@ public class VideoRecordActivity extends Activity {
             videoLogList.add(new LogMsg("@cancel", mLog.v));
             stopRecordAndSaveLog(true);
         });
-        findViewById(R.id.record).setOnClickListener((View v) -> {
-            isRecordStart(false);
-        });
+        findViewById(R.id.record).setOnClickListener((View v) -> isRecordStart(false));
         findViewById(R.id.setting).setOnClickListener((View v) -> {
             if (getSdCard && !isError) {
                 videoLogList.add(new LogMsg("@dialog_setting", mLog.v));
@@ -577,8 +575,8 @@ public class VideoRecordActivity extends Activity {
         });
 
         ((TextView) findViewById(R.id.record_status)).setText(getSDPath().equals("") ? "Error" : "Ready");
-        firstFilePath = new ArrayList();
-        secondFilePath = new ArrayList();
+        firstFilePath = new ArrayList<>();
+        secondFilePath = new ArrayList<>();
         videoLogList.add(new LogMsg("#initial complete", mLog.v));
         onRun = getIntent().getIntExtra(EXTRA_VIDEO_RUN, 0);
         onFail = getIntent().getIntExtra(EXTRA_VIDEO_FAIL, 0);
@@ -605,7 +603,7 @@ public class VideoRecordActivity extends Activity {
         this.registerReceiver(new BroadcastReceiver() {
 
             public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {  //Battery
+                if (Objects.equals(intent.getAction(), Intent.ACTION_BATTERY_CHANGED)) {  //Battery
                     videoLogList.add(new LogMsg("Battery:" + intent.getIntExtra("level", 0) + "%", mLog.e));
                     new Handler().post(() -> saveLog(getApplicationContext(), false, false));
                 }
@@ -640,7 +638,7 @@ public class VideoRecordActivity extends Activity {
                 videoLogList.add(new LogMsg("@log_ok", mLog.v));
                 dialog.dismiss();
             });
-            ArrayList<String> list = new ArrayList();
+            ArrayList<String> list = new ArrayList<>();
             if (getSdCard)
                 if (real)
                     list.add("CheckFile -> video_success/fail:(" + getSuccess() + "/" + getFail() +
@@ -659,9 +657,9 @@ public class VideoRecordActivity extends Activity {
             if (!errorMessage.equals(""))
                 list.add(errorMessage);
             if (list.size() > 0) {
-                ArrayList<View> items = new ArrayList();
+                ArrayList<View> items = new ArrayList<>();
                 for (String s : list) {
-                    View item_layout = LayoutInflater.from(this).inflate(R.layout.style_text_item, null);
+                    @SuppressLint("InflateParams") View item_layout = LayoutInflater.from(this).inflate(R.layout.style_text_item, null);
                     ((CustomTextView) item_layout.findViewById(R.id.customTextView)).setText(s);
                     items.add(item_layout);
                 }
@@ -757,16 +755,16 @@ public class VideoRecordActivity extends Activity {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Log.e(TAG, "openCamera E");
         try {
-            /** cameraId
-             * 0 = CameraCharacteristics.LENS_FACING_FRONT
-             * 1 = CameraCharacteristics.LENS_FACING_BACK
-             * 2 = CameraCharacteristics.LENS_FACING_EXTERNAL
+            /* cameraId
+              0 = CameraCharacteristics.LENS_FACING_FRONT
+              1 = CameraCharacteristics.LENS_FACING_BACK
+              2 = CameraCharacteristics.LENS_FACING_EXTERNAL
              */
             Log.e(TAG, "camera ID: " + cameraId);
             Log.e(TAG, "number of camera: " + manager.getCameraIdList().length);
             if (isCameraOne(cameraId))
-                mPreviewSize = manager.getCameraCharacteristics(cameraId)
-                        .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                mPreviewSize = Objects.requireNonNull(manager.getCameraCharacteristics(cameraId)
+                        .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP))
                         .getOutputSizes(SurfaceTexture.class)[0];
             if (ActivityCompat.checkSelfPermission(this,
                     Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -1006,7 +1004,7 @@ public class VideoRecordActivity extends Activity {
                     backgroundHandler = backgroundHandler0;
                     mCameraDevice = mCameraDevice0;
                     mMediaRecorder0 = setUpMediaRecorder(firstCamera);
-                    mPreviewBuilder0 = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+                    CaptureRequest.Builder mPreviewBuilder0 = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
                     surfaces.add(surface);
                     mPreviewBuilder0.addTarget(surface);
                     recorderSurface = mMediaRecorder0.getSurface();
@@ -1017,7 +1015,7 @@ public class VideoRecordActivity extends Activity {
                     backgroundHandler = backgroundHandler1;
                     mCameraDevice = mCameraDevice1;
                     mMediaRecorder1 = setUpMediaRecorder(secondCamera);
-                    mPreviewBuilder1 = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+                    CaptureRequest.Builder mPreviewBuilder1 = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
                     surfaces.add(surface);
                     mPreviewBuilder1.addTarget(surface);
                     recorderSurface = mMediaRecorder1.getSurface();
@@ -1172,7 +1170,7 @@ public class VideoRecordActivity extends Activity {
                 CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
                 mediaRecorder = new MediaRecorder();
                 // Step 2: Set sources
-                if (isCameraOne(cameraId) && !micError) {
+                if (isCameraOne(cameraId)) {
                     try {
                         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                     } catch (Exception e) {

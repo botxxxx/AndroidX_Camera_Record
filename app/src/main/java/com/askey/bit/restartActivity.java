@@ -21,7 +21,6 @@ public class restartActivity extends Activity {
         Intent intent = new Intent();
         intent.setClassName(context.getPackageName(), restartActivity.class.getName());
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        // メインプロセスの PID を Intent に保存しておく
         intent.putExtra(EXTRA_MAIN_PID, android.os.Process.myPid());
         return intent;
     }
@@ -29,7 +28,6 @@ public class restartActivity extends Activity {
     
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // 1. メインプロセスを Kill する
         Intent intent = getIntent();
         int mainPid = intent.getIntExtra(EXTRA_MAIN_PID, -1);
         int EXTRA_RUN = intent.getIntExtra(EXTRA_VIDEO_RUN, 0);
@@ -57,7 +55,6 @@ public class restartActivity extends Activity {
         restartIntent.putExtra(EXTRA_VIDEO_BT_SUCCESS, EXTRA_BT_SUCCESS);
         restartIntent.putExtra(EXTRA_VIDEO_RECORD, EXTRA_RECORD);
         context.startActivity(restartIntent);
-        // 3. RestartActivity を終了する
         finish();
         android.os.Process.killProcess(android.os.Process.myPid());
     }

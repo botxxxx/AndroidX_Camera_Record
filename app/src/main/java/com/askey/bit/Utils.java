@@ -31,12 +31,12 @@ public class Utils {
     public static final boolean defaultProp = false;
     public static final int defaultRun = 480;
     //-------------------------------------------------------------------------------
-    public static final double[] DFRAME_RATE = {16, 27.5},
-            NEW_DFRAME_RATE = {14, 28};
+    public static final double[]  NEW_DFRAME_RATE = {14, 28};
+//    DFRAME_RATE = {16, 27.5},
     public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
             NEW_FRAME_RATE = {"14fps", "28fps"};
-    public static final String[] FPS = {"140", "280"};
-    public static final String FRAMESKIP = "persist.our.camera.fps";
+//    public static final String[] FPS = {"140", "280"};
+//    public static final String FRAMESKIP = "persist.our.camera.fps";
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
     public static final String EXTRA_VIDEO_WIFI_FAIL = "RestartActivity.wifi.fail";
@@ -46,10 +46,10 @@ public class Utils {
     public static final String EXTRA_VIDEO_SUCCESS = "RestartActivity.success";
     public static final String EXTRA_VIDEO_WIFI_SUCCESS = "RestartActivity.wifi.success";
     public static final String EXTRA_VIDEO_BT_SUCCESS = "RestartActivity.bt.success";
-    public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
+//    public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
     public static final String EXTRA_VIDEO_PATH = "RestartActivity.path";
-    public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
-    public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
+//    public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
+//    public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
     public static final String EXTRA_VIDEO_VERSION = "RestartActivity.version";
     public static final String EXTRA_VIDEO_REFORMAT = "RestartActivity.reformat";
     public static final String NO_SD_CARD = "SD card is not available!";
@@ -85,8 +85,7 @@ public class Utils {
 
     //TODO Default Path
     public static String getPath() {
-        String path = "/storage/emulated/0/DCIM/";
-        return path;
+        return "/storage/emulated/0/DCIM/";
     }
 
     public static String getSDPath() {
@@ -206,14 +205,14 @@ public class Utils {
         }
     }
 
-    public static void checkLogFile(Context context, File file, ArrayList list) {
-        String input = readConfigFile(context, file);
-        if (input.length() > 0) {
-            String[] read = input.split("\r\n");
-            for (String s : read)
-                list.add(s);
-        }
-    }
+//    public static void checkLogFile(Context context, File file, ArrayList list) {
+//        String input = readConfigFile(context, file);
+//        if (input.length() > 0) {
+//            String[] read = input.split("\r\n");
+//            for (String s : read)
+//                list.add(s);
+//        }
+//    }
 
     public static boolean[] checkConfigFile(Context context, File file, boolean firstOne) {
         try {
@@ -233,28 +232,28 @@ public class Utils {
                         break;
                     }
                 for (String s : read)
-                    if (s.indexOf(first) != -1) {
+                    if (s.contains(first)) {
                         target++;
                         t = s.indexOf(first) + first.length();
                         first = s.substring(t);
                         break;
                     }
                 for (String s : read)
-                    if (s.indexOf(second) != -1) {
+                    if (s.contains(second)) {
                         target++;
                         t = s.indexOf(second) + second.length();
                         second = s.substring(t);
                         break;
                     }
                 for (String s : read)
-                    if (s.indexOf(code) != -1) {
+                    if (s.contains(code)) {
                         target++;
                         t = s.indexOf(code) + code.length();
                         code = s.substring(t);
                         break;
                     }
                 for (String s : read)
-                    if (s.indexOf(prop) != -1) {
+                    if (s.contains(prop)) {
                         target++;
                         t = s.indexOf(prop) + prop.length();
                         prop = s.substring(t);
@@ -274,7 +273,7 @@ public class Utils {
                             videoLogList.add(new LogMsg("Inner and External can't be used at the same time.", mLog.e));
                             reformat = true;
                         } else {
-                            if (isCameraID(context, first.split("\n")[0], second.split("\n")[0])) {
+                            if (isCameraID(first.split("\n")[0], second.split("\n")[0])) {
                                 lastfirstCamera = firstOne ? first : firstCamera;
                                 lastsecondCamera = firstOne ? second : secondCamera;
                                 firstCamera = first;
@@ -304,7 +303,7 @@ public class Utils {
                         reformat = true;
                     }
                     if (isBoolean(prop)) {
-                        boolean getProp = Boolean.valueOf(prop);
+                        boolean getProp = Boolean.parseBoolean(prop);
                         if (isNew != getProp)
                             isPropChange = true;
                         isNew = getProp;
@@ -316,16 +315,16 @@ public class Utils {
                 }
             }
             if (update) {
-                String logString = LOG_TITLE + context.getString(R.string.app_name) + "\r\n";
+                StringBuilder logString = new StringBuilder(LOG_TITLE + context.getString(R.string.app_name) + "\r\n");
                 videoLogList.add(new LogMsg("Reformat the Log file.", mLog.e));
                 for (LogMsg logs : videoLogList) {
                     String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                             + " run:" + logs.runTime + " -> ";
-                    logString += (time + logs.msg + "\r\n");
+                    logString.append(time).append(logs.msg).append("\r\n");
                 }
                 try {
                     FileOutputStream output = new FileOutputStream(new File(getPath(), logName), false);
-                    output.write(logString.getBytes());
+                    output.write(logString.toString().getBytes());
                     output.close();
                     videoLogList.clear();
 
@@ -345,7 +344,7 @@ public class Utils {
         }
     }
 
-    public static boolean isCameraID(Context context, String f, String b) {
+    public static boolean isCameraID(String f, String b) {
         try {
             if (Integer.parseInt(f) <= -1) {
                 videoLogList.add(new LogMsg("The Camera ID must be a positive number.", mLog.e));
@@ -453,12 +452,12 @@ public class Utils {
 
     public static void writeConfigFile(Context context, File file, String[] str) {
         if (getSdCard) {
-            String tmp = "";
+            StringBuilder tmp = new StringBuilder();
             for (String s : str)
-                tmp += s;
+                tmp.append(s);
             try {
                 FileOutputStream output = new FileOutputStream(file);
-                output.write(tmp.getBytes());
+                output.write(tmp.toString().getBytes());
                 output.close();
             } catch (Exception e) {
                 e.printStackTrace();
