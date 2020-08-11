@@ -93,7 +93,7 @@ public class Utils {
         String path = "";
         if (SD_Mode) {
             try {
-                long end =  System.currentTimeMillis() + 10000;
+                long end =  System.currentTimeMillis() + 5000;
                 Runtime run = Runtime.getRuntime();
                 String cmd = "ls /storage";
                 Process pr = run.exec(cmd);
