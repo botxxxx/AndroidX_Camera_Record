@@ -60,14 +60,8 @@ public class saveLogService extends IntentService {
         int mainPid = 0;
         try {
             mainPid = intent.getIntExtra(EXTRA_MAIN_PID, -1);
-            new Thread(() -> {
-                try {
-                    saveLog(videoLogList, intent.getBooleanExtra(EXTRA_VIDEO_REFORMAT, false),
-                            intent.getStringExtra(EXTRA_VIDEO_VERSION));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }).start();
+            saveLog(videoLogList, intent.getBooleanExtra(EXTRA_VIDEO_REFORMAT, false),
+                    intent.getStringExtra(EXTRA_VIDEO_VERSION));
         } catch (Exception e) {
             e.printStackTrace();
             if (null != videoLogList)

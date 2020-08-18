@@ -111,15 +111,10 @@ public class checkFileService extends IntentService {
 
     protected void onHandleIntent(Intent intent) {
         try {
-            new Thread(() -> {
-                try {
-                    if (null != videoLogList) {
-                        checkFile(intent.getStringExtra(EXTRA_VIDEO_PATH));
-                        saveLog();
-                    }
-                } catch (Exception ignored) {
-                }
-            }).start();
+            if (null != videoLogList) {
+                checkFile(intent.getStringExtra(EXTRA_VIDEO_PATH));
+                saveLog();
+            }
         } catch (Exception ignored) {
             if (null != videoLogList)
                 videoLogList.add(new LogMsg("CheckFileService error.", mLog.e));

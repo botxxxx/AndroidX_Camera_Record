@@ -126,6 +126,9 @@
         1.add "android.hardware.camera.autofocus" permission to fix MediaRecorder error.
         //Reason: MediaRecorder: SurfaceMediaSource could not be initialized!
         2.add reset camera at Camera onConfigureFailed error.
+    [v1.0.4]
+        1.refactor to androidx
+        2.add serviceDelete log message
     -->
-    <string name="app_name">CDR9020_BIT(v1.0.3)</string>
+    <string name="app_name">CDR9020_BIT(v1.0.4)</string>
 </resources>
