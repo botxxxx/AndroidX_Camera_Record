@@ -1025,71 +1025,74 @@ public class VideoRecordActivity extends Activity {
                 }
                 // Start a capture session
                 // Once the session starts, we can update the UI and start recording
-                if (mPreviewBuilder != null) {
 
-                    try {
-                        mCameraDevice.createCaptureSession(surfaces,
-                                new CameraCaptureSession.StateCallback() {
+                try {
+                    mCameraDevice.createCaptureSession(surfaces,
+                            new CameraCaptureSession.StateCallback() {
 
-                                    public void onConfigured(CameraCaptureSession session) {
-                                        // 当摄像头已经准备好时，开始显示预览
-                                        if (isCameraOne(cameraId)) {
-                                            mPreviewSession0 = session;
-                                        } else {
-                                            mPreviewSession1 = session;
-                                        }
-                                        updatePreview(mPreviewBuilder, session, backgroundHandler);
+                                public void onConfigured(CameraCaptureSession session) {
+                                    // 当摄像头已经准备好时，开始显示预览
+                                    if (isCameraOne(cameraId)) {
+                                        mPreviewSession0 = session;
+                                    } else {
+                                        mPreviewSession1 = session;
+                                    }
+                                    updatePreview(mPreviewBuilder, session, backgroundHandler);
 
-                                        if (isCameraOne(cameraId)) {
-                                            Message msg = stopRecordHandler0.obtainMessage();
-                                            msg.arg1 = Integer.parseInt(cameraId);
-                                            msg.obj = getCodeDate(cameraId);
-                                            stopRecordHandler0.sendMessageDelayed(msg, delayTime);
+                                    if (isCameraOne(cameraId)) {
+                                        try {
                                             if (mMediaRecorder0 != null)
                                                 mMediaRecorder0.start();
-                                            mTimer.schedule(timerTask, 100, 100);
-                                        } else {
-                                            Message msg = stopRecordHandler1.obtainMessage();
-                                            msg.arg1 = Integer.parseInt(cameraId);
-                                            msg.obj = getCodeDate(cameraId);
-                                            stopRecordHandler1.sendMessageDelayed(msg, delayTime + 500);
+                                        }catch (Exception e){
+                                            isError = true;
+                                            videoLogList.add(new LogMsg("Camera " + cameraId + " can't record. <============ Crash here", mLog.e));
+                                            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
+                                            errorMessage = "Camera " + cameraId + " can't record. <============ Crash here";
+                                            ((TextView) findViewById(R.id.record_status)).setText("Error");
+                                        }
+                                        Message msg = stopRecordHandler0.obtainMessage();
+                                        msg.arg1 = Integer.parseInt(cameraId);
+                                        msg.obj = getCodeDate(cameraId);
+                                        stopRecordHandler0.sendMessageDelayed(msg, delayTime);
+                                        mTimer.schedule(timerTask, 100, 100);
+                                    } else {
+                                        try {
                                             if (mMediaRecorder1 != null)
                                                 mMediaRecorder1.start();
+                                        }catch (Exception e){
+                                            isError = true;
+                                            videoLogList.add(new LogMsg("Camera " + cameraId + " can't record.  <============ Crash here", mLog.e));
+                                            new Handler().post(() -> saveLog(getApplicationContext(), false, false));
+                                            errorMessage = "Camera " + cameraId + " can't record. <============ Crash here";
+                                            ((TextView) findViewById(R.id.record_status)).setText("Error");
                                         }
-
+                                        Message msg = stopRecordHandler1.obtainMessage();
+                                        msg.arg1 = Integer.parseInt(cameraId);
+                                        msg.obj = getCodeDate(cameraId);
+                                        stopRecordHandler1.sendMessageDelayed(msg, delayTime + 500);
                                     }
 
-                                    public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
-                                        isError = true;
-                                        videoLogList.add(new LogMsg("Camera " + cameraId + " Record onConfigureFailed.", mLog.e));
-                                        new Handler().post(() -> saveLog(getApplicationContext(), false, false));
-                                        errorMessage = "Camera " + cameraId + " onConfigureFailed error.";
-                                        ((TextView) findViewById(R.id.record_status)).setText("Error");
-                                        if (autoRestart) {
-                                            final String dates = resetDate + "";
-                                            final boolean records = extraRecordStatus;
-                                            new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
-                                        }
+                                }
+
+                                public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
+                                    isError = true;
+                                    videoLogList.add(new LogMsg("Camera " + cameraId + " Record onConfigureFailed.", mLog.e));
+                                    new Handler().post(() -> saveLog(getApplicationContext(), false, false));
+                                    errorMessage = "Camera " + cameraId + " onConfigureFailed error.";
+                                    ((TextView) findViewById(R.id.record_status)).setText("Error");
+                                    if (autoRestart) {
+                                        final String dates = resetDate + "";
+                                        final boolean records = extraRecordStatus;
+                                        new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
                                     }
-                                }, backgroundHandler);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        isError = true;
-                        videoLogList.add(new LogMsg("Camera " + cameraId + " CameraCaptureSession.StateCallback() error. <============ Crash here", mLog.e));
-                        new Handler().post(() -> stopRecordAndSaveLog(false));
-                        errorMessage = "Camera " + cameraId + " startRecord error. <============ Crash here";
-                        ((TextView) findViewById(R.id.record_status)).setText("Error");
-                        if (autoRestart) {
-                            final String dates = resetDate + "";
-                            final boolean records = extraRecordStatus;
-                            new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
-                        }
-                    }
-                } else {
+                                }
+                            }, backgroundHandler);
+                } catch (Exception e) {
+                    e.printStackTrace();
                     isError = true;
-                    videoLogList.add(new LogMsg("Camera " + cameraId + " mPreviewBuilder is null. <============ Crash here", mLog.e));
+                    videoLogList.add(new LogMsg("Camera " + cameraId + " CameraCaptureSession.StateCallback() error. <============ Crash here", mLog.e));
                     new Handler().post(() -> stopRecordAndSaveLog(false));
-                    errorMessage = "Camera " + cameraId + " mPreviewBuilder is null. <============ Crash here";
+                    errorMessage = "Camera " + cameraId + " startRecord error. <============ Crash here";
                     ((TextView) findViewById(R.id.record_status)).setText("Error");
                     if (autoRestart) {
                         final String dates = resetDate + "";
@@ -1227,17 +1230,6 @@ public class VideoRecordActivity extends Activity {
             isError = true;
             videoLogList.add(new LogMsg("MediaRecorder " + cameraId + " error. <============ Crash here", mLog.e));
             new Handler().post(() -> stopRecordAndSaveLog(false));
-            errorMessage = "MediaRecorder " + cameraId + " error. <============ Crash here";
-            ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (getSdCard) {
-                if (autoRestart) {
-                    final String dates = resetDate + "";
-                    final boolean records = extraRecordStatus;
-                    new Handler().postDelayed(() -> restartApp(dates, records), delayMillis);
-                }
-            } else {
-                videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
-            }
         }
         return mediaRecorder;
     }

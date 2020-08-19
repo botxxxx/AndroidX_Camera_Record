@@ -62,6 +62,7 @@ public class checkSdCardService extends IntentService {
                         Arrays.sort(list);
                         delete((String) (list != null ? list[0] : null), SD_Mode);
                         delete((String) (list != null ? list[1] : null), SD_Mode);
+                        checkSdCardFromFileList();
                     }
                 }
             } catch (Exception e) {
@@ -81,8 +82,6 @@ public class checkSdCardService extends IntentService {
                     }
                     errorMessage = NO_SD_CARD;
                 }
-            } finally {
-                checkSdCardFromFileList();
             }
         } else {
             isError = true;
