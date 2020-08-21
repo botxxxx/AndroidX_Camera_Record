@@ -32,11 +32,11 @@ public class Utils {
     public static final boolean defaultProp = false;
     public static final int defaultRun = 480;
     //-------------------------------------------------------------------------------
-    public static final double[]  NEW_DFRAME_RATE = {14, 28};
-//    DFRAME_RATE = {16, 27.5},
+    public static final double[] NEW_DFRAME_RATE = {14, 28};
+    //    DFRAME_RATE = {16, 27.5},
     public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
             NEW_FRAME_RATE = {"14fps", "28fps"};
-//    public static final String[] FPS = {"140", "280"};
+    //    public static final String[] FPS = {"140", "280"};
 //    public static final String FRAMESKIP = "persist.our.camera.fps";
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
@@ -47,9 +47,9 @@ public class Utils {
     public static final String EXTRA_VIDEO_SUCCESS = "RestartActivity.success";
     public static final String EXTRA_VIDEO_WIFI_SUCCESS = "RestartActivity.wifi.success";
     public static final String EXTRA_VIDEO_BT_SUCCESS = "RestartActivity.bt.success";
-//    public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
+    //    public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
     public static final String EXTRA_VIDEO_PATH = "RestartActivity.path";
-//    public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
+    //    public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
 //    public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
     public static final String EXTRA_VIDEO_VERSION = "RestartActivity.version";
     public static final String EXTRA_VIDEO_REFORMAT = "RestartActivity.reformat";
@@ -93,8 +93,8 @@ public class Utils {
         String path = "";
         if (SD_Mode) {
             try {
-                long start = System.currentTimeMillis();
-                long end = start + 5000;
+                long start = (System.currentTimeMillis() / 1000) % 60;
+                long end = start + 10;
                 Runtime run = Runtime.getRuntime();
                 String cmd = "ls /storage";
                 Process pr = run.exec(cmd);
@@ -105,7 +105,8 @@ public class Utils {
                         path = "/storage/" + line + "/";
                         break;
                     }
-                    if (System.currentTimeMillis() > end) {
+                    if ((System.currentTimeMillis() / 1000) % 60 > end) {
+                        videoLogList.add(new LogMsg("getSDPath time out.", mLog.d));
                         break;
                     }
                 }
@@ -476,13 +477,13 @@ public class Utils {
     @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
     public static String getCalendarTime() {
         Calendar calendar = Calendar.getInstance();
-        return new SimpleDateFormat("HHmmss").format(calendar.getTime())+ "";
+        return new SimpleDateFormat("HHmmss").format(calendar.getTime()) + "";
     }
 
     @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
     public static String getCalendarTime(boolean isCameraOne) {
         Calendar calendar = Calendar.getInstance();
-        return "v" + new SimpleDateFormat("yyyyMMddHHmmss").format(calendar.getTime())+ (isCameraOne ? "f" : "s");
+        return "v" + new SimpleDateFormat("yyyyMMddHHmmss").format(calendar.getTime()) + (isCameraOne ? "f" : "s");
     }
 
     public static String getFileExtension(String fullName) {

@@ -98,7 +98,7 @@ public class checkSdCardService extends IntentService {
             if (!path.equals("")) {
                 File video = new File(path);
                 if (video.exists()) {
-                    long start = System.currentTimeMillis();
+                    long start = (System.currentTimeMillis() / 1000) % 60;
                     if (null != videoLogList) {
                         videoLogList.add(new LogMsg("Delete time: " + start, mLog.w));
                         if (fromSDcard)
@@ -109,12 +109,12 @@ public class checkSdCardService extends IntentService {
                     Thread D = new Thread(video::delete);
                     D.start();
                     D.join();
-                    long end = System.currentTimeMillis();
+                    long end = (System.currentTimeMillis() / 1000) % 60;
                     if (null != videoLogList) {
                         videoLogList.add(new LogMsg("Delete end: " + end, mLog.w));
-                        if (end > start + 5000)
+                        if (end > start + 2)
                             videoLogList.add(new LogMsg("Delete file has time out "
-                                    + (start - end) + "ms. <==================== Error here", mLog.w));
+                                    + (end - start) + "s. <==================== Error here", mLog.w));
                     }
                 } else {
                     if (null != videoLogList)
