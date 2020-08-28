@@ -12,7 +12,23 @@ import com.askey.widget.mLog;
 import java.io.File;
 import java.io.FileInputStream;
 
-import static com.askey.bit.Utils.*;
+import static com.askey.bit.Utils.EXTRA_VIDEO_PATH;
+import static com.askey.bit.Utils.Fail;
+import static com.askey.bit.Utils.NEW_DFRAME_RATE;
+import static com.askey.bit.Utils.NO_SD_CARD;
+import static com.askey.bit.Utils.Success;
+import static com.askey.bit.Utils.getBtFail;
+import static com.askey.bit.Utils.getBtSuccess;
+import static com.askey.bit.Utils.getFail;
+import static com.askey.bit.Utils.getReset;
+import static com.askey.bit.Utils.getSDPath;
+import static com.askey.bit.Utils.getSuccess;
+import static com.askey.bit.Utils.getWifiFail;
+import static com.askey.bit.Utils.getWifiSuccess;
+import static com.askey.bit.Utils.isFrame;
+import static com.askey.bit.Utils.isNew;
+import static com.askey.bit.Utils.videoLogList;
+import static com.askey.bit.VideoRecordActivity.burnInTest;
 
 @SuppressLint("NewApi")
 public class checkFileService extends IntentService {
@@ -63,7 +79,6 @@ public class checkFileService extends IntentService {
         try {
             File video = new File(path);
             int frameRate = 0;
-
             if (video.exists()) {
                 try {
                     frameRate = getFrameRate(video);
@@ -90,12 +105,13 @@ public class checkFileService extends IntentService {
             } else {
                 Fail++;
             }
+            String bit = ") wifi_success/fail:(" + getWifiSuccess() + "/" + getWifiFail() +
+                    ") bt_success/fail:(" + getBtSuccess() + "/" + getBtFail();
+
             if (null != videoLogList)
                 videoLogList.add(new LogMsg("CheckFile:(" + path.split("/")[3] +
                         ") video_frameRate:(" + frameRate + ") video_success/fail:(" + getSuccess() + "/" + getFail() +
-                        ") wifi_success/fail:(" + getWifiSuccess() + "/" + getWifiFail() +
-                        ") bt_success/fail:(" + getBtSuccess() + "/" + getBtFail() +
-                        ") app_reset:(" + getReset() + ")", mLog.i));
+                        (burnInTest ? bit : "") + ") app_reset:(" + getReset() + ")", mLog.i));
         } catch (Exception ignored) {
             if (null != videoLogList)
                 videoLogList.add(new LogMsg("CheckFile error.", mLog.e));

@@ -2,7 +2,6 @@ package com.askey.bit;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Handler;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.View;
@@ -37,7 +36,7 @@ public class Utils {
     public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
             NEW_FRAME_RATE = {"14fps", "28fps"};
     //    public static final String[] FPS = {"140", "280"};
-//    public static final String FRAMESKIP = "persist.our.camera.fps";
+    //    public static final String FRAMESKIP = "persist.our.camera.fps";
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
     public static final String EXTRA_VIDEO_WIFI_FAIL = "RestartActivity.wifi.fail";
@@ -50,7 +49,7 @@ public class Utils {
     //    public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
     public static final String EXTRA_VIDEO_PATH = "RestartActivity.path";
     //    public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
-//    public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
+    //    public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
     public static final String EXTRA_VIDEO_VERSION = "RestartActivity.version";
     public static final String EXTRA_VIDEO_REFORMAT = "RestartActivity.reformat";
     public static final String NO_SD_CARD = "SD card is not available!";
@@ -98,7 +97,8 @@ public class Utils {
                 Runtime run = Runtime.getRuntime();
                 String cmd = "ls /storage";
                 Process pr = run.exec(cmd);
-                BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+                InputStreamReader input = new InputStreamReader(pr.getInputStream());
+                BufferedReader buf = new BufferedReader(input);
                 String line;
                 while ((line = buf.readLine()) != null) {
                     if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
@@ -110,6 +110,8 @@ public class Utils {
                         break;
                     }
                 }
+                buf.close();
+                input.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -441,12 +443,12 @@ public class Utils {
             e.printStackTrace();
             isError = true;
             getSdCard = !getSDPath().equals("");
-            videoLogList.add(new LogMsg("Read failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
-            new Handler().post(() -> saveLog(context, false, false));
-            errorMessage = "Read failed." + NO_SD_CARD + "<============ Crash here";
+            videoLogList.add(new LogMsg("Read failed. <============ Crash here", mLog.e));
+            saveLog(context, false, false);
+            errorMessage = "Read failed. <============ Crash here";
             videoLogList.add(new LogMsg("Read failed.", mLog.e));
             tmp += ("App Version:" + context.getString(R.string.app_name) + "\r\n");
-            tmp += (NO_SD_CARD);
+            tmp += ("Read failed. <============ Crash here");
             return tmp;
         }
         return tmp;
@@ -465,9 +467,9 @@ public class Utils {
                 e.printStackTrace();
                 isError = true;
                 getSdCard = !getSDPath().equals("");
-                videoLogList.add(new LogMsg("Write failed. " + NO_SD_CARD + ". <============ Crash here", mLog.e));
-                new Handler().post(() -> saveLog(context, false, false));
-                errorMessage = "Write failed. " + NO_SD_CARD + "<============ Crash here";
+                videoLogList.add(new LogMsg("Write failed. <============ Crash here", mLog.e));
+                saveLog(context, false, false);
+                errorMessage = "Write failed. <============ Crash here";
             }
         } else {
             videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));

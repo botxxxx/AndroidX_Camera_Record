@@ -26,7 +26,7 @@ public class saveLogService extends IntentService {
 
     private void saveLog(ArrayList<LogMsg> mLogList, boolean reFormat, String version) {
         StringBuilder logString;
-        assert mLogList!=null;
+        assert mLogList != null;
         File file = new File(getPath(), logName);
         if (!file.exists()) {
             logString = new StringBuilder(LOG_TITLE + version + "\r\n");
