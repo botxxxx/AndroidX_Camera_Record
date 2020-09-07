@@ -130,8 +130,9 @@
         1.refactor to androidx.
         2.add serviceDelete log message.
     [v1.0.5]
-        1.Run all service on MainActivity.
-        2.fix BufferedReader not closed problem.
+        1.關閉未執行close之BufferedReader.
+        2.過去之ANR皆在Service發生, 且Service可能被系統GC時阻塞而暫停執行, 因此取消所有Service改由主線程執行.
+        3.每分鐘執行之檢查SD卡之遞迴方法, 改為只移除兩個影片.
     -->
     <string name="app_name">CDR9020_BIT(v1.0.5)</string>
 </resources>

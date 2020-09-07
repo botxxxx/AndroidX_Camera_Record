@@ -383,6 +383,7 @@ public class VideoRecordActivity extends Activity {
                     }
 
                     public void onError(CameraDevice camera, int error) {
+                        fCamera = false;
                         isError = true;
                         onDisconnected(camera);
                         // 前鏡頭開啟失敗
@@ -440,6 +441,7 @@ public class VideoRecordActivity extends Activity {
                     }
 
                     public void onError(CameraDevice camera, int error) {
+                        sCamera = false;
                         isError = true;
                         onDisconnected(camera);
                         // 前鏡頭開啟失敗
@@ -514,7 +516,7 @@ public class VideoRecordActivity extends Activity {
             errorMessage = "bluetoothAdapter error.";
         }
         getSdCard = !getSDPath().equals("");
-        // TODO findViewById
+        // findViewById
         videoLogList.add(new LogMsg("Initial now.", mLog.v));
         HandlerThread thread0 = new HandlerThread("CameraPreview0");
         thread0.start();
@@ -548,13 +550,12 @@ public class VideoRecordActivity extends Activity {
         codeDate1 = getCalendarTime();
         resetDate = getCalendarTime();
         setCallback(0);
-        setCallback(1);
         mTextureView0 = findViewById(R.id.surfaceView0);
         mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
+        setCallback(1);
         mTextureView1 = findViewById(R.id.surfaceView1);
         mTextureView1.setSurfaceTextureListener(new mSurfaceTextureListener(secondCamera));
         checkSdCardFromFileList(true);
-
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
             videoLogList.add(new LogMsg("@cancel", mLog.v));
             stopRecordAndSaveLog(true);
@@ -770,9 +771,8 @@ public class VideoRecordActivity extends Activity {
         closePreviewSession(secondCamera);
         try {
             if (mMediaRecorder0 != null) {
-//                mMediaRecorder0.stop();
+                mMediaRecorder0.stop();
                 mMediaRecorder0.release();
-                mMediaRecorder0 = null;
                 videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
             }
         } catch (Exception e) {
@@ -780,9 +780,8 @@ public class VideoRecordActivity extends Activity {
         }
         try {
             if (mMediaRecorder1 != null) {
-//                mMediaRecorder1.stop();
+                mMediaRecorder1.stop();
                 mMediaRecorder1.release();
-                mMediaRecorder1 = null;
                 videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
             }
         } catch (Exception e) {
@@ -847,32 +846,33 @@ public class VideoRecordActivity extends Activity {
                     Log.d(TAG, "stopRecord");
                 }
 
-                try {
-                    if (isCameraOne(cameraID)) {
-                        try {
-                            if (mMediaRecorder0 != null) {
-                                mMediaRecorder0.stop();
-//                                mMediaRecorder0.release();
-                                videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
-                            }
-                        } catch (Exception e) {
-                            videoLogList.add(new LogMsg("mMediaRecorder0 is error."));
+                if (isCameraOne(cameraID)) {
+                    try {
+                        if (mMediaRecorder0 != null) {
+                            mMediaRecorder0.stop();
+                            mMediaRecorder0.release();
+                            videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
                         }
-                    } else {
-                        try {
-                            if (mMediaRecorder1 != null) {
-                                mMediaRecorder1.stop();
-//                                mMediaRecorder1.release();
-                                videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
-                            }
-                        } catch (Exception e) {
-                            videoLogList.add(new LogMsg("mMediaRecorder1 is error."));
-                        }
+                    } catch (Exception e) {
+                        videoLogList.add(new LogMsg("mMediaRecorder0 is error."));
                     }
-                } catch (Exception ignored) {
-
+                } else {
+                    try {
+                        if (mMediaRecorder1 != null) {
+                            mMediaRecorder1.stop();
+                            mMediaRecorder1.release();
+                            videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
+                        }
+                    } catch (Exception e) {
+                        videoLogList.add(new LogMsg("mMediaRecorder1 is error."));
+                    }
                 }
-                checkAndClear(cameraID);
+
+                try {
+                    checkAndClear(cameraID);
+                } catch (Exception e) {
+                    videoLogList.add(new LogMsg("Check file is fail."));
+                }
                 if (isFinish == 999 || isRun <= isFinish) {
                     startRecord(cameraID);
                 } else {
@@ -919,7 +919,7 @@ public class VideoRecordActivity extends Activity {
                     try {
                         if (mMediaRecorder0 != null) {
                             mMediaRecorder0.stop();
-//                            mMediaRecorder0.release();
+                            mMediaRecorder0.release();
                             videoLogList.add(new LogMsg("Record " + firstCamera + " finish."));
                         }
                     } catch (Exception e) {
@@ -928,7 +928,7 @@ public class VideoRecordActivity extends Activity {
                     try {
                         if (mMediaRecorder1 != null) {
                             mMediaRecorder1.stop();
-//                            mMediaRecorder1.release();
+                            mMediaRecorder1.release();
                             videoLogList.add(new LogMsg("Record " + secondCamera + " finish."));
                         }
                     } catch (Exception e) {
@@ -1069,16 +1069,15 @@ public class VideoRecordActivity extends Activity {
         if (!isError) {
             Log.d(TAG, "startRecord");
             try {
-                if (burnInTest)
-                    if (isCameraOne(cameraId)) {
+                if (isCameraOne(cameraId)) {
+                    if (burnInTest)
                         wifiEnableOrDisable();
-                        codeDate0 = getCalendarTime();
-                    } else {
+                    codeDate0 = getCalendarTime();
+                } else {
+                    if (burnInTest)
                         btEnableOrDisable();
-                        codeDate1 = getCalendarTime();
-                    }
-                else if (isCameraOne(cameraId)) codeDate0 = getCalendarTime();
-                else codeDate1 = getCalendarTime();
+                    codeDate1 = getCalendarTime();
+                }
 
                 if (isCameraOne(cameraId)) {
                     checkSdCardFromFileList(false);
@@ -1146,7 +1145,7 @@ public class VideoRecordActivity extends Activity {
                             new CameraCaptureSession.StateCallback() {
 
                                 public void onConfigured(CameraCaptureSession session) {
-                                    // 当摄像头已经准备好时，开始显示预览
+                                    // Camera is ready.
                                     if (isCameraOne(cameraId)) {
                                         mPreviewSession0 = session;
                                     } else {
@@ -1337,7 +1336,7 @@ public class VideoRecordActivity extends Activity {
         boolean micError = false;
         MediaRecorder mediaRecorder = null;
         try {
-            /*TODO CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 1080p, 720p
+            /* CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 1080p, 720p
             CamcorderProfile profile_720 = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
             CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
             String file = "";
@@ -1388,7 +1387,7 @@ public class VideoRecordActivity extends Activity {
                         micError = true;
                     }
                 }
-                /*设置要捕获的视频的帧速率*/ // default is 24.6
+                // Step 3: Set video fps
                 mediaRecorder.setVideoFrameRate(!isNew ? isFrame == 0 ? 10 : 28 : 27); // 1 -> 12fps, 10 -> 16fps
                 // Step 4: Set output file
                 mediaRecorder.setOutputFile(file);

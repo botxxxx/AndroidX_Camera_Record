@@ -73,7 +73,7 @@ public class Utils {
     public static ArrayList<LogMsg> videoLogList = null;
     public static int isFinish = 999, delayTime = 60500, isFrame = 0, isQuality = 0;
     public static boolean isReady = false, isRecord = false, isError = false, isNew = defaultProp;
-    public static boolean fCamera = true, sCamera = true, getSdCard = false;
+    public static boolean fCamera = false, sCamera = false, getSdCard = false;
     public static String errorMessage = "";
 
     static {
@@ -176,11 +176,7 @@ public class Utils {
     }
 
     public static void setTestTime(int min) {
-        if (min == 999)
-            videoLogList.add(new LogMsg("setRecord time: unlimited times.", mLog.d));
-        else {
-            videoLogList.add(new LogMsg("setRecord time: " + min + " min.", mLog.d));
-        }
+        videoLogList.add(new LogMsg("setRecord time: " + min + " min.", mLog.d));
         isFinish = min == 999 ? min : min * 2;
     }
 
