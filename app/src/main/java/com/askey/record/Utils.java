@@ -52,9 +52,7 @@ public class Utils {
     public static String secondCamera = "1";
     public static String lastfirstCamera = "0";
     public static String lastsecondCamera = "1";
-    public static String firstFile = "";
-    public static String secondFile = "";
-    public static ArrayList<String> firstFilePath, secondFilePath;
+    public static String firstFile, secondFile;
     public static ArrayList<LogMsg> videoLogList = null;
     public static int isFinish = 999, delayTime = 60500, isFrame = 0, isQuality = 0;
     public static boolean isReady = false, isRecord = false, isError = false, isNew = defaultProp;
@@ -356,16 +354,6 @@ public class Utils {
     public static void setConfigFile(Context context, File file, View view, boolean reset) {
         EditText editText_1 = view.findViewById(R.id.dialog_editText_1);
         EditText editText_2 = view.findViewById(R.id.dialog_editText_2);
-        EditText editText_3 = view.findViewById(R.id.dialog_editText_3);
-        int isFinish = defaultRun;
-
-        if (!reset) {
-            if (isInteger(editText_3.getText().toString(), false)) {
-                isFinish = Integer.parseInt(editText_3.getText().toString());
-            } else {
-                isFinish = defaultRun;
-            }
-        }
 
         //toast(context, "Ready to write.", mLog.w);
         writeConfigFile(context, file, (
@@ -432,6 +420,7 @@ public class Utils {
         }
     }
 
+
     @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
     public static String getCalendarTime() {
         Calendar calendar = Calendar.getInstance();
@@ -439,9 +428,9 @@ public class Utils {
     }
 
     @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
-    public static String getCalendarTime(boolean isCameraOne) {
+    public static String getCalendarTime(String isCameraOne) {
         Calendar calendar = Calendar.getInstance();
-        return "v" + new SimpleDateFormat("yyyyMMddHHmmss").format(calendar.getTime()) + (isCameraOne ? "f" : "s");
+        return "v" + new SimpleDateFormat("yyyyMMddHHmmss").format(calendar.getTime()) + (isCameraOne.equals(firstCamera) ? "f" : (isCameraOne.equals(secondCamera) ? "s" : "t"));
     }
 
     public static String getFileExtension(String fullName) {
