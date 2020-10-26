@@ -7,7 +7,7 @@ import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-import com.askey.record.R;
+import com.askey.thermal.R;
 
 @SuppressLint("AppCompatCustomView")
 public class CustomTextView extends TextView {

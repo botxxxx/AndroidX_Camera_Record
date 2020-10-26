@@ -1,6 +1,6 @@
 package com.askey.widget;
 
-import com.askey.record.Utils;
+import com.askey.thermal.Utils;
 
 import java.time.LocalDateTime;
 

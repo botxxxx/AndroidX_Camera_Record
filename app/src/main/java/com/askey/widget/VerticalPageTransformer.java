@@ -2,7 +2,7 @@ package com.askey.widget;
 
 import android.view.View;
 
-import com.askey.record.R;
+import com.askey.thermal.R;
 
 public class VerticalPageTransformer implements VerticalViewPager.PageTransformer {
     @Override

@@ -1,4 +1,4 @@
-package com.askey.record;
+package com.askey.thermal;
 
 import android.app.Activity;
 import android.content.Context;
