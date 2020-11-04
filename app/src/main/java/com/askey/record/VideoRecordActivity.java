@@ -65,7 +65,6 @@ import static com.askey.record.Utils.EXTRA_VIDEO_SUCCESS;
 import static com.askey.record.Utils.FRAME_RATE;
 import static com.askey.record.Utils.Fail;
 import static com.askey.record.Utils.LOG_TITLE;
-import static com.askey.record.Utils.NEW_DFRAME_RATE;
 import static com.askey.record.Utils.NEW_FRAME_RATE;
 import static com.askey.record.Utils.NO_SD_CARD;
 import static com.askey.record.Utils.Success;
@@ -322,7 +321,6 @@ public class VideoRecordActivity extends Activity {
 
                     public void onDisconnected(CameraDevice camera) {
                         try {
-                            fCamera = false;
                             camera.close();
                             // 关闭摄像头
                             Log.e(TAG, "onDisconnected");
@@ -370,15 +368,10 @@ public class VideoRecordActivity extends Activity {
                         mCameraDevice1 = camera;
                         // 开启预览
                         takePreview(secondCamera);
-                        if (!isReady) {
-                            isReady = true;
-                            new Handler().postDelayed(() -> demoHandler.obtainMessage().sendToTarget(), 500);
-                        }
                     }
 
                     public void onDisconnected(CameraDevice camera) {
                         try {
-                            sCamera = false;
                             camera.close();
                             // 关闭摄像头
                             Log.e(TAG, "onDisconnected");
@@ -508,7 +501,7 @@ public class VideoRecordActivity extends Activity {
                     videoLogList.add(new LogMsg("@setting_reset", mLog.v));
                     setConfigFile(this, new File(getPath(), configName), view, true);
                     getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
-                            view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
+                            view.findViewById(R.id.dialog_Text_3), view.findViewById(R.id.dialog_Text_4));
                     setSetting();
                 });
                 view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // cancel
@@ -522,7 +515,7 @@ public class VideoRecordActivity extends Activity {
                     dialog.dismiss();
                 });
                 getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
-                        view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
+                        view.findViewById(R.id.dialog_Text_3), view.findViewById(R.id.dialog_Text_4));
                 dialog.show();
             } else {
                 showDialogLog(false);
@@ -542,6 +535,7 @@ public class VideoRecordActivity extends Activity {
         demoHandler = new Handler() {
             public void handleMessage(Message msg) {
                 if (!extraRecordStatus) {
+                    Log.e("demoHandler","ready");
                     saveLog(getApplicationContext(), false, false);
                 } else {
                     isRecordStart(true);
@@ -593,13 +587,13 @@ public class VideoRecordActivity extends Activity {
                     list.add("CheckFile -> video_success/fail:(" + getSuccess() + "/" + getFail() + ") app_reset:(" + getReset() + ")");
                 else
                     list.add("App Version:" + this.getString(R.string.app_name));
-            else list.add(NO_SD_CARD);
+            else if (SD_Mode) list.add(NO_SD_CARD);
             if (!fCamera)
                 list.add("Camera Access error, Please check camera " + firstCamera + ". <============ Crash here");
             if (!sCamera)
                 list.add("Camera Access error, Please check camera " + secondCamera + ". <=========== Crash here");
-            if ((!fCamera && firstCamera.equals("2")) || !sCamera && firstCamera.equals("2"))
-                list.add("You can try Reboot device to walk up external camera.");
+//            if ((!fCamera && firstCamera.equals("2")) || !sCamera && firstCamera.equals("2"))
+//                list.add("You can try Reboot device to walk up external camera.");
             if (!errorMessage.equals(""))
                 list.add(errorMessage);
             if (list.size() > 0) {
@@ -843,13 +837,13 @@ public class VideoRecordActivity extends Activity {
                     Log.d(TAG, "stopRecord");
                     for (String cameraID : new String[]{firstCamera, secondCamera})
                         try {
-                            if(cameraID.equals(firstCamera))
+                            if (cameraID.equals(firstCamera))
                                 if (mMediaRecorder0 != null) {
                                     mMediaRecorder0.stop();
                                     mMediaRecorder0.release();
                                     videoLogList.add(new LogMsg("Record " + cameraID + " finish."));
                                 }
-                            if(cameraID.equals(secondCamera))
+                            if (cameraID.equals(secondCamera))
                                 if (mMediaRecorder1 != null) {
                                     mMediaRecorder1.stop();
                                     mMediaRecorder1.release();
@@ -1172,6 +1166,7 @@ public class VideoRecordActivity extends Activity {
             errorMessage = NO_SD_CARD;
         }
     }
+
     private void delete(String path, boolean fromSDcard) {
         try {
             if (!path.equals("")) {
@@ -1290,6 +1285,10 @@ public class VideoRecordActivity extends Activity {
             } else {
                 backgroundHandler = backgroundHandler1;
                 mCameraDevice = mCameraDevice1;
+                if (!isReady) {
+                    isReady = true;
+                    new Handler().postDelayed(() -> demoHandler.obtainMessage().sendToTarget(), 500);
+                }
             }
             if (!isError) {
                 try {
