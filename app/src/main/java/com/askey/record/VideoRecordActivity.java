@@ -118,7 +118,7 @@ public class VideoRecordActivity extends Activity {
     public static boolean autoStopRecord = true;
     public static boolean extraRecordStatus = false, onRestart = false;
     public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
-    private static String codeDate0, codeDate1, resetDate;
+    private static String codeDate0, codeDate1;
     private Size mPreviewSize;
     private TextureView mTextureView0, mTextureView1;
     private CameraDevice mCameraDevice0, mCameraDevice1;
@@ -478,7 +478,6 @@ public class VideoRecordActivity extends Activity {
         };
         codeDate0 = getCalendarTime();
         codeDate1 = getCalendarTime();
-        resetDate = getCalendarTime();
 
         setCallback(0);
         mTextureView0 = findViewById(R.id.surfaceView0);
