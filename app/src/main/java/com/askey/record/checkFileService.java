@@ -8,11 +8,9 @@ import android.media.MediaFormat;
 import com.askey.widget.LogMsg;
 import com.askey.widget.mLog;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import static com.askey.record.Utils.DFRAME_RATE;
 import static com.askey.record.Utils.EXTRA_VIDEO_PATH;

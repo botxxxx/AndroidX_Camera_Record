@@ -5,6 +5,7 @@ import android.content.Context;
 import static com.askey.record.Utils.CONFIG_TITLE;
 import static com.askey.record.Utils.configName;
 import static com.askey.record.Utils.defaultProp;
+import static com.askey.record.Utils.defaultRun;
 import static com.askey.record.Utils.logName;
 
 public class Config {
@@ -12,7 +13,7 @@ public class Config {
     protected Context context;
     protected String firstCamera = "0";
     protected String secondCamera = "1";
-    protected int numberOfRuns = 999;
+    protected int numberOfRuns = defaultRun;
     protected boolean New = defaultProp;
 
     public Config(Context context) {

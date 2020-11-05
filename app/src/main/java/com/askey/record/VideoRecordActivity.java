@@ -133,7 +133,6 @@ public class VideoRecordActivity extends Activity {
     private mTimerTask timerTask = null;
     private Timer mTimer = null;
     private float mLaptime = 0.0f;
-    private int resetTime = 0;
 
     private void getSetting(Context context, EditText editText1, EditText editText2, EditText editText3, TextView editText4) {
         String input = readConfigFile(context, new File(getPath(), configName));
@@ -361,7 +360,7 @@ public class VideoRecordActivity extends Activity {
                         if (autoRestart && isError) {
                             final String dates = resetDate + "";
                             final boolean records = extraRecordStatus;
-                            new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                            new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                         }
                     }
 
@@ -418,7 +417,7 @@ public class VideoRecordActivity extends Activity {
                         if (autoRestart && isError) {
                             final String dates = resetDate + "";
                             final boolean records = extraRecordStatus;
-                            new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                            new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                         }
                     }
 
@@ -445,7 +444,7 @@ public class VideoRecordActivity extends Activity {
             if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
-                new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
     }
@@ -894,7 +893,7 @@ public class VideoRecordActivity extends Activity {
             if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
-                new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
     }
@@ -962,7 +961,7 @@ public class VideoRecordActivity extends Activity {
             if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
-                new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
     }
@@ -1118,7 +1117,7 @@ public class VideoRecordActivity extends Activity {
                         if (autoRestart) {
                             final String dates = resetDate + "";
                             final boolean records = extraRecordStatus;
-                            new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                            new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                         }
                     }
                 } else {
@@ -1130,7 +1129,7 @@ public class VideoRecordActivity extends Activity {
                     if (autoRestart) {
                         final String dates = resetDate + "";
                         final boolean records = extraRecordStatus;
-                        new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                        new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                     }
                 }
             } catch (Exception e) {
@@ -1143,7 +1142,7 @@ public class VideoRecordActivity extends Activity {
                 if (autoRestart) {
                     final String dates = resetDate + "";
                     final boolean records = extraRecordStatus;
-                    new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                    new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                 }
             }
         }
@@ -1208,21 +1207,21 @@ public class VideoRecordActivity extends Activity {
                 CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
                 mediaRecorder = new MediaRecorder();
                 // Step 2: Set sources
-//                if (isCameraOne(cameraId))
-//                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                if (isCameraOne(cameraId))
+                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                 mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
                 mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-//                if (isCameraOne(cameraId))
-//                    mediaRecorder.setAudioEncoder(profile.audioCodec);
+                if (isCameraOne(cameraId))
+                    mediaRecorder.setAudioEncoder(profile.audioCodec);
                 mediaRecorder.setVideoEncoder(profile.videoCodec);
                 mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
-//                if (isCameraOne(cameraId))
-//                    mediaRecorder.setAudioEncodingBitRate(profile.audioBitRate);
+                if (isCameraOne(cameraId))
+                    mediaRecorder.setAudioEncodingBitRate(profile.audioBitRate);
                 mediaRecorder.setVideoEncodingBitRate((int) (profile.videoBitRate / 3.3));
-//                if (isCameraOne(cameraId)) {
-//                    mediaRecorder.setAudioChannels(profile.audioChannels);
-//                    mediaRecorder.setAudioSamplingRate(profile.audioSampleRate);
-//                }
+                if (isCameraOne(cameraId)) {
+                    mediaRecorder.setAudioChannels(profile.audioChannels);
+                    mediaRecorder.setAudioSamplingRate(profile.audioSampleRate);
+                }
                 /*设置要捕获的视频的帧速率*/ // default is 24.6
                 mediaRecorder.setVideoFrameRate(!isNew ? isFrame == 0 ? 10 : 28 : 27); // 1 -> 12fps, 10 -> 16fps
                 // Step 4: Set output file
@@ -1250,7 +1249,7 @@ public class VideoRecordActivity extends Activity {
                 if (autoRestart) {
                     final String dates = resetDate + "";
                     final boolean records = extraRecordStatus;
-                    new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                    new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                 }
             } else {
                 videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
@@ -1280,7 +1279,7 @@ public class VideoRecordActivity extends Activity {
             if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
-                new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
         if (null != texture) {
@@ -1332,7 +1331,7 @@ public class VideoRecordActivity extends Activity {
                     if (autoRestart) {
                         final String dates = resetDate + "";
                         final boolean records = extraRecordStatus;
-                        new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                        new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                     }
                 }
             }
@@ -1353,7 +1352,7 @@ public class VideoRecordActivity extends Activity {
             if (autoRestart) {
                 final String dates = resetDate + "";
                 final boolean records = extraRecordStatus;
-                new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                new Handler().postDelayed(() -> restartApp(dates, records), 3000);
             }
         }
     }
@@ -1378,7 +1377,7 @@ public class VideoRecordActivity extends Activity {
                     if (autoRestart) {
                         final String dates = resetDate + "";
                         final boolean records = extraRecordStatus;
-                        new Handler().postDelayed(() -> restartApp(dates, records), resetTime);
+                        new Handler().postDelayed(() -> restartApp(dates, records), 3000);
                     }
                 }
                 //計算にゆらぎがあるので小数点第1位で丸める

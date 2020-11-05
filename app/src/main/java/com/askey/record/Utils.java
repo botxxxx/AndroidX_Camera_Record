@@ -50,7 +50,7 @@ public class Utils {
     public static final String LOG_TITLE = "[Video_Record_Log]";
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final double sdData = 1;
-    public static final boolean defaultProp = false;
+    public static final boolean defaultProp = true;
     public static int isRun = 0, Success = 0, Fail = 0;
     public static String TAG = "VideoRecordActivity";
     public static String firstCamera = "0";
@@ -62,7 +62,7 @@ public class Utils {
     public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList = null;
     public static int isFinish = 999, delayTime = 60500, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isError = false, isNew = false;
+    public static boolean isReady = false, isRecord = false, isError = false, isNew = true;
     public static boolean fCamera = true, sCamera = true, getSdCard = false;
     public static String errorMessage = "";
 
@@ -75,7 +75,7 @@ public class Utils {
 
     //TODO Default Path
     public static String getPath() {
-        String path = "/sdcard/NORMAL/";
+        String path = "/storage/emulated/0/DCIM/";
         return path;
     }
 
