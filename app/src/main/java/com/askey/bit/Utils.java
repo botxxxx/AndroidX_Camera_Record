@@ -2,6 +2,7 @@ package com.askey.bit;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.View;
@@ -27,16 +28,12 @@ import static com.askey.bit.VideoRecordActivity.onReset;
 import static com.askey.bit.VideoRecordActivity.saveLog;
 
 public class Utils {
+    public static final String TAG = "CDR9020_BIT";
     //-------------------------------------------------------------------------------
     public static final boolean defaultProp = false;
     public static final int defaultRun = 480;
+    public static int isFinish = 999, delayTime = 60500, isQuality = 0;
     //-------------------------------------------------------------------------------
-    public static final double[] NEW_DFRAME_RATE = {14, 28};
-    //    DFRAME_RATE = {16, 27.5},
-    public static final String[] FRAME_RATE = {"16fps", "27.5fps"},
-            NEW_FRAME_RATE = {"14fps", "28fps"};
-    //    public static final String[] FPS = {"140", "280"};
-    //    public static final String FRAMESKIP = "persist.our.camera.fps";
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
     public static final String EXTRA_VIDEO_WIFI_FAIL = "RestartActivity.wifi.fail";
@@ -46,14 +43,9 @@ public class Utils {
     public static final String EXTRA_VIDEO_SUCCESS = "RestartActivity.success";
     public static final String EXTRA_VIDEO_WIFI_SUCCESS = "RestartActivity.wifi.success";
     public static final String EXTRA_VIDEO_BT_SUCCESS = "RestartActivity.bt.success";
-    //    public static final String EXTRA_VIDEO_COPY = "RestartActivity.copy";
-    public static final String EXTRA_VIDEO_PATH = "RestartActivity.path";
-    //    public static final String EXTRA_VIDEO_PASTE = "RestartActivity.paste";
-    //    public static final String EXTRA_VIDEO_REMOVE = "RestartActivity.remove";
-    public static final String EXTRA_VIDEO_VERSION = "RestartActivity.version";
-    public static final String EXTRA_VIDEO_REFORMAT = "RestartActivity.reformat";
-    public static final String NO_SD_CARD = "SD card is not available!";
+    //-------------------------------------------------------------------------------
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+    public static final String NO_SD_CARD = "SD card is not available!";
     public static final String configName = "BurnInTestConfig.ini";
     public static final String logName = "BurnInTestLog.ini";
     public static final String CONFIG_TITLE = "[BurnIn_Test_Config]";
@@ -62,17 +54,14 @@ public class Utils {
     public static int isRun = 0, Success = 0, Fail = 0;
     public static int wifiSuccess = 0, wifiFail = 0;
     public static int btSuccess = 0, btFail = 0;
-    public static String TAG = "CDR9020_BIT";
     public static String firstCamera = "0";
     public static String secondCamera = "1";
     public static String lastfirstCamera = "0";
     public static String lastsecondCamera = "1";
     public static String firstFile = "";
     public static String secondFile = "";
-    public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList = null;
-    public static int isFinish = 999, delayTime = 60500, isFrame = 0, isQuality = 0;
-    public static boolean isReady = false, isRecord = false, isError = false, isNew = defaultProp;
+    public static boolean isReady = false, isRecord = false, isError = false;
     public static boolean fCamera = false, sCamera = false, getSdCard = false;
     public static String errorMessage = "";
 
@@ -81,6 +70,10 @@ public class Utils {
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
+    }
+
+    public static String getLogPath(){
+        return "/data/misc/logd/";
     }
 
     //TODO Default Path
@@ -106,7 +99,7 @@ public class Utils {
                         break;
                     }
                     if ((System.currentTimeMillis() / 1000) % 60 > end) {
-                        videoLogList.add(new LogMsg("getSDPath time out.", mLog.d));
+                        videoLogList.add(new LogMsg("getSDPath time out.", mLog.e));
                         break;
                     }
                 }
@@ -165,18 +158,9 @@ public class Utils {
         return true;
     }
 
-    public static boolean isBoolean(String s) {
-        try {
-            Boolean.valueOf(s);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
     public static void setTestTime(int min) {
-        videoLogList.add(new LogMsg("setRecord time: " + min + " min.", mLog.d));
+        Log.e(TAG, "setRecord time: " + min + " min.");
+        videoLogList.add(new LogMsg("setRecord time: " + min + " min.", mLog.e));
         isFinish = min == 999 ? min : min * 2;
     }
 
@@ -195,7 +179,7 @@ public class Utils {
                 writeConfigFile(context, file, new Config(context).config());
             } else {
                 if (!isReady) {
-                    videoLogList.add(new LogMsg("Find the config file.", mLog.d));
+                    videoLogList.add(new LogMsg("Find the config file.", mLog.e));
                     videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                 }
                 checkConfigFile(context, new File(getPath(), configName), first);
@@ -204,15 +188,6 @@ public class Utils {
             getSdCard = false;
         }
     }
-
-//    public static void checkLogFile(Context context, File file, ArrayList list) {
-//        String input = readConfigFile(context, file);
-//        if (input.length() > 0) {
-//            String[] read = input.split("\r\n");
-//            for (String s : read)
-//                list.add(s);
-//        }
-//    }
 
     public static boolean[] checkConfigFile(Context context, File file, boolean firstOne) {
         try {
@@ -223,7 +198,7 @@ public class Utils {
                 int target = 0, t;
                 String title = CONFIG_TITLE;
                 String first = "firstCameraID = ", second = "secondCameraID = ";
-                String code = "numberOfRuns = ", prop = "setProperty = ";
+                String code = "numberOfRuns = ";
                 for (String s : read)
                     if (s.contains(title)) {
                         target++;
@@ -252,15 +227,8 @@ public class Utils {
                         code = s.substring(t);
                         break;
                     }
-                for (String s : read)
-                    if (s.contains(prop)) {
-                        target++;
-                        t = s.indexOf(prop) + prop.length();
-                        prop = s.substring(t);
-                        break;
-                    }
 
-                if (target == 5) {
+                if (target == 4) {
                     reformat = false;
                     if (title.equals(context.getString(R.string.app_name))) {
                         update = false;
@@ -300,16 +268,6 @@ public class Utils {
                         }
                     } else {
                         videoLogList.add(new LogMsg("Unknown Record Times.", mLog.e));
-                        reformat = true;
-                    }
-                    if (isBoolean(prop)) {
-                        boolean getProp = Boolean.parseBoolean(prop);
-                        if (isNew != getProp)
-                            isPropChange = true;
-                        isNew = getProp;
-
-                    } else {
-                        videoLogList.add(new LogMsg("Unknown setProperty.", mLog.e));
                         reformat = true;
                     }
                 }
@@ -407,10 +365,9 @@ public class Utils {
             }
         }
 
-        //toast(context, "Ready to write.", mLog.w);
         writeConfigFile(context, file, (
                 !reset ? new Config(context, editText_1.getText().toString(),
-                        editText_2.getText().toString(), isFinish, isNew) : new Config(context)).config());
+                        editText_2.getText().toString(), isFinish, false) : new Config(context)).config());
         //toast(context, "Write file is completed.", mLog.i);
     }
 
@@ -490,4 +447,7 @@ public class Utils {
         return (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1);
     }
 
+    public static boolean isCameraOne(String cameraId) {
+        return cameraId.equals(firstCamera);
+    }
 }
