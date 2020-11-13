@@ -237,7 +237,8 @@ public class Utils {
                         reformat = true;
                     }
                     if (!first.equals(second)) {
-                        if ((first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"))) {
+                        boolean cdr9020 = (first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"));
+                        if (cdr9020) {
                             videoLogList.add(new LogMsg("Inner and External can't be used at the same time.", mLog.e));
                             reformat = true;
                         } else {
