@@ -84,6 +84,7 @@ import static com.askey.bit.Utils.errorMessage;
 import static com.askey.bit.Utils.fCamera;
 import static com.askey.bit.Utils.firstCamera;
 import static com.askey.bit.Utils.firstFile;
+import static com.askey.bit.Utils.firstFilePath;
 import static com.askey.bit.Utils.getBtFail;
 import static com.askey.bit.Utils.getBtSuccess;
 import static com.askey.bit.Utils.getCalendarTime;
@@ -112,6 +113,7 @@ import static com.askey.bit.Utils.sCamera;
 import static com.askey.bit.Utils.sdData;
 import static com.askey.bit.Utils.secondCamera;
 import static com.askey.bit.Utils.secondFile;
+import static com.askey.bit.Utils.secondFilePath;
 import static com.askey.bit.Utils.setConfigFile;
 import static com.askey.bit.Utils.videoLogList;
 import static com.askey.bit.Utils.wifiFail;
@@ -171,6 +173,10 @@ public class VideoRecordActivity extends Activity {
             btSuccess = 0;
             btFail = 0;
         }
+        firstFile = "";
+        secondFile = "";
+        firstFilePath.clear();
+        secondFilePath.clear();
         extraRecordStatus = true;
     }
 
@@ -338,10 +344,10 @@ public class VideoRecordActivity extends Activity {
                     Log.e(TAG, "onDisconnected Camera " + (CameraOne ? lastfirstCamera : lastsecondCamera));
                     try {
                         camera.close();
-                        videoLogList.add(new LogMsg("Camera " +  (CameraOne ? lastfirstCamera : lastsecondCamera) + " is disconnected.", mLog.w));
+                        videoLogList.add(new LogMsg("Camera " + (CameraOne ? lastfirstCamera : lastsecondCamera) + " is disconnected.", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();
-                        errorMessage("closeCameraDevices " +  (CameraOne ?lastfirstCamera : lastsecondCamera) + " close error.", true, e);
+                        errorMessage("closeCameraDevices " + (CameraOne ? lastfirstCamera : lastsecondCamera) + " close error.", true, e);
                     }
                 }
 
@@ -354,7 +360,7 @@ public class VideoRecordActivity extends Activity {
                     }
                     try {
                         camera.close();
-                        videoLogList.add(new LogMsg("Camera " +  (CameraOne ? firstCamera : secondCamera) + " is disconnected.", mLog.w));
+                        videoLogList.add(new LogMsg("Camera " + (CameraOne ? firstCamera : secondCamera) + " is disconnected.", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -430,6 +436,8 @@ public class VideoRecordActivity extends Activity {
             errorMessage = "bluetoothAdapter error.";
         }
         getSdCard = !getSDPath().equals("");
+        firstFilePath = new ArrayList<>();
+        secondFilePath = new ArrayList<>();
         // findViewById
         videoLogList.add(new LogMsg("Initial now.", mLog.v));
         HandlerThread thread0 = new HandlerThread("CameraPreview0");
@@ -630,13 +638,13 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void showDialogLog(boolean real) {
-        videoLogList.add(new LogMsg("#log_show", mLog.v));
+        videoLogList.add(new LogMsg("#Log_show", mLog.v));
         View view = LayoutInflater.from(this).inflate(R.layout.layout_getlog, null);
         final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
                 .setView(view).setCancelable(true).create();
 
         view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // ok
-            videoLogList.add(new LogMsg("@log_ok", mLog.v));
+            videoLogList.add(new LogMsg("@Log_ok", mLog.v));
             dialog.dismiss();
         });
         ArrayList<String> list = new ArrayList<>();
@@ -782,11 +790,11 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void stopRecord(String date, String cameraID) {
-        isRun++;
-        videoLogList.add(new LogMsg("#stopRecord " + cameraID, mLog.v));
-        Log.e(TAG, isRun + " stopRecord " + cameraID);
         try {
             if (date.equals(getCodeDate(cameraID))) {
+                isRun++;
+                videoLogList.add(new LogMsg("#stopRecord " + cameraID, mLog.v));
+                Log.e(TAG, isRun + " stopRecord " + cameraID);
                 if (isCameraOne(cameraID)) {
                     runOnUiThread(() -> {
                         if (mTimer != null) {
@@ -866,8 +874,8 @@ public class VideoRecordActivity extends Activity {
                 isRun = 0;
                 isFinish = 0;
                 isRecord = false;
-                videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                 videoLogList.add(new LogMsg("#Complete"));
+                videoLogList.add(new LogMsg("#------------------------------", mLog.v));
                 if (!reset)
                     extraRecordStatus = false;
                 saveLog(getApplicationContext(), false, false);
@@ -1198,8 +1206,13 @@ public class VideoRecordActivity extends Activity {
 
     private void checkAndClear(String cameraID) {
         try {
-            if (isRecord)
-                checkFile(isCameraOne(cameraID) ? firstFile : secondFile);
+            if ((isCameraOne(cameraID) ? firstFilePath : secondFilePath) != null) {
+                if (isRecord)
+                    for (String f : isCameraOne(cameraID) ? firstFilePath : secondFilePath) {
+                        checkFile(f);
+                    }
+                (isCameraOne(cameraID) ? firstFilePath : secondFilePath).clear();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
@@ -1217,10 +1230,13 @@ public class VideoRecordActivity extends Activity {
             if (!getSDPath().equals("")) {
                 file = getSDPath() + getCalendarTime(isCameraOne(cameraId)) + ".mp4";
                 videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w));
-                if (isCameraOne(cameraId))
+                if (isCameraOne(cameraId)) {
                     firstFile = file + "";
-                else
+                    firstFilePath.add(file);
+                } else {
                     secondFile = file + "";
+                    secondFilePath.add(file);
+                }
                 // Step 1: Unlock and set camera to MediaRecorder
                 CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
                 mediaRecorder = new MediaRecorder();

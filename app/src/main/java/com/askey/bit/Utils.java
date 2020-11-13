@@ -60,6 +60,7 @@ public class Utils {
     public static String lastsecondCamera = "1";
     public static String firstFile = "";
     public static String secondFile = "";
+    public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<LogMsg> videoLogList = null;
     public static boolean isReady = false, isRecord = false, isError = false;
     public static boolean fCamera = false, sCamera = false, getSdCard = false;
