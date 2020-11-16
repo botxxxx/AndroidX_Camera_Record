@@ -380,6 +380,7 @@ public class VideoRecordActivity extends Activity {
             Log.e(TAG, e.toString());
         getSdCard = !getSDPath().equals("");
         isError = true;
+        isRecord = false;
         ((TextView) findViewById(R.id.record_status)).setText("Error");
         videoLogList.add(new mLogMsg(msg, mLog.e));
         errorMessage = msg;
