@@ -42,9 +42,9 @@ import androidx.core.app.ActivityCompat;
 
 import com.askey.widget.CustomTextView;
 import com.askey.widget.HomeListen;
-import com.askey.widget.mLogMsg;
 import com.askey.widget.mListAdapter;
 import com.askey.widget.mLog;
+import com.askey.widget.mLogMsg;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -350,6 +350,7 @@ public class VideoRecordActivity extends Activity {
             Log.e(TAG, e.toString());
         getSdCard = !getSDPath().equals("");
         isError = true;
+        isRecord = false;
         ((TextView) findViewById(R.id.record_status)).setText("Error");
         videoLogList.add(new mLogMsg(msg, mLog.e));
         errorMessage = msg;
