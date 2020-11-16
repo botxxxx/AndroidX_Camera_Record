@@ -99,13 +99,14 @@
                 android:textColor="@android:color/black"
                 android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/dialog_Text_3"
+            <EditText
+                android:id="@+id/dialog_editText_3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
                 android:background="@color/white"
                 android:hint="999"
+                android:inputType="number"
                 android:singleLine="true"
                 android:text="999"
                 android:textColor="@android:color/black"
@@ -186,7 +187,7 @@
                 android:textSize="16sp" />
 
             <TextView
-                android:id="@+id/dialog_Text_4"
+                android:id="@+id/dialog_editText_4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
