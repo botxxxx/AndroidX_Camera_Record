@@ -31,7 +31,7 @@ public class Utils {
     public static String TAG = "CDR9020_QTR";
     //-------------------------------------------------------------------------------
     public static final boolean defaultProp = false;
-    public static final int defaultRun = 480;
+    public static final int defaultRun = 999;
     public static int isFinish = 999, delayTime = 60500, isQuality = 0;
     //-------------------------------------------------------------------------------
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
