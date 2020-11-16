@@ -112,6 +112,11 @@
         6.fix setProp & setRunOfNumber bug.
         7.fix config bug.
         8.fix video release bug.
+    [v1.7.7]
+        1.fix save log may crash error.
+        2.fix close video record issues.
+        3.fix camera may crash issues.
+        4.add setProp to record logs.
     -->
     <string name="app_name">CDR9020_QTR(v1.7.7)</string>
 </resources>

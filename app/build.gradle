@@ -42,7 +42,7 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
-    //compileOnly files('libs/layoutlib.jar')
+    compileOnly files('libs/layoutlib.jar')
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     //noinspection GradleDependency,GradleCompatible
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
