@@ -44,7 +44,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.askey.widget.CustomTextView;
 import com.askey.widget.HomeListen;
-import com.askey.widget.LogMsg;
+import com.askey.widget.mLogMsg;
 import com.askey.widget.mListAdapter;
 import com.askey.widget.mLog;
 
@@ -185,25 +185,25 @@ public class VideoRecordActivity extends Activity {
             if (isReady) {
                 if (!isRecord) {
                     if (!auto)
-                        videoLogList.add(new LogMsg("@Start record", mLog.v));
+                        videoLogList.add(new mLogMsg("@Start record", mLog.v));
                     else
-                        videoLogList.add(new LogMsg("#Start record", mLog.v));
+                        videoLogList.add(new mLogMsg("#Start record", mLog.v));
                     if (burnInTest)
-                        videoLogList.add(new LogMsg("#Wifi_BT Test", mLog.v));
+                        videoLogList.add(new mLogMsg("#Wifi_BT Test", mLog.v));
                     else
-                        videoLogList.add(new LogMsg("#No Wifi_BT Test", mLog.v));
+                        videoLogList.add(new mLogMsg("#No Wifi_BT Test", mLog.v));
                     setRecord();
                     takeRecord();
                 } else {
                     if (!auto)
-                        videoLogList.add(new LogMsg("@Stop record", mLog.v));
+                        videoLogList.add(new mLogMsg("@Stop record", mLog.v));
                     else
-                        videoLogList.add(new LogMsg("#Stop record", mLog.v));
+                        videoLogList.add(new mLogMsg("#Stop record", mLog.v));
                     new Handler().post(() -> stopRecord(preview, testComplete, false));
                 }
             } else {
                 showDialogLog(false);
-                videoLogList.add(new LogMsg("#Camera is not ready.", mLog.v));
+                videoLogList.add(new mLogMsg("#Camera is not ready.", mLog.v));
             }
         } else {
             stopRecordAndSaveLog(false);
@@ -212,7 +212,7 @@ public class VideoRecordActivity extends Activity {
     }
 
     private boolean checkPermission() {
-        videoLogList.add(new LogMsg("#checkPermission", mLog.v));
+        videoLogList.add(new mLogMsg("#checkPermission", mLog.v));
         int CAMERA = checkSelfPermission(Manifest.permission.CAMERA);
         int STORAGE = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         int INTERNET = checkSelfPermission(Manifest.permission.INTERNET);
@@ -224,7 +224,7 @@ public class VideoRecordActivity extends Activity {
     @TargetApi(23)
     @SuppressLint("NewApi")
     private void showPermission() {
-        videoLogList.add(new LogMsg("#showPermission", mLog.v));
+        videoLogList.add(new mLogMsg("#showPermission", mLog.v));
         // We don't have permission so prompt the user
         List<String> permissions = new ArrayList<>();
         permissions.add(Manifest.permission.CAMERA);
@@ -240,8 +240,8 @@ public class VideoRecordActivity extends Activity {
                 setStart();
             } else {
                 showPermission();
-                videoLogList.add(new LogMsg("#no permissions!", mLog.e));
-                videoLogList.add(new LogMsg("No permissions!"));
+                videoLogList.add(new mLogMsg("#no permissions!", mLog.e));
+                videoLogList.add(new mLogMsg("No permissions!"));
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -264,7 +264,7 @@ public class VideoRecordActivity extends Activity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            videoLogList.add(new LogMsg("logcatd error.", mLog.e));
+            videoLogList.add(new mLogMsg("logcatd error.", mLog.e));
             new Handler().post(() -> saveLog(this, false, false));
         }
     }
@@ -296,7 +296,7 @@ public class VideoRecordActivity extends Activity {
     }
 
     public void onBackPressed() {
-        videoLogList.add(new LogMsg("@back", mLog.v));
+        videoLogList.add(new mLogMsg("@back", mLog.v));
         stopRecordAndSaveLog(true);
     }
 
@@ -305,12 +305,12 @@ public class VideoRecordActivity extends Activity {
             home = new HomeListen(this);
             home.setOnHomeBtnPressListener(new HomeListen.OnHomeBtnPressLitener() {
                 public void onHomeBtnPress() {
-                    videoLogList.add(new LogMsg("@home", mLog.v));
+                    videoLogList.add(new mLogMsg("@home", mLog.v));
                     stopRecordAndSaveLog(true);
                 }
 
                 public void onHomeBtnLongPress() {
-                    videoLogList.add(new LogMsg("@recent", mLog.v));
+                    videoLogList.add(new mLogMsg("@recent", mLog.v));
                     stopRecordAndSaveLog(true);
                 }
             });
@@ -333,7 +333,7 @@ public class VideoRecordActivity extends Activity {
                         mCameraDevice1 = camera;
                     }
                     takePreview((CameraOne ? firstCamera : secondCamera));
-                    videoLogList.add(new LogMsg("Camera " + (CameraOne ? firstCamera : secondCamera) + " is opened.", mLog.i));
+                    videoLogList.add(new mLogMsg("Camera " + (CameraOne ? firstCamera : secondCamera) + " is opened.", mLog.i));
                     if (!CameraOne && !isReady) {
                         isReady = true;
                         new Handler().postDelayed(() -> resetHandler.obtainMessage().sendToTarget(), 500);
@@ -344,7 +344,7 @@ public class VideoRecordActivity extends Activity {
                     Log.e(TAG, "onDisconnected Camera " + (CameraOne ? lastfirstCamera : lastsecondCamera));
                     try {
                         camera.close();
-                        videoLogList.add(new LogMsg("Camera " + (CameraOne ? lastfirstCamera : lastsecondCamera) + " is disconnected.", mLog.w));
+                        videoLogList.add(new mLogMsg("Camera " + (CameraOne ? lastfirstCamera : lastsecondCamera) + " is disconnected.", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();
                         errorMessage("closeCameraDevices " + (CameraOne ? lastfirstCamera : lastsecondCamera) + " close error.", true, e);
@@ -360,7 +360,7 @@ public class VideoRecordActivity extends Activity {
                     }
                     try {
                         camera.close();
-                        videoLogList.add(new LogMsg("Camera " + (CameraOne ? firstCamera : secondCamera) + " is disconnected.", mLog.w));
+                        videoLogList.add(new mLogMsg("Camera " + (CameraOne ? firstCamera : secondCamera) + " is disconnected.", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -381,7 +381,7 @@ public class VideoRecordActivity extends Activity {
         getSdCard = !getSDPath().equals("");
         isError = true;
         ((TextView) findViewById(R.id.record_status)).setText("Error");
-        videoLogList.add(new LogMsg(msg, mLog.e));
+        videoLogList.add(new mLogMsg(msg, mLog.e));
         errorMessage = msg;
         new Handler().post(() -> stopRecordAndSaveLog(false));
         if (reset) {
@@ -424,7 +424,7 @@ public class VideoRecordActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
             isError = true;
-            videoLogList.add(new LogMsg("wifiManager error.", mLog.e));
+            videoLogList.add(new mLogMsg("wifiManager error.", mLog.e));
             errorMessage = "wifiManager error.";
         }
         try {
@@ -432,14 +432,14 @@ public class VideoRecordActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
             isError = true;
-            videoLogList.add(new LogMsg("bluetoothAdapter error.", mLog.e));
+            videoLogList.add(new mLogMsg("bluetoothAdapter error.", mLog.e));
             errorMessage = "bluetoothAdapter error.";
         }
         getSdCard = !getSDPath().equals("");
         firstFilePath = new ArrayList<>();
         secondFilePath = new ArrayList<>();
         // findViewById
-        videoLogList.add(new LogMsg("Initial now.", mLog.v));
+        videoLogList.add(new mLogMsg("Initial now.", mLog.v));
         HandlerThread thread0 = new HandlerThread("CameraPreview0");
         thread0.start();
         HandlerThread thread1 = new HandlerThread("CameraPreview1");
@@ -451,10 +451,10 @@ public class VideoRecordActivity extends Activity {
             public void handleMessage(Message msg) {
                 try {
                     startRecord(firstCamera);
-                    videoLogList.add(new LogMsg("startRecord " + firstCamera + ".", mLog.w));
+                    videoLogList.add(new mLogMsg("startRecord " + firstCamera + ".", mLog.w));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    videoLogList.add(new LogMsg("startRecord " + firstCamera + " is error.", mLog.w));
+                    videoLogList.add(new mLogMsg("startRecord " + firstCamera + " is error.", mLog.w));
                 }
             }
         };
@@ -462,10 +462,10 @@ public class VideoRecordActivity extends Activity {
             public void handleMessage(Message msg) {
                 try {
                     startRecord(secondCamera);
-                    videoLogList.add(new LogMsg("startRecord " + secondCamera + ".", mLog.w));
+                    videoLogList.add(new mLogMsg("startRecord " + secondCamera + ".", mLog.w));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    videoLogList.add(new LogMsg("startRecord " + secondCamera + " is error.", mLog.w));
+                    videoLogList.add(new mLogMsg("startRecord " + secondCamera + " is error.", mLog.w));
                 }
             }
         };
@@ -474,9 +474,9 @@ public class VideoRecordActivity extends Activity {
                 if (isRecord)
                     try {
                         stopRecord(msg.obj.toString(), msg.arg1 + "");
-                        videoLogList.add(new LogMsg("stopRecord " + firstCamera + ".", mLog.w));
+                        videoLogList.add(new mLogMsg("stopRecord " + firstCamera + ".", mLog.w));
                     } catch (Exception e) {
-                        videoLogList.add(new LogMsg("stopRecord " + firstCamera + " is error.", mLog.w));
+                        videoLogList.add(new mLogMsg("stopRecord " + firstCamera + " is error.", mLog.w));
                         e.printStackTrace();
                     }
             }
@@ -486,10 +486,10 @@ public class VideoRecordActivity extends Activity {
                 if (isRecord)
                     try {
                         stopRecord(msg.obj.toString(), msg.arg1 + "");
-                        videoLogList.add(new LogMsg("stopRecord " + secondCamera + ".", mLog.w));
+                        videoLogList.add(new mLogMsg("stopRecord " + secondCamera + ".", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();
-                        videoLogList.add(new LogMsg("stopRecord " + secondCamera + " is error.", mLog.w));
+                        videoLogList.add(new mLogMsg("stopRecord " + secondCamera + " is error.", mLog.w));
                     }
             }
         };
@@ -499,44 +499,44 @@ public class VideoRecordActivity extends Activity {
             mStateCallback0 = setCallback(true);
             mTextureView0 = findViewById(R.id.surfaceView0);
             mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
-            videoLogList.add(new LogMsg("setCallback " + firstCamera + ".", mLog.w));
+            videoLogList.add(new mLogMsg("setCallback " + firstCamera + ".", mLog.w));
         } catch (Exception e) {
             e.printStackTrace();
-            videoLogList.add(new LogMsg("setCallback " + firstCamera + " is error.", mLog.w));
+            videoLogList.add(new mLogMsg("setCallback " + firstCamera + " is error.", mLog.w));
         }
         try {
             mStateCallback1 = setCallback(false);
             mTextureView1 = findViewById(R.id.surfaceView1);
             mTextureView1.setSurfaceTextureListener(new mSurfaceTextureListener(secondCamera));
-            videoLogList.add(new LogMsg("setCallback " + secondCamera + ".", mLog.w));
+            videoLogList.add(new mLogMsg("setCallback " + secondCamera + ".", mLog.w));
         } catch (Exception e) {
             e.printStackTrace();
-            videoLogList.add(new LogMsg("setCallback " + secondCamera + " is error.", mLog.w));
+            videoLogList.add(new mLogMsg("setCallback " + secondCamera + " is error.", mLog.w));
         }
         checkSdCardFromFileList();
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
-            videoLogList.add(new LogMsg("@cancel", mLog.v));
+            videoLogList.add(new mLogMsg("@cancel", mLog.v));
             stopRecordAndSaveLog(true);
         });
         findViewById(R.id.record).setOnClickListener((View v) -> isRecordStart(false, false));
         findViewById(R.id.setting).setOnClickListener((View v) -> {
             if (getSdCard && !isError) {
-                videoLogList.add(new LogMsg("@setting_show", mLog.v));
+                videoLogList.add(new mLogMsg("@setting_show", mLog.v));
                 View view = LayoutInflater.from(this).inflate(R.layout.layout_setting, null);
                 final AlertDialog dialog = new AlertDialog.Builder(this).setView(view).setCancelable(false).create();
                 view.findViewById(R.id.dialog_button_1).setOnClickListener((View vs) -> { // reset
-                    videoLogList.add(new LogMsg("@setting_reset", mLog.v));
+                    videoLogList.add(new mLogMsg("@setting_reset", mLog.v));
                     setConfigFile(this, new File(getPath(), configName), view, true);
                     getSetting(this, view.findViewById(R.id.dialog_editText_1), view.findViewById(R.id.dialog_editText_2),
                             view.findViewById(R.id.dialog_editText_3), view.findViewById(R.id.dialog_editText_4));
                     setSetting();
                 });
                 view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // cancel
-                    videoLogList.add(new LogMsg("@setting_cancel", mLog.v));
+                    videoLogList.add(new mLogMsg("@setting_cancel", mLog.v));
                     dialog.dismiss();
                 });
                 view.findViewById(R.id.dialog_button_3).setOnClickListener((View vs) -> { // ok
-                    videoLogList.add(new LogMsg("@setting_ok", mLog.v));
+                    videoLogList.add(new mLogMsg("@setting_ok", mLog.v));
                     setConfigFile(this, new File(getPath(), configName), view, false);
                     setSetting();
                     dialog.dismiss();
@@ -549,7 +549,7 @@ public class VideoRecordActivity extends Activity {
             }
         });
         ((TextView) findViewById(R.id.record_status)).setText(getSDPath().equals("") ? "Error" : "Ready");
-        videoLogList.add(new LogMsg("#initial complete", mLog.v));
+        videoLogList.add(new mLogMsg("#initial complete", mLog.v));
         onRun = getIntent().getIntExtra(EXTRA_VIDEO_RUN, 0);
         onFail = getIntent().getIntExtra(EXTRA_VIDEO_FAIL, 0);
         onSuccess = getIntent().getIntExtra(EXTRA_VIDEO_SUCCESS, 0);
@@ -559,7 +559,7 @@ public class VideoRecordActivity extends Activity {
         onBtFail = getIntent().getIntExtra(EXTRA_VIDEO_BT_FAIL, 0);
         onBtSuccess = getIntent().getIntExtra(EXTRA_VIDEO_BT_SUCCESS, 0);
         if (onReset != 0)
-            videoLogList.add(new LogMsg("#noReset:" + onReset, mLog.v));
+            videoLogList.add(new mLogMsg("#noReset:" + onReset, mLog.v));
         extraRecordStatus = getIntent().getBooleanExtra(EXTRA_VIDEO_RECORD, false);
         resetHandler = new Handler() {
             public void handleMessage(Message msg) {
@@ -573,7 +573,7 @@ public class VideoRecordActivity extends Activity {
         this.registerReceiver(new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 if (Objects.equals(intent.getAction(), Intent.ACTION_BATTERY_CHANGED)) {  //Battery
-                    videoLogList.add(new LogMsg("Battery:" + intent.getIntExtra("level", 0) + "%", mLog.e));
+                    videoLogList.add(new mLogMsg("Battery:" + intent.getIntExtra("level", 0) + "%", mLog.e));
                     saveLog(getApplicationContext(), false, false);
                 }
             }
@@ -616,7 +616,7 @@ public class VideoRecordActivity extends Activity {
             editText3.setText(code);
             editText4.setText(prop);
         } else {
-            videoLogList.add(new LogMsg("Error reading config file."));
+            videoLogList.add(new mLogMsg("Error reading config file."));
             reformatConfigFile(context, new File(getPath(), configName));
         }
     }
@@ -638,13 +638,13 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void showDialogLog(boolean real) {
-        videoLogList.add(new LogMsg("#Log_show", mLog.v));
+        videoLogList.add(new mLogMsg("#Log_show", mLog.v));
         View view = LayoutInflater.from(this).inflate(R.layout.layout_getlog, null);
         final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
                 .setView(view).setCancelable(true).create();
 
         view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // ok
-            videoLogList.add(new LogMsg("@Log_ok", mLog.v));
+            videoLogList.add(new mLogMsg("@Log_ok", mLog.v));
             dialog.dismiss();
         });
         ArrayList<String> list = new ArrayList<>();
@@ -682,8 +682,8 @@ public class VideoRecordActivity extends Activity {
 
     private void takeRecord() {
         if (!isError && getSdCard) {
-            videoLogList.add(new LogMsg("#------------------------------", mLog.v));
-            videoLogList.add(new LogMsg("#takeRecord FrameRate:" + 14, mLog.v));
+            videoLogList.add(new mLogMsg("#------------------------------", mLog.v));
+            videoLogList.add(new mLogMsg("#takeRecord FrameRate:" + 14, mLog.v));
             int delay = 0;
             if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera)) {
                 lastfirstCamera = firstCamera; // String
@@ -717,18 +717,18 @@ public class VideoRecordActivity extends Activity {
                     try {
                         file.createNewFile();
                         if (null != videoLogList)
-                            videoLogList.add(new LogMsg("Create the log file.", mLog.w));
+                            videoLogList.add(new mLogMsg("Create the log file.", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();
                         if (null != videoLogList)
-                            videoLogList.add(new LogMsg("Create file failed.", mLog.w));
+                            videoLogList.add(new mLogMsg("Create file failed.", mLog.w));
                     }
                 } else {
                     logString = new StringBuilder();
                 }
                 if (null != videoLogList)
                     try {
-                        for (LogMsg logs : videoLogList) {
+                        for (mLogMsg logs : videoLogList) {
                             String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                                     + " run:" + logs.runTime + " -> ";
                             logString.append(time).append(logs.msg).append("\r\n");
@@ -793,7 +793,7 @@ public class VideoRecordActivity extends Activity {
         try {
             if (date.equals(getCodeDate(cameraID))) {
                 isRun++;
-                videoLogList.add(new LogMsg("#stopRecord " + cameraID, mLog.v));
+                videoLogList.add(new mLogMsg("#stopRecord " + cameraID, mLog.v));
                 Log.e(TAG, isRun + " stopRecord " + cameraID);
                 if (isCameraOne(cameraID)) {
                     runOnUiThread(() -> {
@@ -813,7 +813,7 @@ public class VideoRecordActivity extends Activity {
                     checkAndClear(cameraID);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    videoLogList.add(new LogMsg("Check file is fail."));
+                    videoLogList.add(new mLogMsg("Check file is fail."));
                 }
                 if (isFinish == 999 || isRun < isFinish - (isCameraOne(cameraID) ? 1 : 0)) {
                     startRecord(cameraID);
@@ -838,16 +838,16 @@ public class VideoRecordActivity extends Activity {
             if (!isError && getSdCard) {
                 if (testComplete) {
                     if (getFail() + getReset() == 0) {
-                        videoLogList.add(new LogMsg("#Pass"));
+                        videoLogList.add(new mLogMsg("#Pass"));
                         ((TextView) findViewById(R.id.record_status)).setText("Pass");
                     } else {
-                        videoLogList.add(new LogMsg("#Fail"));
+                        videoLogList.add(new mLogMsg("#Fail"));
                         ((TextView) findViewById(R.id.record_status)).setText("Fail " + getFail() + getReset());
                     }
                     showDialogLog(true);
                 } else {
                     for (String cameraID : new String[]{firstCamera, secondCamera}) {
-                        videoLogList.add(new LogMsg("#stopRecord " + cameraID, mLog.v));
+                        videoLogList.add(new mLogMsg("#stopRecord " + cameraID, mLog.v));
                         Log.e(TAG, isRun + " stopRecord " + cameraID);
                         try {
                             if (isCameraOne(cameraID)) {
@@ -874,8 +874,8 @@ public class VideoRecordActivity extends Activity {
                 isRun = 0;
                 isFinish = 0;
                 isRecord = false;
-                videoLogList.add(new LogMsg("#Complete"));
-                videoLogList.add(new LogMsg("#------------------------------", mLog.v));
+                videoLogList.add(new mLogMsg("#Complete"));
+                videoLogList.add(new mLogMsg("#------------------------------", mLog.v));
                 if (!reset)
                     extraRecordStatus = false;
                 saveLog(getApplicationContext(), false, false);
@@ -903,7 +903,7 @@ public class VideoRecordActivity extends Activity {
                     extractor.setDataSource(fis.getFD());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    videoLogList.add(new LogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
+                    videoLogList.add(new mLogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
                     return 0;
                 }
                 int numTracks = extractor.getTrackCount();
@@ -914,7 +914,7 @@ public class VideoRecordActivity extends Activity {
                             frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
                         } catch (Exception e) {
                             e.printStackTrace();
-                            videoLogList.add(new LogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
+                            videoLogList.add(new mLogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
                         }
                     }
                 }
@@ -922,10 +922,10 @@ public class VideoRecordActivity extends Activity {
                 fis.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                videoLogList.add(new LogMsg("getFrameRate failed.<============ Crash here", mLog.e));
+                videoLogList.add(new mLogMsg("getFrameRate failed.<============ Crash here", mLog.e));
             }
         } else {
-            videoLogList.add(new LogMsg("getFrameRate failed " + NO_SD_CARD + ".", mLog.e));
+            videoLogList.add(new mLogMsg("getFrameRate failed " + NO_SD_CARD + ".", mLog.e));
         }
         return frameRate;
     }
@@ -945,19 +945,19 @@ public class VideoRecordActivity extends Activity {
             } else {
                 Fail++;
                 if (null != videoLogList)
-                    videoLogList.add(new LogMsg("video not exists.", mLog.e));
+                    videoLogList.add(new mLogMsg("video not exists.", mLog.e));
             }
             String bit = ") wifi_success/fail:(" + getWifiSuccess() + "/" + getWifiFail() +
                     ") bt_success/fail:(" + getBtSuccess() + "/" + getBtFail();
             if (null != videoLogList)
-                videoLogList.add(new LogMsg("CheckFile:(" + path.split("/")[3] +
+                videoLogList.add(new mLogMsg("CheckFile:(" + path.split("/")[3] +
                         ") video_frameRate:(" + frameRate + ") video_success/fail:(" + getSuccess() + "/" + getFail() +
                         (burnInTest ? bit : "") + ") app_reset:(" + getReset() + ")", mLog.i));
         } catch (Exception e) {
             e.printStackTrace();
             Fail++;
             if (null != videoLogList)
-                videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
+                videoLogList.add(new mLogMsg("CheckFile error.", mLog.e));
         }
     }
 
@@ -1003,13 +1003,13 @@ public class VideoRecordActivity extends Activity {
                 if (mMediaRecorder0 != null) {
                     mMediaRecorder0.stop();
                     mMediaRecorder0.release();
-                    videoLogList.add(new LogMsg("Record " + cameraId + " finish."));
+                    videoLogList.add(new mLogMsg("Record " + cameraId + " finish."));
                 }
             } else {
                 if (mMediaRecorder1 != null) {
                     mMediaRecorder1.stop();
                     mMediaRecorder1.release();
-                    videoLogList.add(new LogMsg("Record " + cameraId + " finish."));
+                    videoLogList.add(new mLogMsg("Record " + cameraId + " finish."));
                 }
             }
         } catch (Exception e) {
@@ -1063,7 +1063,7 @@ public class VideoRecordActivity extends Activity {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    videoLogList.add(new LogMsg("getSurfaceTexture" + cameraId + " is error."));
+                    videoLogList.add(new mLogMsg("getSurfaceTexture" + cameraId + " is error."));
                 }
                 if (null == texture) {
                     Log.e(TAG, isRun + " texture is null, return");
@@ -1155,7 +1155,7 @@ public class VideoRecordActivity extends Activity {
                 long sdAvailSize = stat.getAvailableBlocksLong() * stat.getBlockSizeLong();
                 double gigaAvailable = (sdAvailSize >> 30);
                 if (gigaAvailable < sdData) {
-                    videoLogList.add(new LogMsg("SD Card is Full."));
+                    videoLogList.add(new mLogMsg("SD Card is Full."));
                     ArrayList<String> tmp = new ArrayList<>();
                     File[] fileList = new File(getSDPath()).listFiles();
                     for (File file : fileList) {
@@ -1190,12 +1190,12 @@ public class VideoRecordActivity extends Activity {
             if (!path.equals("")) {
                 if (video.exists()) {
                     if (fromSDcard)
-                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[3], mLog.w));
+                        videoLogList.add(new mLogMsg("Delete: " + path.split("/")[3], mLog.w));
                     else
-                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[5], mLog.w));
+                        videoLogList.add(new mLogMsg("Delete: " + path.split("/")[5], mLog.w));
                     video.delete();
                 } else {
-                    videoLogList.add(new LogMsg("Video not find.", mLog.e));
+                    videoLogList.add(new mLogMsg("Video not find.", mLog.e));
                 }
             }
         } catch (Exception e) {
@@ -1215,7 +1215,7 @@ public class VideoRecordActivity extends Activity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
+            videoLogList.add(new mLogMsg("CheckFile " + cameraID + " error.", mLog.e));
         }
     }
 
@@ -1229,7 +1229,7 @@ public class VideoRecordActivity extends Activity {
             String file = "";
             if (!getSDPath().equals("")) {
                 file = getSDPath() + getCalendarTime(isCameraOne(cameraId)) + ".mp4";
-                videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w));
+                videoLogList.add(new mLogMsg("Create: " + file.split("/")[3], mLog.w));
                 if (isCameraOne(cameraId)) {
                     firstFile = file + "";
                     firstFilePath.add(file);
@@ -1282,7 +1282,7 @@ public class VideoRecordActivity extends Activity {
                 // Step 5: Prepare configured MediaRecorder
                 mediaRecorder.prepare();
                 if (micError)
-                    videoLogList.add(new LogMsg("MediaRecorder MIC error. <============ Crash here", mLog.e));
+                    videoLogList.add(new mLogMsg("MediaRecorder MIC error. <============ Crash here", mLog.e));
             } else {
                 errorMessage("MediaRecorder error. " + NO_SD_CARD + " <============ Crash here", false, null);
                 return null;
@@ -1306,7 +1306,7 @@ public class VideoRecordActivity extends Activity {
 
     private void takePreview(String cameraId) {
         Log.e(TAG, isRun + " takePreview " + cameraId);
-        videoLogList.add(new LogMsg("Preview " + cameraId + " Camera.", mLog.i));
+        videoLogList.add(new mLogMsg("Preview " + cameraId + " Camera.", mLog.i));
         SurfaceTexture texture = null;
         try {
             texture = isCameraOne(cameraId) ? mTextureView0.getSurfaceTexture() : mTextureView1.getSurfaceTexture();
@@ -1416,7 +1416,7 @@ public class VideoRecordActivity extends Activity {
             } catch (Exception e) {
                 e.printStackTrace();
                 wifiFail++;
-                videoLogList.add(new LogMsg("Error wifiEnableOrDisable fail."));
+                videoLogList.add(new mLogMsg("Error wifiEnableOrDisable fail."));
             }
         } else {
             try {
@@ -1426,7 +1426,7 @@ public class VideoRecordActivity extends Activity {
             } catch (Exception e) {
                 e.printStackTrace();
                 wifiFail++;
-                videoLogList.add(new LogMsg("Error wifiEnableOrDisable fail."));
+                videoLogList.add(new mLogMsg("Error wifiEnableOrDisable fail."));
             }
         }
     }
@@ -1443,7 +1443,7 @@ public class VideoRecordActivity extends Activity {
             } catch (Exception e) {
                 e.printStackTrace();
                 btFail++;
-                videoLogList.add(new LogMsg("Error btEnableOrDisable fail."));
+                videoLogList.add(new mLogMsg("Error btEnableOrDisable fail."));
             }
         } else {
             try {
@@ -1457,7 +1457,7 @@ public class VideoRecordActivity extends Activity {
             } catch (Exception e) {
                 e.printStackTrace();
                 btFail++;
-                videoLogList.add(new LogMsg("Error btEnableOrDisable fail."));
+                videoLogList.add(new mLogMsg("Error btEnableOrDisable fail."));
             }
         }
     }
