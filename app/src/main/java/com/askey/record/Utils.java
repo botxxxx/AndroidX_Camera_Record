@@ -32,7 +32,7 @@ public class Utils {
     //-------------------------------------------------------------------------------
     public static final boolean defaultProp = false;
     public static final int defaultRun = 999;
-    public static int isFinish = 999, delayTime = 60500, isQuality = 0;
+    public static int isFinish = 999, delayTime = 60500;
     //-------------------------------------------------------------------------------
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
@@ -67,7 +67,7 @@ public class Utils {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
-    public static String getLogPath(){
+    public static String getLogPath() {
         return "/data/misc/logd/";
     }
 
@@ -216,8 +216,8 @@ public class Utils {
                         reformat = true;
                     }
                     if (!first.equals(second)) {
-                        boolean cdr9020 = (first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"));
-                        if (cdr9020) {
+//                        boolean cdr9020 = (first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"));
+                        if (false) {
                             videoLogList.add(new mLogMsg("Inner and External can't be used at the same time.", mLog.e));
                             reformat = true;
                         } else {
@@ -429,5 +429,9 @@ public class Utils {
 
     public static boolean isCameraOne(String cameraId) {
         return cameraId.equals(firstCamera);
+    }
+
+    public static boolean isLastCamera(String cameraId) {
+        return cameraId.equals(secondCamera);
     }
 }
