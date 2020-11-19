@@ -12,7 +12,6 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
@@ -28,6 +27,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.os.StatFs;
+import android.os.SystemProperties;
 import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
@@ -41,9 +41,9 @@ import androidx.core.app.ActivityCompat;
 
 import com.askey.widget.CustomTextView;
 import com.askey.widget.HomeListen;
-import com.askey.widget.LogMsg;
 import com.askey.widget.mListAdapter;
 import com.askey.widget.mLog;
+import com.askey.widget.mLogMsg;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,7 +65,6 @@ import static com.askey.thermal.Utils.EXTRA_VIDEO_RUN;
 import static com.askey.thermal.Utils.EXTRA_VIDEO_SUCCESS;
 import static com.askey.thermal.Utils.Fail;
 import static com.askey.thermal.Utils.LOG_TITLE;
-import static com.askey.thermal.Utils.NEW_FRAME_RATE;
 import static com.askey.thermal.Utils.NO_SD_CARD;
 import static com.askey.thermal.Utils.Success;
 import static com.askey.thermal.Utils.TAG;
@@ -74,6 +73,7 @@ import static com.askey.thermal.Utils.errorMessage;
 import static com.askey.thermal.Utils.fCamera;
 import static com.askey.thermal.Utils.firstCamera;
 import static com.askey.thermal.Utils.firstFile;
+import static com.askey.thermal.Utils.firstFilePath;
 import static com.askey.thermal.Utils.getCalendarTime;
 import static com.askey.thermal.Utils.getFail;
 import static com.askey.thermal.Utils.getIsRun;
@@ -84,8 +84,6 @@ import static com.askey.thermal.Utils.getSdCard;
 import static com.askey.thermal.Utils.getSuccess;
 import static com.askey.thermal.Utils.isCameraOne;
 import static com.askey.thermal.Utils.isError;
-import static com.askey.thermal.Utils.isFinish;
-import static com.askey.thermal.Utils.isFrame;
 import static com.askey.thermal.Utils.isLastCamera;
 import static com.askey.thermal.Utils.isReady;
 import static com.askey.thermal.Utils.isRecord;
@@ -95,9 +93,11 @@ import static com.askey.thermal.Utils.sCamera;
 import static com.askey.thermal.Utils.sdData;
 import static com.askey.thermal.Utils.secondCamera;
 import static com.askey.thermal.Utils.secondFile;
+import static com.askey.thermal.Utils.secondFilePath;
 import static com.askey.thermal.Utils.tCamera;
 import static com.askey.thermal.Utils.thirdCamera;
 import static com.askey.thermal.Utils.thirdFile;
+import static com.askey.thermal.Utils.thirdFilePath;
 import static com.askey.thermal.Utils.videoLogList;
 
 @SuppressLint("SetTextI18n")
@@ -106,15 +106,18 @@ public class VideoRecordActivity extends Activity {
     //-------------------------------------------------------------------------------
     public static final boolean Open_f_Camera = true, Open_s_Camera = true, Open_t_Camera = true;
     //-------------------------------------------------------------------------------
-    private final int delayMillis = 3000;
-    // 使用SD Card儲存 SD_Mode 設置為 true
+    // 啟用測試後顯示預覽畫面preview設置為 true
+    public static boolean preview = false;
+    // 使用SD Card儲存SD_Mode設置為 true
     public static boolean SD_Mode = true;
-    // 使用錯誤重啟 autoRestart 設置為 true
+    // 使用錯誤重啟autoRestart設置為 true
     public static boolean autoRestart = true;
-    // 使用每分鐘停止錄影 autoStopRecord 設置為 true
+    // 使用自動停止錄影autoStopRecord設置為 true
     public static boolean autoStopRecord = true;
     public static boolean extraRecordStatus = false, onRestart = false;
+    private final int delayMillis = 3000;
     public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
+    private static String codeDate0, codeDate1, codeDate2;
     private Size mPreviewSize = null;
     private TextureView mTextureView0, mTextureView1, mTextureView2;
     private CameraDevice mCameraDevice0, mCameraDevice1, mCameraDevice2;
@@ -143,6 +146,12 @@ public class VideoRecordActivity extends Activity {
             Success = 0;
             Fail = 0;
         }
+        firstFile = "";
+        secondFile = "";
+        thirdFile = "";
+        firstFilePath.clear();
+        secondFilePath.clear();
+        thirdFilePath.clear();
         extraRecordStatus = true;
     }
 
@@ -151,21 +160,21 @@ public class VideoRecordActivity extends Activity {
             if (isReady) {
                 if (!isRecord) {
                     if (!auto)
-                        videoLogList.add(new LogMsg("@Start record", mLog.v));
+                        videoLogList.add(new mLogMsg("@Start record", mLog.v));
                     else
-                        videoLogList.add(new LogMsg("#Start record", mLog.v));
+                        videoLogList.add(new mLogMsg("#Start record", mLog.v));
                     setRecord();
                     takeRecord();
                 } else {
                     if (!auto)
-                        videoLogList.add(new LogMsg("@Stop record", mLog.v));
+                        videoLogList.add(new mLogMsg("@Stop record", mLog.v));
                     else
-                        videoLogList.add(new LogMsg("#Stop record", mLog.v));
-                    isFinish = 0;
-                    new Handler().post(() -> stopRecord(true));
+                        videoLogList.add(new mLogMsg("#Stop record", mLog.v));
+                    new Handler().post(() -> stopRecord(false));
                 }
             } else {
-                videoLogList.add(new LogMsg("#Camera is not ready.", mLog.v));
+                showDialogLog(false);
+                videoLogList.add(new mLogMsg("#Camera is not ready.", mLog.v));
             }
         } else {
             stopRecordAndSaveLog(false);
@@ -174,7 +183,7 @@ public class VideoRecordActivity extends Activity {
     }
 
     private boolean checkPermission() {
-        videoLogList.add(new LogMsg("#checkPermission", mLog.v));
+        videoLogList.add(new mLogMsg("#checkPermission", mLog.v));
         int CAMERA = checkSelfPermission(Manifest.permission.CAMERA);
         int STORAGE = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
@@ -184,7 +193,7 @@ public class VideoRecordActivity extends Activity {
     @TargetApi(23)
     @SuppressLint("NewApi")
     private void showPermission() {
-        videoLogList.add(new LogMsg("#showPermission", mLog.v));
+        videoLogList.add(new mLogMsg("#showPermission", mLog.v));
         // We don't have permission so prompt the user
         List<String> permissions = new ArrayList<>();
         permissions.add(Manifest.permission.CAMERA);
@@ -200,8 +209,8 @@ public class VideoRecordActivity extends Activity {
             } else {
                 // 沒有權限
                 showPermission();
-                videoLogList.add(new LogMsg("#no permissions!", mLog.e));
-                videoLogList.add(new LogMsg("No permissions!"));
+                videoLogList.add(new mLogMsg("#no permissions!", mLog.e));
+                videoLogList.add(new mLogMsg("No permissions!"));
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -210,6 +219,24 @@ public class VideoRecordActivity extends Activity {
 
     private boolean permission(int mp) {
         return mp != PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void setProp() {
+        try {
+            //adb shell setprop persist.logd.logpersistd.size 1024
+            //adb shell setprop persist.logd.logpersistd logcatd
+            //adb shell setprop persist.our.camera.fps
+            if (!SystemProperties.get("persist.logd.logpersistd").equals("logcatd")) {
+                Log.e(TAG, "persist.logd.logpersistd.size: 1024");
+                SystemProperties.set("persist.logd.logpersistd.size", "1024");
+                Log.e(TAG, "persist.logd.logpersistd: logcatd");
+                SystemProperties.set("persist.logd.logpersistd", "logcatd");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            videoLogList.add(new mLogMsg("logcatd error.", mLog.e));
+            new Handler().post(() -> saveLog(this, false, false));
+        }
     }
 
     @SuppressLint("InflateParams")
@@ -229,6 +256,7 @@ public class VideoRecordActivity extends Activity {
         super.onCreate(savedInstanceState);
         isRun = 0;
         videoLogList = new ArrayList<>();
+        //setProp();
         if (checkPermission()) {
             showPermission();
         } else {
@@ -237,30 +265,36 @@ public class VideoRecordActivity extends Activity {
     }
 
     public void onBackPressed() {
-        videoLogList.add(new LogMsg("@back", mLog.v));
+        videoLogList.add(new mLogMsg("@back", mLog.v));
         stopRecordAndSaveLog(true);
     }
 
     private void setHomeListener() {
-        home = new HomeListen(this);
-        home.setOnHomeBtnPressListener(new HomeListen.OnHomeBtnPressLitener() {
-            public void onHomeBtnPress() {
-                videoLogList.add(new LogMsg("@home", mLog.v));
-                stopRecordAndSaveLog(true);
-            }
+        try {
+            home = new HomeListen(this);
+            home.setOnHomeBtnPressListener(new HomeListen.OnHomeBtnPressLitener() {
+                public void onHomeBtnPress() {
+                    videoLogList.add(new mLogMsg("@home", mLog.v));
+                    stopRecordAndSaveLog(true);
+                }
 
-            public void onHomeBtnLongPress() {
-                videoLogList.add(new LogMsg("@recent", mLog.v));
-                stopRecordAndSaveLog(true);
-            }
-        });
-        home.start();
+                public void onHomeBtnLongPress() {
+                    videoLogList.add(new mLogMsg("@recent", mLog.v));
+                    stopRecordAndSaveLog(true);
+                }
+            });
+            home.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
 
     private CameraDevice.StateCallback setCallback(String cameraId) {
         try {
             CameraDevice.StateCallback callback = new CameraDevice.StateCallback() {
                 public void onOpened(CameraDevice camera) {
+                    Log.e(TAG, "onOpened Camera " + cameraId);
                     switch (cameraId) {
                         case firstCamera:
                             fCamera = true;
@@ -276,48 +310,26 @@ public class VideoRecordActivity extends Activity {
                             break;
                     }
                     takePreview(cameraId);
-                    if (!isReady) {
-                        Log.e(TAG, "onOpened");
-                        videoLogList.add(new LogMsg("Camera " + cameraId + " is opened.", mLog.i));
-                        if (isLastCamera(cameraId)) {
-                            isReady = true;
-                            new Handler().postDelayed(() -> resetHandler.obtainMessage().sendToTarget(), 500);
-                        }
+                    videoLogList.add(new mLogMsg("Camera " + cameraId + " is opened.", mLog.i));
+                    if (isLastCamera(cameraId) && !isReady) {
+                        isReady = true;
+                        new Handler().postDelayed(() -> resetHandler.obtainMessage().sendToTarget(), 500);
                     }
                 }
 
                 public void onDisconnected(CameraDevice camera) {
+                    Log.e(TAG, "onDisconnected Camera " + cameraId);
                     try {
-                        switch (cameraId) {
-                            case firstCamera:
-                                fCamera = false;
-                                mCameraDevice0.close();
-                                break;
-                            case secondCamera:
-                                sCamera = false;
-                                mCameraDevice1.close();
-                                break;
-                            case thirdCamera:
-                                tCamera = false;
-                                mCameraDevice2.close();
-                                break;
-                        }
-                        Log.e(TAG, "onDisconnected");
-                        videoLogList.add(new LogMsg("Camera " + cameraId + " is disconnected.", mLog.w));
+                        camera.close();
+                        videoLogList.add(new mLogMsg("Camera " + cameraId + " is disconnected.", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();
-                        isError = true;
-                        videoLogList.add(new LogMsg("Camera " + cameraId + " close error.", mLog.w));
-                        new Handler().post(() -> stopRecordAndSaveLog(false));
-                        errorMessage = "Camera " + cameraId + " close error.";
-                        ((TextView) findViewById(R.id.record_status)).setText("Error");
-                    }
-                    if (autoRestart && isError) {
-                        new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
+                        errorMessage("closeCameraDevices " + cameraId + " close error.", true, e);
                     }
                 }
 
                 public void onError(CameraDevice camera, int error) {
+                    Log.e(TAG, "onError Camera " + cameraId);
                     switch (cameraId) {
                         case firstCamera:
                             fCamera = false;
@@ -329,42 +341,49 @@ public class VideoRecordActivity extends Activity {
                             tCamera = false;
                             break;
                     }
-                    isError = true;
-                    onDisconnected(camera);
-                    Log.e(TAG, "onError");
-                    closePreviewSession(cameraId);
-                    videoLogList.add(new LogMsg("Camera " + cameraId + " is error. <============ Crash here", mLog.e));
-                    new Handler().post(() -> stopRecordAndSaveLog(false));
-                    errorMessage = "Camera " + cameraId + " is error. <============ Crash here";
-                    ((TextView) findViewById(R.id.record_status)).setText("Error");
+                    try {
+                        camera.close();
+                        videoLogList.add(new mLogMsg("Camera " + cameraId + " is disconnected.", mLog.w));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    errorMessage("Camera " + cameraId + " is error. <============ Crash here", true, null);
                 }
             };
             return callback;
         } catch (Exception e) {
             e.printStackTrace();
-            getSdCard = !getSDPath().equals("");
-            isError = true;
-            videoLogList.add(new LogMsg("CameraDevice.StateCallback " + cameraId + " error. <============ Crash here", mLog.e));
-            new Handler().post(() -> stopRecordAndSaveLog(false));
-            errorMessage = "CameraDevice.StateCallback " + cameraId + " error. <============ Crash here";
-            ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (autoRestart) {
-                new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-            }
+            errorMessage("CameraDevice.StateCallback " + cameraId + " error. <============ Crash here", true, e);
             return null;
         }
     }
 
+    private void errorMessage(String msg, boolean reset, Exception e) {
+        if (e != null)
+            Log.e(TAG, e.toString());
+        getSdCard = !getSDPath().equals("");
+        isError = true;
+        isRecord = false;
+        runOnUiThread(() -> ((TextView) findViewById(R.id.record_status)).setText("Error"));
+        videoLogList.add(new mLogMsg(msg, mLog.e));
+        errorMessage = msg;
+        new Handler().post(() -> stopRecordAndSaveLog(false));
+        if (reset) {
+            new Handler().postDelayed(this::restartApp, delayMillis);
+        }
+    }
+
     private void stopRecordAndSaveLog(boolean kill) {
-        isFinish = 0;
-        if (isRecord) stopRecord(false);
+        if (isRecord)
+            new Handler().post(() -> stopRecord(true));
         saveLog(getApplicationContext(), false, kill);
     }
 
-    private void restartApp(boolean record) {
+    private void restartApp() {
         try {
             home.stop();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         onRestart = true;
         onReset++;
@@ -374,30 +393,24 @@ public class VideoRecordActivity extends Activity {
         intent.putExtra(EXTRA_VIDEO_FAIL, onFail);
         intent.putExtra(EXTRA_VIDEO_SUCCESS, onSuccess);
         intent.putExtra(EXTRA_VIDEO_RESET, onReset);
-        intent.putExtra(EXTRA_VIDEO_RECORD, record);
+        intent.putExtra(EXTRA_VIDEO_RECORD, extraRecordStatus);
         context.startActivity(intent);
     }
 
     @SuppressLint("HandlerLeak")
     private void initial() {
         getSdCard = !getSDPath().equals("");
+        firstFilePath = new ArrayList<>();
+        secondFilePath = new ArrayList<>();
+        thirdFilePath = new ArrayList<>();
         // findViewById
-        videoLogList.add(new LogMsg("Initial now.", mLog.v));
+        videoLogList.add(new mLogMsg("Initial now.", mLog.v));
         HandlerThread thread0 = new HandlerThread("CameraPreview0");
         thread0.start();
         HandlerThread thread1 = new HandlerThread("CameraPreview1");
         thread1.start();
         HandlerThread thread2 = new HandlerThread("CameraPreview2");
         thread2.start();
-        resetHandler = new Handler() {
-            public void handleMessage(Message msg) {
-                if (!extraRecordStatus) {
-                    saveLog(getApplicationContext(), false, false);
-                } else {
-                    isRecordStart(true);
-                }
-            }
-        };
         backgroundHandler0 = new Handler(thread0.getLooper());
         backgroundHandler1 = new Handler(thread1.getLooper());
         backgroundHandler2 = new Handler(thread2.getLooper());
@@ -406,9 +419,9 @@ public class VideoRecordActivity extends Activity {
             public void handleMessage(Message msg) {
                 try {
                     startRecord(firstCamera);
-                    videoLogList.add(new LogMsg("startRecord " + firstCamera + ".", mLog.w));
+                    videoLogList.add(new mLogMsg("startRecord " + firstCamera + ".", mLog.w));
                 } catch (Exception e) {
-                    videoLogList.add(new LogMsg("startRecord " + firstCamera + " is error.", mLog.w));
+                    videoLogList.add(new mLogMsg("startRecord " + firstCamera + " is error.", mLog.w));
                     e.printStackTrace();
                 }
             }
@@ -417,9 +430,9 @@ public class VideoRecordActivity extends Activity {
             public void handleMessage(Message msg) {
                 try {
                     startRecord(secondCamera);
-                    videoLogList.add(new LogMsg("startRecord " + secondCamera + ".", mLog.w));
+                    videoLogList.add(new mLogMsg("startRecord " + secondCamera + ".", mLog.w));
                 } catch (Exception e) {
-                    videoLogList.add(new LogMsg("startRecord " + secondCamera + " is error.", mLog.w));
+                    videoLogList.add(new mLogMsg("startRecord " + secondCamera + " is error.", mLog.w));
                     e.printStackTrace();
                 }
             }
@@ -428,112 +441,113 @@ public class VideoRecordActivity extends Activity {
             public void handleMessage(Message msg) {
                 try {
                     startRecord(thirdCamera);
-                    videoLogList.add(new LogMsg("startRecord " + thirdCamera + ".", mLog.w));
+                    videoLogList.add(new mLogMsg("startRecord " + thirdCamera + ".", mLog.w));
                 } catch (Exception e) {
-                    videoLogList.add(new LogMsg("startRecord " + thirdCamera + " is error.", mLog.w));
+                    videoLogList.add(new mLogMsg("startRecord " + thirdCamera + " is error.", mLog.w));
                     e.printStackTrace();
                 }
             }
         };
         stopRecordHandler0 = new Handler() {
             public void handleMessage(Message msg) {
-                try {
-                    stopRecord(firstCamera);
-                    videoLogList.add(new LogMsg("stopRecord " + firstCamera + ".", mLog.w));
-                } catch (Exception e) {
-                    videoLogList.add(new LogMsg("stopRecord " + firstCamera + " is error.", mLog.w));
-                    e.printStackTrace();
-                }
+                if (isRecord)
+                    try {
+                        stopRecord(msg.obj.toString(), firstCamera);
+                        videoLogList.add(new mLogMsg("stopRecord " + firstCamera + ".", mLog.w));
+                    } catch (Exception e) {
+                        videoLogList.add(new mLogMsg("stopRecord " + firstCamera + " is error.", mLog.w));
+                        e.printStackTrace();
+                    }
             }
         };
         stopRecordHandler1 = new Handler() {
             public void handleMessage(Message msg) {
-                try {
-                    stopRecord(secondCamera);
-                    videoLogList.add(new LogMsg("stopRecord " + secondCamera + ".", mLog.w));
-                } catch (Exception e) {
-                    videoLogList.add(new LogMsg("stopRecord " + secondCamera + " is error.", mLog.w));
-                    e.printStackTrace();
-                }
+                if (isRecord)
+                    try {
+                        stopRecord(msg.obj.toString(), secondCamera);
+                        videoLogList.add(new mLogMsg("stopRecord " + secondCamera + ".", mLog.w));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        videoLogList.add(new mLogMsg("stopRecord " + secondCamera + " is error.", mLog.w));
+                    }
             }
         };
         stopRecordHandler2 = new Handler() {
             public void handleMessage(Message msg) {
-                try {
-                    stopRecord(thirdCamera);
-                    videoLogList.add(new LogMsg("stopRecord " + thirdCamera + ".", mLog.w));
-                } catch (Exception e) {
-                    videoLogList.add(new LogMsg("stopRecord " + thirdCamera + " is error.", mLog.w));
-                    e.printStackTrace();
-                }
+                if (isRecord)
+                    try {
+                        stopRecord(msg.obj.toString(), thirdCamera);
+                        videoLogList.add(new mLogMsg("stopRecord " + thirdCamera + ".", mLog.w));
+                    } catch (Exception e) {
+                        videoLogList.add(new mLogMsg("stopRecord " + thirdCamera + " is error.", mLog.w));
+                        e.printStackTrace();
+                    }
             }
         };
-        Handler previewHandler0 = new Handler() {
-            public void handleMessage(Message msg) {
-                try {
-                    mStateCallback0 = setCallback(firstCamera);
-                    videoLogList.add(new LogMsg("mStateCallback " + firstCamera + ".", mLog.w));
-                } catch (Exception e) {
-                    videoLogList.add(new LogMsg("mStateCallback " + firstCamera + " is error.", mLog.w));
-                    e.printStackTrace();
-                }
-            }
-        };
-        Handler previewHandler1 = new Handler() {
-            public void handleMessage(Message msg) {
-                try {
-                    mStateCallback1 = setCallback(secondCamera);
-                    videoLogList.add(new LogMsg("mStateCallback " + secondCamera + ".", mLog.w));
-                } catch (Exception e) {
-                    videoLogList.add(new LogMsg("mStateCallback " + secondCamera + " is error.", mLog.w));
-                    e.printStackTrace();
-                }
-            }
-        };
-        Handler previewHandler2 = new Handler() {
-            public void handleMessage(Message msg) {
-                try {
-                    mStateCallback2 = setCallback(thirdCamera);
-                    videoLogList.add(new LogMsg("mStateCallback " + thirdCamera + ".", mLog.w));
-                } catch (Exception e) {
-                    videoLogList.add(new LogMsg("mStateCallback " + thirdCamera + " is error.", mLog.w));
-                    e.printStackTrace();
-                }
-            }
-        };
+        codeDate0 = getCalendarTime();
+        codeDate1 = getCalendarTime();
+        codeDate2 = getCalendarTime();
         if (Open_f_Camera) {
-            previewHandler0.obtainMessage().sendToTarget();
-            mTextureView0 = findViewById(R.id.surfaceView0);
-            mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
+            try {
+                mStateCallback0 = setCallback(firstCamera);
+                mTextureView0 = findViewById(R.id.surfaceView0);
+                mTextureView0.setSurfaceTextureListener(new mSurfaceTextureListener(firstCamera));
+                videoLogList.add(new mLogMsg("setCallback " + firstCamera + ".", mLog.w));
+            } catch (Exception e) {
+                e.printStackTrace();
+                videoLogList.add(new mLogMsg("setCallback " + firstCamera + " is error.", mLog.w));
+            }
         }
         if (Open_s_Camera) {
-            previewHandler1.obtainMessage().sendToTarget();
-            mTextureView1 = findViewById(R.id.surfaceView1);
-            mTextureView1.setSurfaceTextureListener(new mSurfaceTextureListener(secondCamera));
+            try {
+                mStateCallback1 = setCallback(secondCamera);
+                mTextureView1 = findViewById(R.id.surfaceView1);
+                mTextureView1.setSurfaceTextureListener(new mSurfaceTextureListener(secondCamera));
+                videoLogList.add(new mLogMsg("setCallback " + secondCamera + ".", mLog.w));
+            } catch (Exception e) {
+                e.printStackTrace();
+                videoLogList.add(new mLogMsg("setCallback " + secondCamera + " is error.", mLog.w));
+            }
         }
         if (Open_t_Camera) {
-            previewHandler2.obtainMessage().sendToTarget();
-            mTextureView2 = findViewById(R.id.surfaceView2);
-            mTextureView2.setSurfaceTextureListener(new mSurfaceTextureListener(thirdCamera));
+            try {
+                mStateCallback2 = setCallback(thirdCamera);
+                mTextureView2 = findViewById(R.id.surfaceView2);
+                mTextureView2.setSurfaceTextureListener(new mSurfaceTextureListener(thirdCamera));
+                videoLogList.add(new mLogMsg("setCallback " + thirdCamera + ".", mLog.w));
+            } catch (Exception e) {
+                e.printStackTrace();
+                videoLogList.add(new mLogMsg("setCallback " + thirdCamera + " is error.", mLog.w));
+            }
         }
+        checkSdCardFromFileList();
         findViewById(R.id.cancel).setOnClickListener((View v) -> {
-            videoLogList.add(new LogMsg("@cancel", mLog.v));
+            videoLogList.add(new mLogMsg("@cancel", mLog.v));
             stopRecordAndSaveLog(true);
         });
         findViewById(R.id.record).setOnClickListener((View v) -> isRecordStart(false));
         ((TextView) findViewById(R.id.record_status)).setText(getSDPath().equals("") ? "Error" : "Ready");
-        videoLogList.add(new LogMsg("#initial complete", mLog.v));
+        videoLogList.add(new mLogMsg("#initial complete", mLog.v));
         onRun = getIntent().getIntExtra(EXTRA_VIDEO_RUN, 0);
         onFail = getIntent().getIntExtra(EXTRA_VIDEO_FAIL, 0);
         onReset = getIntent().getIntExtra(EXTRA_VIDEO_RESET, 0);
         onSuccess = getIntent().getIntExtra(EXTRA_VIDEO_SUCCESS, 0);
         if (onReset != 0)
-            videoLogList.add(new LogMsg("#noReset:" + onReset, mLog.v));
+            videoLogList.add(new mLogMsg("#noReset:" + onReset, mLog.v));
         extraRecordStatus = getIntent().getBooleanExtra(EXTRA_VIDEO_RECORD, false);
+        resetHandler = new Handler() {
+            public void handleMessage(Message msg) {
+                if (extraRecordStatus) {
+                    isRecordStart(true);
+                } else {
+                    saveLog(getApplicationContext(), false, false);
+                }
+            }
+        };
         this.registerReceiver(new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 if (Objects.equals(intent.getAction(), Intent.ACTION_BATTERY_CHANGED)) {  //Battery
-                    videoLogList.add(new LogMsg("Battery:" + intent.getIntExtra("level", 0) + "%", mLog.e));
+                    videoLogList.add(new mLogMsg("Battery:" + intent.getIntExtra("level", 0) + "%", mLog.e));
                     saveLog(getApplicationContext(), false, false);
                 }
             }
@@ -541,58 +555,57 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void showDialogLog(boolean real) {
-        if (!isRecord || real) {
-            videoLogList.add(new LogMsg("#dialog_log", mLog.v));
-            View view = LayoutInflater.from(this).inflate(R.layout.layout_getlog, null);
-            final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-                    .setView(view).setCancelable(true).create();
-            view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // ok
-                videoLogList.add(new LogMsg("@log_ok", mLog.v));
-                dialog.dismiss();
-            });
-            ArrayList<String> list = new ArrayList<>();
-            if (getSdCard)
-                if (real)
-                    list.add("CheckFile -> video_success/fail:(" + getSuccess() + "/" + getFail() + ") app_reset:(" + getReset() + ")");
-                else
-                    list.add("App Version:" + this.getString(R.string.app_name));
-            else list.add(NO_SD_CARD);
+        videoLogList.add(new mLogMsg("#Log_show", mLog.v));
+        View view = LayoutInflater.from(this).inflate(R.layout.layout_getlog, null);
+        final AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+                .setView(view).setCancelable(true).create();
 
-            if (!errorMessage.equals(""))
-                list.add(errorMessage);
-            else {
-                if (!fCamera)
-                    list.add("Camera Access error, Please check camera " + firstCamera + ". <============ Crash here");
-                if (!sCamera)
-                    list.add("Camera Access error, Please check camera " + secondCamera + ". <============ Crash here");
-                if (!tCamera)
-                    list.add("Camera Access error, Please check camera " + thirdCamera + ". <============ Crash here");
-            }
-            if (list.size() > 0) {
-                ArrayList<View> items = new ArrayList<>();
-                for (String s : list) {
-                    @SuppressLint("InflateParams") View item_layout = LayoutInflater.from(this).inflate(R.layout.style_text_item, null);
-                    ((CustomTextView) item_layout.findViewById(R.id.customTextView)).setText(s);
-                    items.add(item_layout);
-                }
-                ((ListView) view.findViewById(R.id.dialog_listview)).setAdapter(new mListAdapter(items));
-                ((ListView) view.findViewById(R.id.dialog_listview)).setSelection(items.size() - 1);
-            }
-            dialog.show();
+        view.findViewById(R.id.dialog_button_2).setOnClickListener((View vs) -> { // ok
+            videoLogList.add(new mLogMsg("@Log_ok", mLog.v));
+            dialog.dismiss();
+        });
+        ArrayList<String> list = new ArrayList<>();
+        if (getSdCard)
+            if (real)
+                list.add("CheckFile -> video_success/fail:(" + getSuccess() + "/" + getFail() + ") app_reset:(" + getReset() + ")");
+            else
+                list.add("App Version:" + this.getString(R.string.app_name));
+        else list.add(NO_SD_CARD);
+
+        if (!errorMessage.equals(""))
+            list.add(errorMessage);
+        else {
+            if (Open_f_Camera && !fCamera)
+                list.add("Camera Access error, Please check camera " + firstCamera + ". <============ Crash here");
+            if (Open_s_Camera && !sCamera)
+                list.add("Camera Access error, Please check camera " + secondCamera + ". <============ Crash here");
+            if (Open_t_Camera && !tCamera)
+                list.add("Camera Access error, Please check camera " + thirdCamera + ". <============ Crash here");
         }
+        if (list.size() > 0) {
+            ArrayList<View> items = new ArrayList<>();
+            for (String s : list) {
+                @SuppressLint("InflateParams") View item_layout = LayoutInflater.from(this).inflate(R.layout.style_text_item, null);
+                ((CustomTextView) item_layout.findViewById(R.id.customTextView)).setText(s);
+                items.add(item_layout);
+            }
+            ((ListView) view.findViewById(R.id.dialog_listview)).setAdapter(new mListAdapter(items));
+            ((ListView) view.findViewById(R.id.dialog_listview)).setSelection(items.size() - 1);
+        }
+        dialog.show();
     }
 
     private void takeRecord() {
         if (!isError && getSdCard) {
-            videoLogList.add(new LogMsg("#------------------------------", mLog.v));
-            videoLogList.add(new LogMsg("#takeRecord FrameRate:" + NEW_FRAME_RATE[isFrame], mLog.v));
+            videoLogList.add(new mLogMsg("#------------------------------", mLog.v));
+            videoLogList.add(new mLogMsg("#takeRecord FrameRate: default", mLog.v));
             if (Open_f_Camera)
                 recordHandler0.obtainMessage().sendToTarget();
             if (Open_s_Camera)
                 recordHandler1.obtainMessage().sendToTarget();
             if (Open_t_Camera)
                 recordHandler2.obtainMessage().sendToTarget();
-            new Handler().postDelayed(() -> saveLog(getApplicationContext(), false, false), 3000);
+            saveLog(getApplicationContext(), false, false);
         } else {
             stopRecordAndSaveLog(false);
             showDialogLog(false);
@@ -600,48 +613,54 @@ public class VideoRecordActivity extends Activity {
     }
 
     public static void saveLog(Context context, boolean reFormat, boolean kill) {
-        if (!getSDPath().equals("")) {
-            String version = context.getString(R.string.app_name);
-            StringBuilder logString;
-            assert videoLogList != null;
-            File file = new File(getPath(), logName);
-            if (!file.exists()) {
-                logString = new StringBuilder(LOG_TITLE + version + "\r\n");
+        if (null != videoLogList)
+            if (!getSDPath().equals("")) {
+                String version = context.getString(R.string.app_name);
+                StringBuilder logString;
+                assert videoLogList != null;
+                File file = new File(getPath(), logName);
+                if (!file.exists()) {
+                    logString = new StringBuilder(LOG_TITLE + version + "\r\n");
+                    try {
+                        file.createNewFile();
+                        if (null != videoLogList)
+                            videoLogList.add(new mLogMsg("Create the log file.", mLog.w));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        if (null != videoLogList)
+                            videoLogList.add(new mLogMsg("Create file failed.", mLog.w));
+                    }
+                } else {
+                    logString = new StringBuilder();
+                }
+                if (null != videoLogList)
+                    try {
+                        for (mLogMsg logs : videoLogList) {
+                            String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                                    + " run:" + logs.runTime + " -> ";
+                            logString.append(time).append(logs.msg).append("\r\n");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 try {
-                    file.createNewFile();
-                    videoLogList.add(new LogMsg("Create the log file.", mLog.w));
+                    FileOutputStream output = new FileOutputStream(new File(getPath(), logName), !reFormat);
+                    output.write(logString.toString().getBytes());
+                    output.close();
+                    videoLogList.clear();
                 } catch (Exception e) {
-                    videoLogList.add(new LogMsg("Create file failed.", mLog.w));
                     e.printStackTrace();
                 }
             } else {
-                logString = new StringBuilder();
+                isError = true;
+                getSdCard = !getSDPath().equals("");
             }
-
-            for (LogMsg logs : videoLogList) {
-                String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                        + " run:" + logs.runTime + " -> ";
-                logString.append(time).append(logs.msg).append("\r\n");
-            }
-            try {
-                FileOutputStream output = new FileOutputStream(new File(getPath(), logName), !reFormat);
-                output.write(logString.toString().getBytes());
-                output.close();
-                videoLogList.clear();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            isError = true;
-            getSdCard = !getSDPath().equals("");
-        }
         if (kill)
             android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     protected void onDestroy() {
         super.onDestroy();
-        isFinish = 0;
         closeStateCallback(firstCamera);
         closeStateCallback(secondCamera);
         closeStateCallback(thirdCamera);
@@ -656,189 +675,140 @@ public class VideoRecordActivity extends Activity {
 
     private void openCamera(String cameraId) {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        Log.e(TAG, "openCamera E");
         try {
+            videoLogList.add(new mLogMsg("#Open Camera" + cameraId + ".", mLog.w));
             Log.e(TAG, "camera ID: " + cameraId);
+            if (isCameraOne(cameraId))
+                mPreviewSize = Objects.requireNonNull(manager.getCameraCharacteristics(cameraId)
+                        .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP))
+                        .getOutputSizes(SurfaceTexture.class)[0];
             if (ActivityCompat.checkSelfPermission(this,
                     Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
-            Log.e(TAG, "camera open");
+            Log.e(TAG, isRun + " camera " + cameraId + " is open");
             switch (cameraId) {
                 case firstCamera:
-                    if (mStateCallback0 != null)
-                        manager.openCamera(cameraId, mStateCallback0, mainHandler);
-                    else
-                        videoLogList.add(new LogMsg("mStateCallback0 is null. <============ Crash here", mLog.e));
+                    manager.openCamera(cameraId, mStateCallback0, mainHandler);
                     break;
                 case secondCamera:
-                    if (mStateCallback1 != null)
-                        manager.openCamera(cameraId, mStateCallback1, mainHandler);
-                    else
-                        videoLogList.add(new LogMsg("mStateCallback1 is null. <============ Crash here", mLog.e));
+                    manager.openCamera(cameraId, mStateCallback1, mainHandler);
                     break;
                 case thirdCamera:
-                    if (mStateCallback2 != null)
-                        manager.openCamera(cameraId, mStateCallback2, mainHandler);
-                    else
-                        videoLogList.add(new LogMsg("mStateCallback2 is null. <============ Crash here", mLog.e));
+                    manager.openCamera(cameraId, mStateCallback2, mainHandler);
                     break;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            isError = true;
-            videoLogList.add(new LogMsg("Camera Access error, Please check camera " + cameraId + ". <============ Crash here", mLog.e));
-            new Handler().post(() -> stopRecordAndSaveLog(false));
-            errorMessage = "Camera Access error, Please check camera " + cameraId + ". <============ Crash here";
-            ((TextView) findViewById(R.id.record_status)).setText("Error");
+            errorMessage("Camera Access error, Please check camera " + cameraId + ". <============ Crash here", false, e);
         }
-        Log.e(TAG, "openCamera X");
     }
 
-    private void stopRecord(String cameraID) {
+    private String getCodeDate(String cameraId) {
+        String d = "";
+        switch (cameraId) {
+            case firstCamera:
+                d = codeDate0;
+                break;
+            case secondCamera:
+                d = codeDate1;
+                break;
+            case thirdCamera:
+                d = codeDate2;
+                break;
+        }
+        return d;
+    }
+
+    private void stopRecord(String date, String cameraId) {
         try {
-            isRun++;
-            if (isCameraOne(cameraID)) {
-                if (mTimer != null) {
-                    mTimer.cancel();
-                    mTimer = null;
-                }
-                ((TextView) findViewById(R.id.record_status)).setText("Stop");
-                videoLogList.add(new LogMsg("#stopRecord", mLog.v));
-                Log.d(TAG, "stopRecord");
-            }
-            try {
-                switch (cameraID) {
-                    case firstCamera:
-                        if (mMediaRecorder0 != null) {
-                            mMediaRecorder0.stop();
-                            mMediaRecorder0.release();
-                            videoLogList.add(new LogMsg("Record " + cameraID + " finish."));
+            if (date.equals(getCodeDate(cameraId))) {
+                isRun++;
+                videoLogList.add(new mLogMsg("#stopRecord " + cameraId, mLog.v));
+                Log.e(TAG, isRun + " stopRecord " + cameraId);
+                if (isCameraOne(cameraId))
+                    runOnUiThread(() -> {
+                        if (mTimer != null) {
+                            mTimer.cancel();
+                            mTimer = null;
                         }
+                        ((TextView) findViewById(R.id.record_status)).setText("Stop");
+                    });
+                switch (cameraId) {
+                    case firstCamera:
+                        codeDate0 = getCalendarTime();
                         break;
                     case secondCamera:
-                        if (mMediaRecorder1 != null) {
-                            mMediaRecorder1.stop();
-                            mMediaRecorder1.release();
-                            videoLogList.add(new LogMsg("Record " + cameraID + " finish."));
-                        }
+                        codeDate1 = getCalendarTime();
                         break;
                     case thirdCamera:
-                        if (mMediaRecorder2 != null) {
-                            mMediaRecorder2.stop();
-                            mMediaRecorder2.release();
-                            videoLogList.add(new LogMsg("Record " + cameraID + " finish."));
-                        }
+                        codeDate2 = getCalendarTime();
                         break;
                 }
-
-            } catch (Exception e) {
-                videoLogList.add(new LogMsg("mMediaRecorder" + cameraID + " is error."));
-            }
-            try {
-                checkAndClear(cameraID);
-            } catch (Exception e) {
-                videoLogList.add(new LogMsg("Check file is fail."));
-            }
-            if (isFinish == 999 || isRun <= isFinish) {
-                startRecord(cameraID);
-            } else {
-                showDialogLog(true);
-                isRecordStart(true);
-            }
-            if (isError || !getSdCard) {
-                isRun = 0;
-                isFinish = 0;
-                isRecord = false;
-                extraRecordStatus = false;
-                ((TextView) findViewById(R.id.record_status)).setText("Error");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            isError = true;
-            videoLogList.add(new LogMsg("Camera " + cameraID + " stopRecord error. <============ Crash here", mLog.e));
-            new Handler().post(() -> stopRecordAndSaveLog(false));
-            errorMessage = "Camera " + cameraID + " stopRecord error. <============ Crash here";
-            ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (autoRestart) {
-                new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-            }
-        }
-    }
-
-    private void stopRecord(boolean preview) {
-        try {
-            if (mTimer != null) {
-                mTimer.cancel();
-                mTimer = null;
-            }
-            if (!isError && getSdCard) {
-                ((TextView) findViewById(R.id.record_status)).setText("Stop");
-                if (isRecord) {
-                    videoLogList.add(new LogMsg("#stopRecord", mLog.v));
-                    Log.d(TAG, "stopRecord");
-                    for (String cameraID : new String[]{firstCamera, secondCamera, thirdCamera}) {
-                        try {
-                            switch (cameraID) {
-                                case firstCamera:
-                                    if (mMediaRecorder0 != null) {
-                                        mMediaRecorder0.stop();
-                                        mMediaRecorder0.release();
-                                        videoLogList.add(new LogMsg("Record " + cameraID + " finish."));
-                                    }
-                                    break;
-                                case secondCamera:
-                                    if (mMediaRecorder1 != null) {
-                                        mMediaRecorder1.stop();
-                                        mMediaRecorder1.release();
-                                        videoLogList.add(new LogMsg("Record " + cameraID + " finish."));
-                                    }
-                                    break;
-                                case thirdCamera:
-                                    if (mMediaRecorder2 != null) {
-                                        mMediaRecorder2.stop();
-                                        mMediaRecorder2.release();
-                                        videoLogList.add(new LogMsg("Record " + cameraID + " finish."));
-                                    }
-                                    break;
-                            }
-                            checkAndClear(cameraID);
-                        } catch (Exception e) {
-                            videoLogList.add(new LogMsg("mMediaRecorder" + cameraID + " is error."));
-                        }
-                    }
+                closeMediaRecorder(cameraId);
+                checkAndClear(cameraId);
+                startRecord(cameraId);
+                if (isError || !getSdCard) {
                     isRun = 0;
-                    isFinish = 0;
                     isRecord = false;
-                    extraRecordStatus = false;
-                    videoLogList.add(new LogMsg("#------------------------------", mLog.v));
-                    videoLogList.add(new LogMsg("#Complete"));
-                    ((TextView) findViewById(R.id.record_status)).setText("Complete");
-                } else {
-                    isRun = 0;
-                    isFinish = 0;
+                    ((TextView) findViewById(R.id.record_status)).setText("Error");
                 }
-                end(preview);
-            } else {
-                ((TextView) findViewById(R.id.record_status)).setText("Error");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            isError = true;
-            videoLogList.add(new LogMsg("stopRecord all camera error. <============ Crash here", mLog.e));
-            new Handler().post(() -> stopRecordAndSaveLog(false));
-            errorMessage = "stopRecord all camera error. <============ Crash here";
-            ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (autoRestart) {
-                new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-            }
+            errorMessage("Camera " + cameraId + " stopRecord error. <============ Crash here", true, e);
         }
     }
 
-    private void end(boolean preview) {
-        saveLog(getApplicationContext(), false, false);
-        if (preview) {
-            takePreview();
+    private void stopRecord(boolean reset) {
+        try {
+            if (!isError && getSdCard) {
+                ArrayList<String> cameras = new ArrayList<>();
+                if (Open_f_Camera)
+                    cameras.add(firstCamera);
+                if (Open_s_Camera)
+                    cameras.add(secondCamera);
+                if (Open_t_Camera)
+                    cameras.add(thirdCamera);
+                for (String cameraId : cameras) {
+                    videoLogList.add(new mLogMsg("#stopRecord " + cameraId, mLog.v));
+                    Log.e(TAG, isRun + " stopRecord " + cameraId);
+                    if (isCameraOne(cameraId))
+                        runOnUiThread(() -> {
+                            if (mTimer != null) {
+                                mTimer.cancel();
+                                mTimer = null;
+                            }
+                            ((TextView) findViewById(R.id.record_status)).setText("Stop");
+                        });
+                    switch (cameraId) {
+                        case firstCamera:
+                            codeDate0 = getCalendarTime();
+                            break;
+                        case secondCamera:
+                            codeDate1 = getCalendarTime();
+                            break;
+                        case thirdCamera:
+                            codeDate2 = getCalendarTime();
+                            break;
+                    }
+                    closeMediaRecorder(cameraId);
+                    checkAndClear(cameraId);
+                }
+            }
+            isRun = 0;
+            isRecord = false;
+            videoLogList.add(new mLogMsg("#Complete"));
+            videoLogList.add(new mLogMsg("#------------------------------", mLog.v));
+            if (!reset)
+                extraRecordStatus = false;
+            saveLog(getApplicationContext(), false, false);
+            if (preview) {
+                takePreview();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessage("stopRecord all camera error. <============ Crash here", true, e);
         }
     }
 
@@ -852,8 +822,9 @@ public class VideoRecordActivity extends Activity {
                     fis = new FileInputStream(file);
                     extractor = new MediaExtractor();
                     extractor.setDataSource(fis.getFD());
-                } catch (Exception ignored) {
-                    videoLogList.add(new LogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    videoLogList.add(new mLogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
                     return 0;
                 }
                 int numTracks = extractor.getTrackCount();
@@ -862,18 +833,20 @@ public class VideoRecordActivity extends Activity {
                     if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
                         try {
                             frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE);
-                        } catch (Exception ignored) {
-                            videoLogList.add(new LogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            videoLogList.add(new mLogMsg("getFrameRate failed on MediaExtractor.<============ Crash here", mLog.e));
                         }
                     }
                 }
                 extractor.release();
                 fis.close();
             } catch (Exception e) {
-                videoLogList.add(new LogMsg("getFrameRate failed.<============ Crash here", mLog.e));
+                e.printStackTrace();
+                videoLogList.add(new mLogMsg("getFrameRate failed.<============ Crash here", mLog.e));
             }
         } else {
-            videoLogList.add(new LogMsg("getFrameRate failed " + NO_SD_CARD + ".", mLog.e));
+            videoLogList.add(new mLogMsg("getFrameRate failed " + NO_SD_CARD + ".", mLog.e));
         }
         return frameRate;
     }
@@ -887,7 +860,7 @@ public class VideoRecordActivity extends Activity {
                     frameRate = getFrameRate(video);
                 } catch (Exception ignored) {
                     if (null != videoLogList)
-                        videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
+                        videoLogList.add(new mLogMsg("CheckFile error.", mLog.e));
                 }
                 if (frameRate != 0) Success++;
                 else Fail++;
@@ -895,36 +868,38 @@ public class VideoRecordActivity extends Activity {
                 Fail++;
             }
             if (null != videoLogList)
-                videoLogList.add(new LogMsg("CheckFile:(" + path.split("/")[3] +
+                videoLogList.add(new mLogMsg("CheckFile:(" + path.split("/")[3] +
                         ") video_frameRate:(" + frameRate + ") video_success/fail:(" + getSuccess() + "/" + getFail() +
                         ") app_reset:(" + getReset() + ")", mLog.i));
         } catch (Exception ignored) {
             if (null != videoLogList)
-                videoLogList.add(new LogMsg("CheckFile error.", mLog.e));
+                videoLogList.add(new mLogMsg("CheckFile error.", mLog.e));
             Fail++;
         }
     }
 
     private void closeStateCallback(String cameraId) {
-        switch (cameraId) {
-            case firstCamera:
-                if (mStateCallback0 != null) {
-                    mStateCallback0.onDisconnected(mCameraDevice0);
-                    mStateCallback0 = null;
-                }
-                break;
-            case secondCamera:
-                if (mStateCallback1 != null) {
-                    mStateCallback1.onDisconnected(mCameraDevice1);
-                    mStateCallback1 = null;
-                }
-                break;
-            case thirdCamera:
-                if (mStateCallback2 != null) {
-                    mStateCallback2.onDisconnected(mCameraDevice2);
-                    mStateCallback2 = null;
-                }
-                break;
+        try {
+            switch (cameraId) {
+                case firstCamera:
+                    if (mStateCallback0 != null) {
+                        mStateCallback0.onDisconnected(mCameraDevice0);
+                    }
+                    break;
+                case secondCamera:
+                    if (mStateCallback1 != null) {
+                        mStateCallback1.onDisconnected(mCameraDevice1);
+                    }
+                    break;
+                case thirdCamera:
+                    if (mStateCallback2 != null) {
+                        mStateCallback2.onDisconnected(mCameraDevice2);
+                    }
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessage("closeStateCallback" + cameraId + " is error.", true, e);
         }
     }
 
@@ -951,51 +926,44 @@ public class VideoRecordActivity extends Activity {
                     break;
             }
         } catch (Exception e) {
-            videoLogList.add(new LogMsg("mPreviewSession" + cameraId + " is error."));
+            errorMessage("closePreviewSession" + cameraId + " is error.", false, e);
         }
     }
 
     private void closeMediaRecorder(String cameraId) {
-        switch (cameraId) {
-            case firstCamera:
-                try {
+        try {
+            switch (cameraId) {
+                case firstCamera:
                     if (mMediaRecorder0 != null) {
                         mMediaRecorder0.stop();
                         mMediaRecorder0.release();
-                        videoLogList.add(new LogMsg("Record " + cameraId + " finish."));
+                        videoLogList.add(new mLogMsg("Record " + cameraId + " finish."));
                     }
-                } catch (Exception e) {
-                    videoLogList.add(new LogMsg("mMediaRecorder" + cameraId + " is error."));
-                }
-                break;
-            case secondCamera:
-                try {
+                    break;
+                case secondCamera:
                     if (mMediaRecorder1 != null) {
                         mMediaRecorder1.stop();
                         mMediaRecorder1.release();
-                        videoLogList.add(new LogMsg("Record " + cameraId + " finish."));
+                        videoLogList.add(new mLogMsg("Record " + cameraId + " finish."));
                     }
-                } catch (Exception e) {
-                    videoLogList.add(new LogMsg("mMediaRecorder" + cameraId + " is error."));
-                }
-                break;
-            case thirdCamera:
-                try {
+                    break;
+                case thirdCamera:
                     if (mMediaRecorder2 != null) {
                         mMediaRecorder2.stop();
                         mMediaRecorder2.release();
-                        videoLogList.add(new LogMsg("Record " + cameraId + " finish."));
+                        videoLogList.add(new mLogMsg("Record " + cameraId + " finish."));
                     }
-                } catch (Exception e) {
-                    videoLogList.add(new LogMsg("mMediaRecorder" + cameraId + " is error."));
-                }
-                break;
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessage("mMediaRecorder " + cameraId + " is error.", false, e);
         }
     }
 
     private void startRecord(String cameraId) {
         if (!isError) {
-            Log.d(TAG, "startRecord");
+            Log.e(TAG, isRun + " startRecord " + cameraId);
             try {
                 if (isCameraOne(cameraId)) {
                     checkSdCardFromFileList();
@@ -1017,47 +985,57 @@ public class VideoRecordActivity extends Activity {
                 try {
                     switch (cameraId) {
                         case firstCamera:
+                            codeDate0 = getCalendarTime();
                             texture = mTextureView0.getSurfaceTexture();
                             break;
                         case secondCamera:
+                            codeDate1 = getCalendarTime();
                             texture = mTextureView1.getSurfaceTexture();
                             break;
                         case thirdCamera:
+                            codeDate2 = getCalendarTime();
                             texture = mTextureView2.getSurfaceTexture();
                             break;
                     }
                 } catch (Exception e) {
-                    videoLogList.add(new LogMsg("mPreviewSession" + cameraId + " is error."));
+                    e.printStackTrace();
+                    videoLogList.add(new mLogMsg("getSurfaceTexture" + cameraId + " is error."));
                 }
                 if (null == texture) {
-                    Log.e(TAG, "texture is null, return");
+                    Log.e(TAG, isRun + " texture is null, return");
                     return;
                 }
                 texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
                 Surface surface = new Surface(texture);
                 List<Surface> surfaces = new ArrayList<>();
-                CaptureRequest.Builder mPreviewBuilder;
                 CameraDevice mCameraDevice = null;
+                CaptureRequest.Builder mPreviewBuilder;
                 Surface recorderSurface = null;
                 Handler backgroundHandler = null;
                 switch (cameraId) {
                     case firstCamera:
-                        backgroundHandler = backgroundHandler0;
                         mCameraDevice = mCameraDevice0;
+                        backgroundHandler = backgroundHandler0;
                         mMediaRecorder0 = setUpMediaRecorder(firstCamera);
-                        recorderSurface = Objects.requireNonNull(mMediaRecorder0).getSurface();
+                        if (mMediaRecorder0 == null)
+                            return;
+                        recorderSurface = mMediaRecorder0.getSurface();
                         break;
                     case secondCamera:
-                        backgroundHandler = backgroundHandler1;
                         mCameraDevice = mCameraDevice1;
+                        backgroundHandler = backgroundHandler1;
                         mMediaRecorder1 = setUpMediaRecorder(secondCamera);
-                        recorderSurface = Objects.requireNonNull(mMediaRecorder1).getSurface();
+                        if (mMediaRecorder1 == null)
+                            return;
+                        recorderSurface = mMediaRecorder1.getSurface();
                         break;
                     case thirdCamera:
-                        backgroundHandler = backgroundHandler2;
                         mCameraDevice = mCameraDevice2;
+                        backgroundHandler = backgroundHandler2;
                         mMediaRecorder2 = setUpMediaRecorder(thirdCamera);
-                        recorderSurface = Objects.requireNonNull(mMediaRecorder2).getSurface();
+                        if (mMediaRecorder2 == null)
+                            return;
+                        recorderSurface = mMediaRecorder2.getSurface();
                         break;
                 }
                 surfaces.add(surface);
@@ -1065,11 +1043,9 @@ public class VideoRecordActivity extends Activity {
                 mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
                 mPreviewBuilder.addTarget(surface);
                 mPreviewBuilder.addTarget(recorderSurface);
-
                 try {
                     mCameraDevice.createCaptureSession(surfaces,
                             new CameraCaptureSession.StateCallback() {
-
                                 public void onConfigured(CameraCaptureSession session) {
                                     try {
                                         if (isCameraOne(cameraId))
@@ -1077,74 +1053,56 @@ public class VideoRecordActivity extends Activity {
                                         switch (cameraId) {
                                             case firstCamera:
                                                 mPreviewSession0 = session;
-                                                updatePreview(mPreviewBuilder, mPreviewSession0, backgroundHandler0);
+                                                //updatePreview(mPreviewBuilder, session, backgroundHandler0);
                                                 if (mMediaRecorder0 != null)
                                                     mMediaRecorder0.start();
+                                                Message msg0 = stopRecordHandler0.obtainMessage();
+                                                msg0.obj = getCodeDate(cameraId);
                                                 if (autoStopRecord)
-                                                    stopRecordHandler0.postDelayed(null, delayTime);
+                                                    stopRecordHandler0.sendMessageDelayed(msg0, delayTime);
                                                 break;
                                             case secondCamera:
                                                 mPreviewSession1 = session;
-                                                updatePreview(mPreviewBuilder, mPreviewSession1, backgroundHandler1);
+                                                //updatePreview(mPreviewBuilder, session, backgroundHandler1);
                                                 if (mMediaRecorder1 != null)
                                                     mMediaRecorder1.start();
+                                                Message msg1 = stopRecordHandler1.obtainMessage();
+                                                msg1.obj = getCodeDate(cameraId);
                                                 if (autoStopRecord)
-                                                    stopRecordHandler1.postDelayed(null, delayTime);
+                                                    stopRecordHandler1.sendMessageDelayed(msg1, delayTime + 250);
                                                 break;
                                             case thirdCamera:
                                                 mPreviewSession2 = session;
-                                                updatePreview(mPreviewBuilder, mPreviewSession2, backgroundHandler2);
+                                                //updatePreview(mPreviewBuilder, session, backgroundHandler2);
                                                 if (mMediaRecorder2 != null)
                                                     mMediaRecorder2.start();
+                                                Message msg2 = stopRecordHandler2.obtainMessage();
+                                                msg2.obj = getCodeDate(cameraId);
                                                 if (autoStopRecord)
-                                                    stopRecordHandler2.postDelayed(null, delayTime);
+                                                    stopRecordHandler2.sendMessageDelayed(msg2, delayTime + 500);
                                                 break;
                                         }
                                     } catch (Exception e) {
-                                        isError = true;
-                                        videoLogList.add(new LogMsg("Camera " + cameraId + " can't record. <============ Crash here", mLog.e));
-                                        saveLog(getApplicationContext(), false, false);
-                                        errorMessage = "Camera " + cameraId + " can't record. <============ Crash here";
-                                        ((TextView) findViewById(R.id.record_status)).setText("Error");
+                                        e.printStackTrace();
+                                        errorMessage("Camera " + cameraId + " can't record. <============ Crash here", false, e);
                                     }
                                 }
 
                                 public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
-                                    isError = true;
-                                    videoLogList.add(new LogMsg("Camera " + cameraId + " Record onConfigureFailed.", mLog.e));
-                                    saveLog(getApplicationContext(), false, false);
-                                    errorMessage = "Camera " + cameraId + " onConfigureFailed error.";
-                                    ((TextView) findViewById(R.id.record_status)).setText("Error");
-                                    if (autoRestart) {
-                                        new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-                                    }
+                                    errorMessage("Camera " + cameraId + " Record onConfigureFailed.", true, null);
                                 }
                             }, backgroundHandler);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    isError = true;
-                    videoLogList.add(new LogMsg("Camera " + cameraId + " CameraCaptureSession.StateCallback() error. <============ Crash here", mLog.e));
-                    new Handler().post(() -> stopRecordAndSaveLog(false));
-                    errorMessage = "Camera " + cameraId + " startRecord error. <============ Crash here";
-                    ((TextView) findViewById(R.id.record_status)).setText("Error");
-                    if (autoRestart) {
-                        new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-                    }
+                    errorMessage("Camera " + cameraId + " CameraCaptureSession.StateCallback() error. <============ Crash here", true, e);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                isError = true;
-                videoLogList.add(new LogMsg("Camera " + cameraId + " startRecord error. <============ Crash here", mLog.e));
-                new Handler().post(() -> stopRecordAndSaveLog(false));
-                errorMessage = "Camera " + cameraId + " startRecord error. <============ Crash here";
-                ((TextView) findViewById(R.id.record_status)).setText("Error");
-                if (autoRestart) {
-                    new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-                }
+                errorMessage("Camera " + cameraId + " startRecord error. <============ Crash here", true, e);
             }
         } else {
             if (autoRestart) {
-                new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
+                new Handler().postDelayed(this::restartApp, delayMillis);
             }
         }
     }
@@ -1157,7 +1115,7 @@ public class VideoRecordActivity extends Activity {
                 long sdAvailSize = stat.getAvailableBlocksLong() * stat.getBlockSizeLong();
                 double gigaAvailable = (sdAvailSize >> 30);
                 if (gigaAvailable < sdData) {
-                    videoLogList.add(new LogMsg("SD Card is Full."));
+                    videoLogList.add(new mLogMsg("SD Card is Full."));
                     ArrayList<String> tmp = new ArrayList<>();
                     File[] fileList = new File(getSDPath()).listFiles();
                     for (File file : fileList) {
@@ -1180,142 +1138,140 @@ public class VideoRecordActivity extends Activity {
                         checkSdCardFromFileList();
                     } else {
                         isError = true;
-                        videoLogList.add(new LogMsg("MP4 video file not found. <============ Crash here"));
+                        videoLogList.add(new mLogMsg("MP4 video file not found. <============ Crash here"));
 
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                isError = true;
-                getSdCard = !getSDPath().equals("");
-                if (getSdCard) {
-                    saveLog(getApplicationContext(), false, false);
-                    errorMessage = "error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.";
-                    videoLogList.add(new LogMsg("#error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", mLog.e));
+                if (!getSDPath().equals("")) {
+                    errorMessage("error: At least " + sdData + " memory needs to be available to record, please check the SD Card free space.", false, null);
                 } else {
-                    videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
-                    saveLog(getApplicationContext(), false, false);
-                    errorMessage = NO_SD_CARD;
+                    errorMessage(NO_SD_CARD, false, null);
                 }
             }
         } else {
-            isError = true;
-            videoLogList.add(new LogMsg(NO_SD_CARD, mLog.e));
-            saveLog(getApplicationContext(), false, false);
-            errorMessage = NO_SD_CARD;
+            errorMessage(NO_SD_CARD, false, null);
         }
     }
 
     private void delete(String path, boolean fromSDcard) {
+        File video = new File(path);
         try {
             if (!path.equals("")) {
-                File video = new File(path);
                 if (video.exists()) {
                     if (fromSDcard)
-                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[3], mLog.w));
+                        videoLogList.add(new mLogMsg("Delete: " + path.split("/")[3], mLog.w));
                     else
-                        videoLogList.add(new LogMsg("Delete: " + path.split("/")[5], mLog.w));
+                        videoLogList.add(new mLogMsg("Delete: " + path.split("/")[5], mLog.w));
                     video.delete();
                 } else {
-                    videoLogList.add(new LogMsg("Video not find.", mLog.e));
+                    videoLogList.add(new mLogMsg("Video not find.", mLog.e));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            isError = true;
-            getSdCard = !getSDPath().equals("");
-            videoLogList.add(new LogMsg("#delete " + path + " error. <============ Crash here", mLog.e));
-            saveLog(getApplicationContext(), false, false);
-            errorMessage = "Delete file error. <============ Crash here";
-            if (autoRestart) {
-                new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-            }
+            errorMessage("#delete " + video.getName() + " error. <============ Crash here", false, e);
         }
     }
 
-    private void checkAndClear(String cameraID) {
+    private void checkAndClear(String cameraId) {
         try {
             if (isRecord)
-                switch (cameraID) {
+                switch (cameraId) {
                     case firstCamera:
-                        checkFile(firstFile);
+                        if (Open_f_Camera && firstFilePath != null) {
+                            for (String f : firstFilePath) {
+                                checkFile(f);
+                            }
+                            firstFilePath.clear();
+                        }
                         break;
                     case secondCamera:
-                        checkFile(secondFile);
+                        if (Open_s_Camera && secondFilePath != null) {
+                            for (String s : secondFilePath) {
+                                checkFile(s);
+                            }
+                            secondFilePath.clear();
+                        }
                         break;
                     case thirdCamera:
-                        checkFile(thirdFile);
+                        if (Open_t_Camera && thirdFilePath != null) {
+                            for (String t : thirdFilePath) {
+                                checkFile(t);
+                            }
+                            thirdFilePath.clear();
+                        }
                         break;
                 }
         } catch (Exception e) {
-            videoLogList.add(new LogMsg("CheckFile " + cameraID + " error.", mLog.e));
+            videoLogList.add(new mLogMsg("CheckFile " + cameraId + " error.", mLog.e));
         }
     }
 
     private MediaRecorder setUpMediaRecorder(String cameraId) {
+        String file = "";
         MediaRecorder mediaRecorder = null;
         try {
-            CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
-            String file = "";
             if (!getSDPath().equals("")) {
                 file = getSDPath() + getCalendarTime(cameraId) + ".mp4";
-                videoLogList.add(new LogMsg("Create: " + file.split("/")[3], mLog.w));
+                videoLogList.add(new mLogMsg("Create: " + file.split("/")[3], mLog.w));
                 switch (cameraId) {
                     case firstCamera:
                         firstFile = file;
+                        firstFilePath.add(file);
                         break;
                     case secondCamera:
                         secondFile = file;
+                        secondFilePath.add(file);
                         break;
                     case thirdCamera:
                         thirdFile = file;
+                        thirdFilePath.add(file);
                         break;
                 }
+                //TODO Quality
+                /* CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 1080p, 720p
+                CamcorderProfile profile_480 = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
+                CamcorderProfile profile_720 = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
+                CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
+                CamcorderProfile profile = profile_480;
                 mediaRecorder = new MediaRecorder();
                 mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
                 mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                mediaRecorder.setVideoEncoder(profile_1080.videoCodec);
-                mediaRecorder.setVideoSize(profile_1080.videoFrameWidth, profile_1080.videoFrameHeight);
-                mediaRecorder.setVideoEncodingBitRate((int) (profile_1080.videoBitRate / 3.3));
+                mediaRecorder.setVideoEncoder(profile.videoCodec);
+                mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
+                mediaRecorder.setVideoEncodingBitRate(profile.videoBitRate / 4);
                 mediaRecorder.setOutputFile(file);
                 mediaRecorder.prepare();
             } else {
-                getSdCard = !getSDPath().equals("");
-                isError = true;
-                videoLogList.add(new LogMsg("MediaRecorder error. " + NO_SD_CARD + " <============ Crash here", mLog.e));
-                new Handler().post(() -> stopRecordAndSaveLog(false));
-                errorMessage = "MediaRecorder error. " + NO_SD_CARD + " <============ Crash here";
-                ((TextView) findViewById(R.id.record_status)).setText("Error");
-                if (autoRestart) {
-                    new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-                }
+                errorMessage("MediaRecorder error. " + NO_SD_CARD + " <============ Crash here", false, null);
                 return null;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            getSdCard = !getSDPath().equals("");
-            isError = true;
-            videoLogList.add(new LogMsg("MediaRecorder " + cameraId + " error. <============ Crash here", mLog.e));
-            new Handler().post(() -> stopRecordAndSaveLog(false));
-            if (autoRestart) {
-                new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-            }
+            errorMessage("MediaRecorder " + cameraId + " error. <============ Crash here", false, e);
         }
         return mediaRecorder;
     }
 
     private void takePreview() {
-        if (Open_f_Camera)
-            takePreview(firstCamera);
-        if (Open_s_Camera)
-            takePreview(secondCamera);
-        if (Open_t_Camera)
-            takePreview(thirdCamera);
+        if (!isError && getSdCard) {
+            if (Open_f_Camera)
+                takePreview(firstCamera);
+            if (Open_s_Camera)
+                takePreview(secondCamera);
+            if (Open_t_Camera)
+                takePreview(thirdCamera);
+        } else {
+            stopRecordAndSaveLog(false);
+            showDialogLog(false);
+        }
     }
 
     private void takePreview(String cameraId) {
         Log.d(TAG, "takePreview");
-        videoLogList.add(new LogMsg("Preview " + cameraId + " Camera.", mLog.i));
+        videoLogList.add(new mLogMsg("Preview " + cameraId + " Camera.", mLog.i));
         SurfaceTexture texture = null;
         try {
             switch (cameraId) {
@@ -1331,90 +1287,58 @@ public class VideoRecordActivity extends Activity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            isError = true;
-            videoLogList.add(new LogMsg("takePreview " + cameraId + " error. <============ Crash here", mLog.e));
-            new Handler().post(() -> stopRecordAndSaveLog(false));
-            errorMessage = "takePreview " + cameraId + " error. <============ Crash here";
-            ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (autoRestart) {
-                new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-            }
+            errorMessage("takePreview " + cameraId + " error. <============ Crash here", true, e);
         }
         if (null != texture) {
-            if (mPreviewSize == null) {
-                CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-                try {
-                    mPreviewSize = Objects.requireNonNull(manager.getCameraCharacteristics(cameraId)
-                            .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP))
-                            .getOutputSizes(SurfaceTexture.class)[0];
-                    texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-                } catch (CameraAccessException e) {
-                    e.printStackTrace();
-                }
-            }
+            texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
             Surface surface = new Surface(texture);
             CaptureRequest.Builder mPreviewBuilder;
             CameraDevice mCameraDevice = null;
             Handler backgroundHandler = null;
+            switch (cameraId) {
+                case firstCamera:
+                    mCameraDevice = mCameraDevice0;
+                    backgroundHandler = backgroundHandler0;
+                    break;
+                case secondCamera:
+                    mCameraDevice = mCameraDevice1;
+                    backgroundHandler = backgroundHandler1;
+                    break;
+                case thirdCamera:
+                    mCameraDevice = mCameraDevice2;
+                    backgroundHandler = backgroundHandler2;
+                    break;
+            }
             if (!isError) {
                 try {
-                    switch (cameraId) {
-                        case firstCamera:
-                            mCameraDevice = mCameraDevice0;
-                            backgroundHandler = backgroundHandler0;
-                            break;
-                        case secondCamera:
-                            mCameraDevice = mCameraDevice1;
-                            backgroundHandler = backgroundHandler1;
-                            break;
-                        case thirdCamera:
-                            mCameraDevice = mCameraDevice2;
-                            backgroundHandler = backgroundHandler2;
-                            break;
-                    }
                     mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
                     mPreviewBuilder.addTarget(surface);
-                    // CaptureRequest.CONTROL_MODE
+                    Handler finalBackgroundHandler = backgroundHandler;
                     mCameraDevice.createCaptureSession(Collections.singletonList(surface),
                             new CameraCaptureSession.StateCallback() {
                                 public void onConfigured(CameraCaptureSession session) {
                                     switch (cameraId) {
                                         case firstCamera:
                                             mPreviewSession0 = session;
-                                            updatePreview(mPreviewBuilder, mPreviewSession0, backgroundHandler0);
                                             break;
                                         case secondCamera:
                                             mPreviewSession1 = session;
-                                            updatePreview(mPreviewBuilder, mPreviewSession1, backgroundHandler1);
                                             break;
                                         case thirdCamera:
                                             mPreviewSession2 = session;
-                                            updatePreview(mPreviewBuilder, mPreviewSession2, backgroundHandler2);
                                             break;
                                     }
+                                    updatePreview(mPreviewBuilder, session, finalBackgroundHandler);
                                 }
 
                                 public void onConfigureFailed(CameraCaptureSession session) {
-                                    isError = true;
-                                    videoLogList.add(new LogMsg("Preview " + cameraId + " onConfigureFailed", mLog.e));
-                                    saveLog(getApplicationContext(), false, false);
-                                    errorMessage = "Camera " + cameraId + " onConfigureFailed error.";
-                                    ((TextView) findViewById(R.id.record_status)).setText("Error");
-                                    if (autoRestart) {
-                                        new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-                                    }
+                                    runOnUiThread(() ->
+                                            errorMessage("Preview " + cameraId + " onConfigureFailed", true, null));
                                 }
                             }, backgroundHandler);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    isError = true;
-                    videoLogList.add(new LogMsg("Preview " + cameraId + " error.", mLog.e));
-                    new Handler().post(() -> stopRecordAndSaveLog(false));
-                    errorMessage = "Preview " + cameraId + " error.";
-                    ((TextView) findViewById(R.id.record_status)).setText("Error");
-                    if (autoRestart) {
-                        new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-                    }
+                    errorMessage("Preview " + cameraId + " error.", true, e);
                 }
             }
         }
@@ -1426,47 +1350,37 @@ public class VideoRecordActivity extends Activity {
             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, backgroundHandler);
         } catch (Exception e) {
             e.printStackTrace();
-            isError = true;
-            videoLogList.add(new LogMsg("setCaptureRequest error.", mLog.e));
-            new Handler().post(() -> stopRecordAndSaveLog(false));
-            errorMessage = "setCaptureRequest error.";
-            ((TextView) findViewById(R.id.record_status)).setText("Error");
-            if (autoRestart) {
-                new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-            }
+            errorMessage("setCaptureRequest error.", true, e);
         }
     }
 
     private class mTimerTask extends TimerTask {
         public void run() {
+            // mHandlerを通じてUI Threadへ処理をキューイング
             runOnUiThread(() -> {
+                //実行間隔分を加算処理
                 mLaptime += 0.1d;
+                //計算にゆらぎがあるので小数点第1位で丸める
                 BigDecimal bi = new BigDecimal(mLaptime);
                 float outputValue = bi.setScale(1, BigDecimal.ROUND_HALF_UP).floatValue();
                 if (autoStopRecord && outputValue >= 65) {
-                    isError = true;
-                    videoLogList.add(new LogMsg("Application has timed out.", mLog.w));
-                    new Handler().post(() -> stopRecordAndSaveLog(false));
-                    errorMessage = "Application has timed out.";
-                    new Handler().post(() -> ((TextView) findViewById(R.id.record_status)).setText("Error"));
-                    if (autoRestart) {
-                        new Handler().postDelayed(() -> restartApp(extraRecordStatus), delayMillis);
-                    }
+                    errorMessage("Application has timed out.", true, null);
                 }
+                //現在のLapTime
                 ((TextView) findViewById(R.id.record_timer)).setText(Float.toString(outputValue));
             });
         }
     }
 
     private class mSurfaceTextureListener implements TextureView.SurfaceTextureListener {
-        String CameraID;
+        String cameraId;
 
-        public mSurfaceTextureListener(String CameraID) {
-            this.CameraID = CameraID;
+        public mSurfaceTextureListener(String cameraId) {
+            this.cameraId = cameraId;
         }
 
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            openCamera(CameraID);
+            openCamera(cameraId);
         }
 
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {

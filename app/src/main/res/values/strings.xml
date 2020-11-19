@@ -5,7 +5,11 @@
         2.The Camera 0 is External-1, Camera 1 is Front Camera, Camera 2 is External-2
         3.At the small Testing, Some data prove two External camera can't be Run at the same time
         4.BSP path:\\10.1.28.27\DailyBuild\SDM660\R43_UserDebugVersion\20201019
-
+    [v1.0.1]
+        1.fix save log may crash error.
+        2.fix close video record issues.
+        3.fix camera may crash issues.
+        4.add setProp to record logs.
     -->
-    <string name="app_name">CDR9030_Thermal_test(v1.0.0)</string>
+    <string name="app_name">CDR9030_Thermal_test(v1.0.1)</string>
 </resources>

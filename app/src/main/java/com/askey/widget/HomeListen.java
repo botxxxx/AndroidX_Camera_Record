@@ -37,7 +37,7 @@ public class HomeListen {
         try{
             mContext.registerReceiver(mHomeBtnReceiver, mHomeBtnIntentFilter);
         }catch (Exception e){
-
+            e.printStackTrace();
         }
     }
 
@@ -45,7 +45,7 @@ public class HomeListen {
         try{
             mContext.unregisterReceiver(mHomeBtnReceiver);
         }catch (Exception e){
-
+            e.printStackTrace();
         }
     }
 

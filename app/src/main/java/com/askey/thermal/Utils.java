@@ -4,8 +4,8 @@ import android.annotation.SuppressLint;
 import android.util.SparseIntArray;
 import android.view.Surface;
 
-import com.askey.widget.LogMsg;
 import com.askey.widget.mLog;
+import com.askey.widget.mLogMsg;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,32 +21,33 @@ import static com.askey.thermal.VideoRecordActivity.SD_Mode;
 import static com.askey.thermal.VideoRecordActivity.onReset;
 
 public class Utils {
+    public static String TAG = "CDR9030_Thermal";
     //-------------------------------------------------------------------------------
-    public static final int defaultRun = 999;
-    public static final boolean defaultProp = false;
+    public static int delayTime = 60500;
     //-------------------------------------------------------------------------------
-    public static final double[] NEW_DFRAME_RATE = {20, 20};
-    public static final String[] NEW_FRAME_RATE = {"20fps", "20fps"};
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
     public static final String EXTRA_VIDEO_RESET = "RestartActivity.reset";
     public static final String EXTRA_VIDEO_RECORD = "RestartActivity.record";
     public static final String EXTRA_VIDEO_SUCCESS = "RestartActivity.success";
     public static final String NO_SD_CARD = "SD card is not available!";
+    //-------------------------------------------------------------------------------
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String logName = "CDR9030_Thermal_Log.ini";
     public static final String LOG_TITLE = "[CDR9030_Thermal_Log]";
     public static final double sdData = 1;
     public static int isRun = 0, Success = 0, Fail = 0;
-    public static final String TAG = "CDR9030_Thermal_test";
     public static final String firstCamera = "0";
     public static final String secondCamera = "1";
     public static final String thirdCamera = "2";
-    public static ArrayList<LogMsg> videoLogList = null;
-    public static int isFinish = 999, delayTime = 60500, isFrame = 0;
+    public static String firstFile = "";
+    public static String secondFile = "";
+    public static String thirdFile = "";
+    public static ArrayList<String> firstFilePath, secondFilePath, thirdFilePath;
+    public static ArrayList<mLogMsg> videoLogList = null;
     public static boolean isReady = false, isRecord = false, isError = false;
     public static boolean fCamera = false, sCamera = false, tCamera = false, getSdCard = false;
-    public static String firstFile, secondFile, thirdFile, errorMessage = "";
+    public static String errorMessage = "";
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -55,10 +56,13 @@ public class Utils {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
+    public static String getLogPath() {
+        return "/data/misc/logd/";
+    }
+
     //TODO Default Path
-    @SuppressLint("SdCardPath")
     public static String getPath() {
-        return "/sdcard/DCIM/";
+        return "/storage/emulated/0/DCIM/";
     }
 
     public static String getSDPath() {
@@ -79,7 +83,7 @@ public class Utils {
                         break;
                     }
                     if ((System.currentTimeMillis() / 1000) % 60 > end) {
-                        videoLogList.add(new LogMsg("getSDPath time out.", mLog.d));
+                        videoLogList.add(new mLogMsg("getSDPath time out.", mLog.d));
                         break;
                     }
                 }
@@ -117,9 +121,13 @@ public class Utils {
     }
 
     @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
-    public static String getCalendarTime(String isCameraOne) {
+    public static String getCalendarTime(String cameraId) {
         Calendar calendar = Calendar.getInstance();
-        return "v" + new SimpleDateFormat("yyyyMMddHHmmss").format(calendar.getTime()) + (isCameraOne.equals(firstCamera) ? "f" : (isCameraOne.equals(secondCamera) ? "s" : "t"));
+        String cm = "";
+        if (isCameraOne(cameraId)) cm = "f";
+        else if (isLastCamera(cameraId)) cm = "t";
+        else cm = "s";
+        return "v" + new SimpleDateFormat("yyyyMMddHHmmss").format(calendar.getTime()) + cm;
     }
 
     public static String getFileExtension(String fullName) {
@@ -131,7 +139,7 @@ public class Utils {
     public static boolean isCameraOne(String cameraId) {
         if (Open_f_Camera)
             return cameraId.equals(firstCamera);
-        else if (Open_s_Camera)
+        if (Open_s_Camera)
             return cameraId.equals(secondCamera);
         else
             return cameraId.equals(thirdCamera);
@@ -140,7 +148,7 @@ public class Utils {
     public static boolean isLastCamera(String cameraId) {
         if (Open_t_Camera)
             return cameraId.equals(thirdCamera);
-        else if (Open_s_Camera)
+        if (Open_s_Camera)
             return cameraId.equals(secondCamera);
         else
             return cameraId.equals(firstCamera);
