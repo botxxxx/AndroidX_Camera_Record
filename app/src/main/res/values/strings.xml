@@ -11,5 +11,5 @@
         3.fix camera may crash issues.
         4.add setProp to record logs.
     -->
-    <string name="app_name">CDR9030_Thermal_test(v1.0.1)</string>
+    <string name="app_name">CDR9030_Thermal(v1.0.1)</string>
 </resources>

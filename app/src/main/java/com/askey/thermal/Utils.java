@@ -33,8 +33,8 @@ public class Utils {
     public static final String NO_SD_CARD = "SD card is not available!";
     //-------------------------------------------------------------------------------
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
-    public static final String logName = "CDR9030_Thermal_Log.ini";
-    public static final String LOG_TITLE = "[CDR9030_Thermal_Log]";
+    public static final String logName = "ThermalTestLog.ini";
+    public static final String LOG_TITLE = "[CDR9030_Thermal_Test]";
     public static final double sdData = 1;
     public static int isRun = 0, Success = 0, Fail = 0;
     public static final String firstCamera = "0";

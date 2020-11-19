@@ -102,7 +102,7 @@ import static com.askey.thermal.Utils.videoLogList;
 
 @SuppressLint("SetTextI18n")
 public class VideoRecordActivity extends Activity {
-
+    public static final boolean debug = true;
     //-------------------------------------------------------------------------------
     public static final boolean Open_f_Camera = true, Open_s_Camera = true, Open_t_Camera = true;
     //-------------------------------------------------------------------------------
@@ -256,7 +256,8 @@ public class VideoRecordActivity extends Activity {
         super.onCreate(savedInstanceState);
         isRun = 0;
         videoLogList = new ArrayList<>();
-        //setProp();
+        if (debug)
+            setProp();
         if (checkPermission()) {
             showPermission();
         } else {
@@ -365,7 +366,8 @@ public class VideoRecordActivity extends Activity {
         isError = true;
         isRecord = false;
         runOnUiThread(() -> ((TextView) findViewById(R.id.record_status)).setText("Error"));
-        videoLogList.add(new mLogMsg(msg, mLog.e));
+        if (null != videoLogList)
+            videoLogList.add(new mLogMsg(msg, mLog.e));
         errorMessage = msg;
         new Handler().post(() -> stopRecordAndSaveLog(false));
         if (reset) {
