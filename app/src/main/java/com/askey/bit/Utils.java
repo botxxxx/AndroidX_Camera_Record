@@ -32,7 +32,7 @@ public class Utils {
     //-------------------------------------------------------------------------------
     public static final boolean defaultProp = false;
     public static final int defaultRun = 480;
-    public static int isFinish = 999, delayTime = 60500, isQuality = 0;
+    public static int isFinish = 999, delayTime = 60500;
     //-------------------------------------------------------------------------------
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";

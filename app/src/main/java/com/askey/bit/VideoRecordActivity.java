@@ -44,9 +44,9 @@ import androidx.core.app.ActivityCompat;
 
 import com.askey.widget.CustomTextView;
 import com.askey.widget.HomeListen;
-import com.askey.widget.mLogMsg;
 import com.askey.widget.mListAdapter;
 import com.askey.widget.mLog;
+import com.askey.widget.mLogMsg;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -100,7 +100,6 @@ import static com.askey.bit.Utils.getWifiSuccess;
 import static com.askey.bit.Utils.isCameraOne;
 import static com.askey.bit.Utils.isError;
 import static com.askey.bit.Utils.isFinish;
-import static com.askey.bit.Utils.isQuality;
 import static com.askey.bit.Utils.isReady;
 import static com.askey.bit.Utils.isRecord;
 import static com.askey.bit.Utils.isRun;
@@ -381,8 +380,9 @@ public class VideoRecordActivity extends Activity {
         getSdCard = !getSDPath().equals("");
         isError = true;
         isRecord = false;
-        ((TextView) findViewById(R.id.record_status)).setText("Error");
-        videoLogList.add(new mLogMsg(msg, mLog.e));
+        runOnUiThread(() -> ((TextView) findViewById(R.id.record_status)).setText("Error"));
+        if (null != videoLogList)
+            videoLogList.add(new mLogMsg(msg, mLog.e));
         errorMessage = msg;
         new Handler().post(() -> stopRecordAndSaveLog(false));
         if (reset) {
@@ -1224,9 +1224,6 @@ public class VideoRecordActivity extends Activity {
         boolean micError = false;
         MediaRecorder mediaRecorder = null;
         try {
-            /* CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 1080p, 720p
-            CamcorderProfile profile_720 = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
-            CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
             String file = "";
             if (!getSDPath().equals("")) {
                 file = getSDPath() + getCalendarTime(isCameraOne(cameraId)) + ".mp4";
@@ -1238,8 +1235,11 @@ public class VideoRecordActivity extends Activity {
                     secondFile = file + "";
                     secondFilePath.add(file);
                 }
+                /* CamcorderProfile.QUALITY_HIGH:质量等级对应于最高可用分辨率*/// 1080p, 720p
+                CamcorderProfile profile_720 = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
+                CamcorderProfile profile_1080 = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
                 // Step 1: Unlock and set camera to MediaRecorder
-                CamcorderProfile profile = isQuality == 1 ? profile_720 : profile_1080;
+                CamcorderProfile profile = profile_1080;
                 mediaRecorder = new MediaRecorder();
                 // Step 2: Set sources
                 if (isCameraOne(cameraId)) {
