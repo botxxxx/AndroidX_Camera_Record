@@ -23,8 +23,6 @@ import static com.askey.thermal.VideoRecordActivity.onReset;
 public class Utils {
     public static String TAG = "CDR9030_Thermal";
     //-------------------------------------------------------------------------------
-    public static int delayTime = 60500;
-    //-------------------------------------------------------------------------------
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
     public static final String EXTRA_VIDEO_RESET = "RestartActivity.reset";
@@ -35,7 +33,7 @@ public class Utils {
     public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String logName = "ThermalTestLog.ini";
     public static final String LOG_TITLE = "[CDR9030_Thermal_Test]";
-    public static final double sdData = 1;
+    public static final double sdData = 3;
     public static int isRun = 0, Success = 0, Fail = 0;
     public static final String firstCamera = "0";
     public static final String secondCamera = "1";
@@ -123,10 +121,18 @@ public class Utils {
     @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
     public static String getCalendarTime(String cameraId) {
         Calendar calendar = Calendar.getInstance();
-        String cm = "";
-        if (isCameraOne(cameraId)) cm = "f";
-        else if (isLastCamera(cameraId)) cm = "t";
-        else cm = "s";
+        String cm = "c";
+        switch (cameraId) {
+            case firstCamera:
+                cm = "f";
+                break;
+            case secondCamera:
+                cm = "s";
+                break;
+            case thirdCamera:
+                cm = "t";
+                break;
+        }
         return "v" + new SimpleDateFormat("yyyyMMddHHmmss").format(calendar.getTime()) + cm;
     }
 
@@ -139,7 +145,7 @@ public class Utils {
     public static boolean isCameraOne(String cameraId) {
         if (Open_f_Camera)
             return cameraId.equals(firstCamera);
-        if (Open_s_Camera)
+        else if (Open_s_Camera)
             return cameraId.equals(secondCamera);
         else
             return cameraId.equals(thirdCamera);
@@ -148,7 +154,7 @@ public class Utils {
     public static boolean isLastCamera(String cameraId) {
         if (Open_t_Camera)
             return cameraId.equals(thirdCamera);
-        if (Open_s_Camera)
+        else if (Open_s_Camera)
             return cameraId.equals(secondCamera);
         else
             return cameraId.equals(firstCamera);

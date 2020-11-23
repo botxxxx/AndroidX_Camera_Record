@@ -10,6 +10,9 @@
         2.fix close video record issues.
         3.fix camera may crash issues.
         4.add setProp to record logs.
+    [v1.0.2]
+        1.fix video file issues.
+        2.delay 0.3.6 with recording
     -->
-    <string name="app_name">CDR9030_Thermal(v1.0.1)</string>
+    <string name="app_name">CDR9030_Thermal(v1.0.2)</string>
 </resources>
