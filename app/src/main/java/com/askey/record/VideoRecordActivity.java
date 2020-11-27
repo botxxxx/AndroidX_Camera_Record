@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
@@ -714,13 +715,9 @@ public class VideoRecordActivity extends Activity {
     }
 
     private void openCamera(String cameraId) {
-        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             Log.e(TAG, isRun + " camera ID: " + cameraId);
-            if (isCameraOne(cameraId))
-                mPreviewSize = Objects.requireNonNull(manager.getCameraCharacteristics(cameraId)
-                        .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP))
-                        .getOutputSizes(SurfaceTexture.class)[0];
+            CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
             if (ActivityCompat.checkSelfPermission(this,
                     Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 return;
@@ -958,8 +955,8 @@ public class VideoRecordActivity extends Activity {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
             errorMessage("mMediaRecorder " + cameraId + " is error.", false, e);
+            e.printStackTrace();
         }
     }
 
@@ -1248,7 +1245,16 @@ public class VideoRecordActivity extends Activity {
             errorMessage("takePreview " + cameraId + " error. <============ Crash here", true, e);
         }
         if (null != texture) {
-            texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            if (isCameraOne(cameraId)) {
+                CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+                try {
+                    mPreviewSize = Objects.requireNonNull(manager.getCameraCharacteristics(firstCamera)
+                            .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP))
+                            .getOutputSizes(SurfaceTexture.class)[0];
+                    texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+                } catch (CameraAccessException e) {
+                }
+            }
             Surface surface = new Surface(texture);
             CaptureRequest.Builder mPreviewBuilder;
             CameraDevice mCameraDevice;

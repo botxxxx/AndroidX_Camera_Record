@@ -117,6 +117,7 @@
         2.fix close video record issues.
         3.fix camera may crash issues.
         4.add setProp to record logs.
+        5.fix stopRecord time out error.
     -->
     <string name="app_name">CDR9020_QTR(v1.7.7)</string>
 </resources>
