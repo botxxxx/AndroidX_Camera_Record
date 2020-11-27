@@ -138,6 +138,12 @@
         2.fix close video record issues.
         3.fix camera may crash issues.
         4.add setProp to record logs.
+    [v1.0.7]
+        1.fix save log may crash error.
+        2.fix close video record issues.
+        3.fix camera may crash issues.
+        4.add setProp to record logs.
+        5.fix stopRecord time out error.
     -->
-    <string name="app_name">CDR9020_BIT(v1.0.6)</string>
+    <string name="app_name">CDR9020_BIT(v1.0.7)</string>
 </resources>

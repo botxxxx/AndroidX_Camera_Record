@@ -1014,6 +1014,7 @@ public class VideoRecordActivity extends Activity {
                 }
             }
         } catch (Exception e) {
+            errorMessage("mMediaRecorder " + cameraId + " is error.", false, e);
             e.printStackTrace();
         }
     }
