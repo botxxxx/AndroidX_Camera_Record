@@ -114,7 +114,7 @@ public class VideoRecordActivity extends Activity {
     // 啟用測試後顯示預覽畫面preview設置為 true
     public static boolean preview = false;
     // 使用SD Card儲存SD_Mode設置為 true
-    public static boolean SD_Mode = false;
+    public static boolean SD_Mode = true;
     // 使用錯誤重啟autoRestart設置為 true
     public static boolean autoRestart = true;
     // 使用自動停止錄影autoStopRecord設置為 true
@@ -1237,15 +1237,15 @@ public class VideoRecordActivity extends Activity {
                 videoLogList.add(new mLogMsg("Create: " + file.split("/")[3], mLog.w));
                 switch (cameraId) {
                     case firstCamera:
-                        firstFile = file+ "";
+                        firstFile = file + "";
                         firstFilePath.add(file);
                         break;
                     case secondCamera:
-                        secondFile = file+ "";
+                        secondFile = file + "";
                         secondFilePath.add(file);
                         break;
                     case thirdCamera:
-                        thirdFile = file+ "";
+                        thirdFile = file + "";
                         thirdFilePath.add(file);
                         break;
                 }
