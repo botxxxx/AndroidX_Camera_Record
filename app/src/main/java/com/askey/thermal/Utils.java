@@ -21,7 +21,7 @@ import static com.askey.thermal.VideoRecordActivity.SD_Mode;
 import static com.askey.thermal.VideoRecordActivity.onReset;
 
 public class Utils {
-    public static String TAG = "CDR9030_Thermal";
+    public static String TAG = "com.askey.thermal";
     //-------------------------------------------------------------------------------
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
