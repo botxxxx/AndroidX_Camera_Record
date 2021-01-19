@@ -114,10 +114,8 @@ public class CameraFragment extends Fragment {
     public static final String TAG = "com.d160.thermal";
     public static final String firstCamera = "0", secondCamera = "1", thirdCamera = "2";
     public static final boolean Open_f_Camera = true, Open_s_Camera = true, Open_t_Camera = false;
-    private final static int bitRate = 2000000;
-    private final static int fps = 50;
-    private final static boolean audio = false;
-    private final static int delay_3 = 3000, delay_60 = 60300;
+    public static final boolean audio = true;
+    public static final int delay_3 = 3000, delay_60 = 60600;
     //-------------------------------------------------------------------------------
     //TODO 是否啟用keepScreen
     public static boolean keepScreen = true;
@@ -135,8 +133,6 @@ public class CameraFragment extends Fragment {
     public static boolean extraRecordStatus = true, onRestart = false;
     public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
     //-------------------------------------------------------------------------------
-    //TODO Quality
-    private final CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
     private BroadcastReceiver mBroadcastReceiver;
     private Handler mainHandler, resetHandler;
     private Size mPreviewSize = null;
@@ -678,7 +674,7 @@ public class CameraFragment extends Fragment {
                                                 Message msg = stopRecordHandler.get(id).obtainMessage();
                                                 msg.obj = codeDate.get(id);
                                                 if (autoStopRecord)
-                                                    stopRecordHandler.get(id).sendMessageDelayed(msg, delay_60);
+                                                    stopRecordHandler.get(id).sendMessageDelayed(msg, delay_60 + (id * 600));
                                             }
                                         } catch (Exception e) {
                                             e.printStackTrace();
@@ -1086,20 +1082,26 @@ public class CameraFragment extends Fragment {
                 videoLogList.add(new mLogMsg("Create: " + file.split("/")[3], mLog.w));
                 cameraFile.set(id, file + "");
                 cameraFilePath.get(id).add(file);
+                CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
+                if (audio && isCameraOne(CameraId))
+                    videoLogList.add(new mLogMsg("#audio"));
                 mediaRecorder = new MediaRecorder();
-                mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-                if (audio && isCameraOne(CameraId)) {
-                    Log.e(TAG, "#audio");
+                if (audio && isCameraOne(CameraId))
                     mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                    mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-                    mediaRecorder.setAudioEncodingBitRate(96000);
-                    mediaRecorder.setAudioSamplingRate(44100);
-                }
+                mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
                 mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                if (audio && isCameraOne(CameraId))
+                    mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
                 mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
                 mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
-                mediaRecorder.setVideoEncodingBitRate(bitRate);
-                mediaRecorder.setVideoFrameRate(fps);
+                if (audio && isCameraOne(CameraId))
+                    mediaRecorder.setAudioEncodingBitRate(96000);
+                mediaRecorder.setVideoEncodingBitRate(2000000);
+                if (audio && isCameraOne(CameraId)) {
+                    mediaRecorder.setAudioChannels(2);
+                    mediaRecorder.setAudioSamplingRate(44100);
+                }
+                mediaRecorder.setVideoFrameRate(50);
                 mediaRecorder.setOutputFile(file);
                 mediaRecorder.prepare();
             } else {

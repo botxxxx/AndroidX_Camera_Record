@@ -18,10 +18,11 @@
         2.disable VideoFrameRate setting
     [v1.1]
         1.moving package to com.d160.thermal
-        2.add FragmentLayout -> CameraActivity
-        3.rename VideoRecordActivity -> CameraFragment
-        4.use AtomicReferenceArray
-        5.set autoRecording
+        2.rename VideoRecordActivity -> CameraFragment
+        3.use AtomicReferenceArray
+        4.add #audio
+        5.add FragmentLayout -> CameraActivity
+        6.add autoRecording -> extraRecordStatus = true
     -->
     <string name="app_name">CDR9030_Thermal(v1.1)</string>
 </resources>
