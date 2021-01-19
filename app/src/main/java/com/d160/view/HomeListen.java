@@ -1,4 +1,4 @@
-package com.askey.widget;
+package com.d160.view;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -20,7 +20,7 @@ import android.content.IntentFilter;
 public class HomeListen {
     private Context mContext = null;
     private IntentFilter mHomeBtnIntentFilter = null;
-    private OnHomeBtnPressLitener mOnHomeBtnPressListener = null;
+    private OnHomeBtnPressListener mOnHomeBtnPressListener = null;
     private HomeBtnReceiver mHomeBtnReceiver = null;
 
     public HomeListen(Context context) {
@@ -29,22 +29,23 @@ public class HomeListen {
         mHomeBtnIntentFilter = new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
     }
 
-    public void setOnHomeBtnPressListener(OnHomeBtnPressLitener onHomeBtnPressListener) {
+    public void setOnHomeBtnPressListener(OnHomeBtnPressListener onHomeBtnPressListener) {
         mOnHomeBtnPressListener = onHomeBtnPressListener;
     }
 
     public void start() {
-        try{
+        try {
             mContext.registerReceiver(mHomeBtnReceiver, mHomeBtnIntentFilter);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void stop() {
-        try{
-            mContext.unregisterReceiver(mHomeBtnReceiver);
-        }catch (Exception e){
+        try {
+            if (null != mHomeBtnReceiver)
+                mContext.unregisterReceiver(mHomeBtnReceiver);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -67,7 +68,7 @@ public class HomeListen {
         }
     }
 
-    public interface OnHomeBtnPressLitener {
+    public interface OnHomeBtnPressListener {
         void onHomeBtnPress();
 
         void onHomeBtnLongPress();

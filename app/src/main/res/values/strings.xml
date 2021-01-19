@@ -16,6 +16,12 @@
     [v1.0.3]
         1.delay 0.1.3 with recording
         2.disable VideoFrameRate setting
+    [v1.1]
+        1.moving package to com.d160.thermal
+        2.add FragmentLayout -> CameraActivity
+        3.rename VideoRecordActivity -> CameraFragment
+        4.use AtomicReferenceArray
+        5.set autoRecording
     -->
-    <string name="app_name">CDR9030_Thermal(v1.0.3)</string>
+    <string name="app_name">CDR9030_Thermal(v1.1)</string>
 </resources>

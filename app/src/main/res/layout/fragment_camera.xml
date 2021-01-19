@@ -2,7 +2,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.askey.thermal.VideoRecordActivity"
     tools:ignore="Autofill,ButtonStyle,ContentDescription,HardcodedText,NestedWeights,RtlHardcoded,UselessParent,SpUsage">
 
     <LinearLayout
@@ -20,13 +19,13 @@
                 android:layout_height="match_parent">
 
                 <TextureView
-                    android:id="@+id/surfaceView1"
+                    android:id="@+id/textureView1"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
 
                 <TextureView
-                    android:id="@+id/surfaceView2"
+                    android:id="@+id/textureView2"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
@@ -39,7 +38,7 @@
             android:layout_weight="1">
 
             <TextureView
-                android:id="@+id/surfaceView0"
+                android:id="@+id/textureView0"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
