@@ -38,7 +38,8 @@ public class Utils {
     public static final double sdData = 3;
     public static int isRun = 0, Success = 0, Fail = 0;
     public static ArrayList<mLogMsg> videoLogList = null;
-    public static boolean isReady = false, isRecord = false, isError = false, isSave = false;
+    public static boolean isInitReady = false, isCameraReady = false, isRecord = false,
+            isError = false, isSave = false;
     public static String errorMessage = "";
     //-------------------------------------------------------------------------------
     public static List<String> allCamera = Arrays.asList(firstCamera, secondCamera, thirdCamera);

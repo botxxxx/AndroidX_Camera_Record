@@ -18,6 +18,7 @@ import android.content.IntentFilter;
  */
 
 public class HomeListen {
+    private boolean isRun = false;
     private Context mContext = null;
     private IntentFilter mHomeBtnIntentFilter = null;
     private OnHomeBtnPressListener mOnHomeBtnPressListener = null;
@@ -34,6 +35,7 @@ public class HomeListen {
     }
 
     public void start() {
+        isRun = true;
         try {
             mContext.registerReceiver(mHomeBtnReceiver, mHomeBtnIntentFilter);
         } catch (Exception e) {
@@ -43,11 +45,12 @@ public class HomeListen {
 
     public void stop() {
         try {
-            if (null != mHomeBtnReceiver)
+            if (null != mHomeBtnReceiver && isRun)
                 mContext.unregisterReceiver(mHomeBtnReceiver);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        isRun = false;
     }
 
     public void receive(Intent intent) {
