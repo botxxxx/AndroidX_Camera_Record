@@ -820,8 +820,7 @@ public class CameraFragment extends Fragment {
                     }
                     cameraFilePath.get(id).clear();
                 }
-            if (isCameraOne(CameraId))
-                gc();
+            gc();
         } catch (Exception e) {
             videoLogList.add(new mLogMsg("CheckFile " + CameraId + " error.", mLog.e));
         }

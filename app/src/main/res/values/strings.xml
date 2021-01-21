@@ -23,6 +23,7 @@
         4.add #audio
         5.add FragmentLayout -> CameraActivity
         6.add autoRecording -> extraRecordStatus = true
+        7.add system.gc
     -->
     <string name="app_name">CDR9030_Thermal(v1.1)</string>
 </resources>
