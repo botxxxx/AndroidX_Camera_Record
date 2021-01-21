@@ -1,9 +1,8 @@
 package com.d160.thermal;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
+import android.app.*;
+import android.content.*;
+import android.os.*;
 
 public class RestartActivity extends Activity {
     public static final String EXTRA_MAIN_PID = "RestartActivity.main_pid";
@@ -21,7 +20,7 @@ public class RestartActivity extends Activity {
         return intent;
     }
 
-    
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();

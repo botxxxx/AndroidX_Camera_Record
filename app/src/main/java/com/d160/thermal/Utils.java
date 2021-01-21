@@ -1,26 +1,18 @@
 package com.d160.thermal;
 
-import android.annotation.SuppressLint;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraDevice;
-import android.media.MediaRecorder;
+import android.annotation.*;
+import android.hardware.camera2.*;
+import android.media.*;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.view.TextureView;
+import android.view.*;
 
-import com.d160.view.mLog;
-import com.d160.view.mLogMsg;
+import com.d160.view.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicIntegerArray;
-import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.io.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
 import static com.d160.thermal.CameraFragment.*;
 
