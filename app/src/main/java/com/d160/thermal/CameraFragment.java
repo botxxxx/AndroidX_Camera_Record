@@ -35,10 +35,10 @@ public class CameraFragment extends Fragment {
 
     public static final String TAG = "com.d160.thermal";
     public static final String firstCamera = "0", secondCamera = "1", thirdCamera = "2";
-    public static final boolean Open_f_Camera = true, Open_s_Camera = true, Open_t_Camera = false;
-    public static final boolean audio = true;
     public static final int delay_3 = 3000, delay_60 = 60600;
     //-------------------------------------------------------------------------------
+    public static final boolean Open_f_Camera = true, Open_s_Camera = false, Open_t_Camera = false;
+    public static final boolean Open_Audio = true;
     //TODO 是否啟用keepScreen
     public static boolean keepScreen = true;
     //TODO 是否啟用preview
@@ -879,7 +879,7 @@ public class CameraFragment extends Fragment {
                     Log.e(TAG, "onOpened Camera " + CameraId);
                     try {
                         isCameraOpened.set(id, true);
-                        Utils.cameraDevice.set(id, cameraDevice);
+                        com.d160.thermal.Utils.cameraDevice.set(id, cameraDevice);
                         takePreview(CameraId);
                         videoLogList.add(new mLogMsg("Camera " + CameraId + " is opened.", mLog.i));
                     } catch (Exception e) {
@@ -892,7 +892,7 @@ public class CameraFragment extends Fragment {
                     Log.e(TAG, "onDisconnected Camera " + CameraId);
                     try {
                         isCameraOpened.set(id, false);
-                        Utils.cameraDevice.get(id).close();
+                        com.d160.thermal.Utils.cameraDevice.get(id).close();
                         videoLogList.add(new mLogMsg("Camera " + CameraId + " is disconnected.", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -904,7 +904,7 @@ public class CameraFragment extends Fragment {
                     Log.e(TAG, "onError Camera " + CameraId);
                     try {
                         isCameraOpened.set(id, false);
-                        Utils.cameraDevice.get(id).close();
+                        com.d160.thermal.Utils.cameraDevice.get(id).close();
                         videoLogList.add(new mLogMsg("Camera " + CameraId + " is disconnected.", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -1021,21 +1021,21 @@ public class CameraFragment extends Fragment {
                 cameraFile.set(id, file + "");
                 cameraFilePath.get(id).add(file);
                 CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
-                if (audio && isCameraOne(CameraId))
+                if (Open_Audio && isCameraOne(CameraId))
                     videoLogList.add(new mLogMsg("#audio"));
                 mediaRecorder = new MediaRecorder();
-                if (audio && isCameraOne(CameraId))
+                if (Open_Audio && isCameraOne(CameraId))
                     mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                 mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
                 mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                if (audio && isCameraOne(CameraId))
+                if (Open_Audio && isCameraOne(CameraId))
                     mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
                 mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
                 mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
-                if (audio && isCameraOne(CameraId))
+                if (Open_Audio && isCameraOne(CameraId))
                     mediaRecorder.setAudioEncodingBitRate(96000);
                 mediaRecorder.setVideoEncodingBitRate(2000000);
-                if (audio && isCameraOne(CameraId)) {
+                if (Open_Audio && isCameraOne(CameraId)) {
                     mediaRecorder.setAudioChannels(2);
                     mediaRecorder.setAudioSamplingRate(44100);
                 }
