@@ -36,7 +36,7 @@ public class Utils {
     //-------------------------------------------------------------------------------
     public static List<String> allCamera = Arrays.asList(firstCamera, secondCamera, thirdCamera);
     public static AtomicReferenceArray<Boolean> isOpenCamera = new AtomicReferenceArray<>(new Boolean[]{Open_f_Camera, Open_s_Camera, Open_t_Camera});
-    public static AtomicIntegerArray id_textView = new AtomicIntegerArray(new int[]{R.id.textureView0, R.id.textureView1, R.id.textureView2});
+    public static AtomicIntegerArray id_textView = new AtomicIntegerArray(new int[]{R.id.textureView0});
     public static AtomicReferenceArray<String> threadString = new AtomicReferenceArray<>(new String[]{"CameraPreview0", "CameraPreview1", "CameraPreview2"});
     public static AtomicReferenceArray<String> cameraFile = new AtomicReferenceArray<>(new String[]{"", "", ""});
     public static AtomicReferenceArray<Boolean> isCameraOpened = new AtomicReferenceArray<>(new Boolean[]{false, false, false});
