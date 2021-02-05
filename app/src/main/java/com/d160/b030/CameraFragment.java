@@ -1,4 +1,4 @@
-package com.d160.thermal;
+package com.d160.b030;
 
 import android.*;
 import android.annotation.*;
@@ -19,6 +19,7 @@ import androidx.core.app.*;
 import androidx.core.content.*;
 import androidx.fragment.app.*;
 
+import com.d160.b030.R;
 import com.d160.view.*;
 
 import java.io.*;
@@ -29,16 +30,16 @@ import java.util.concurrent.atomic.*;
 
 import static java.lang.System.gc;
 import static android.os.Looper.getMainLooper;
-import static com.d160.thermal.Utils.*;
+import static com.d160.b030.Utils.*;
 
 public class CameraFragment extends Fragment {
 
-    public static final String TAG = "com.d160.thermal";
+    public static final String TAG = "com.d160.b030";
     public static final String firstCamera = "0", secondCamera = "1", thirdCamera = "2";
     public static final int delay_3 = 3000, delay_60 = 60600;
     //-------------------------------------------------------------------------------
     public static final boolean Open_f_Camera = true, Open_s_Camera = false, Open_t_Camera = false;
-    public static final boolean Open_Audio = true;
+    public static final boolean Open_Audio = false;
     //TODO 是否啟用keepScreen
     public static boolean keepScreen = true;
     //TODO 是否啟用preview
@@ -193,7 +194,25 @@ public class CameraFragment extends Fragment {
         videoLogList = new ArrayList<>();
         //#onCreateView -> #onViewCreated -> #onActivityCreated -> #onResume
         //#onPause -> #onResume -> #onPause -> #onResume..
+        setProp();
         return inflater.inflate(R.layout.fragment_camera, container, false);
+    }
+
+    private void setProp() {
+        try {
+            //TODO adb shell setprop persist.logd.logpersistd.size 1024
+            //TODO adb shell setprop persist.logd.logpersistd logcatd
+            if (!SystemProperties.get("persist.logd.logpersistd").equals("logcatd")) {
+                Log.e(TAG, "persist.logd.logpersistd.size: 1024");
+                SystemProperties.set("persist.logd.logpersistd.size", "1024");
+                Log.e(TAG, "persist.logd.logpersistd: logcatd");
+                SystemProperties.set("persist.logd.logpersistd", "logcatd");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            videoLogList.add(new mLogMsg("logcatd error.", mLog.e));
+            new Handler().post(() -> saveLog(getContext(), false, false));
+        }
     }
 
     // TODO onViewCreated
@@ -879,7 +898,7 @@ public class CameraFragment extends Fragment {
                     Log.e(TAG, "onOpened Camera " + CameraId);
                     try {
                         isCameraOpened.set(id, true);
-                        com.d160.thermal.Utils.cameraDevice.set(id, cameraDevice);
+                        Utils.cameraDevice.set(id, cameraDevice);
                         takePreview(CameraId);
                         videoLogList.add(new mLogMsg("Camera " + CameraId + " is opened.", mLog.i));
                     } catch (Exception e) {
@@ -892,7 +911,7 @@ public class CameraFragment extends Fragment {
                     Log.e(TAG, "onDisconnected Camera " + CameraId);
                     try {
                         isCameraOpened.set(id, false);
-                        com.d160.thermal.Utils.cameraDevice.get(id).close();
+                        Utils.cameraDevice.get(id).close();
                         videoLogList.add(new mLogMsg("Camera " + CameraId + " is disconnected.", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -904,7 +923,7 @@ public class CameraFragment extends Fragment {
                     Log.e(TAG, "onError Camera " + CameraId);
                     try {
                         isCameraOpened.set(id, false);
-                        com.d160.thermal.Utils.cameraDevice.get(id).close();
+                        Utils.cameraDevice.get(id).close();
                         videoLogList.add(new mLogMsg("Camera " + CameraId + " is disconnected.", mLog.w));
                     } catch (Exception e) {
                         e.printStackTrace();

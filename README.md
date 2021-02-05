@@ -1,23 +1,7 @@
 # com.askey.record
-    [CDR9030_Thermal_test_v1.0.0]
-        1.Recording 3 video for CDR9030 device at thermal test
-        2.The 0 is Front-Camera, 1 is External Camera-1, 2 is External Camera-2
-    [v1.0.1]
-        1.fix save log may crash error.
-        2.fix close video record issues.
-        3.fix camera may crash issues.
-        4.add setProp to record logs.
-    [v1.0.2]
-        1.fix video file issues.
-        2.delay 0.3.6 with recording
-    [v1.0.3]
-        1.delay 0.5s with camera recording
-        2.disable VideoFrameRate setting
-    [v1.1]
-        1.moving package to com.d160.thermal
-        2.rename VideoRecordActivity -> CameraFragment
-        3.use AtomicReferenceArray
-        4.add #audio
-        5.add FragmentLayout -> CameraActivity
-        6.add autoRecording -> extraRecordStatus = true
-        7.add system.gc
+    [CDRB030_QTR_v1.0]
+        1.moving package to com.d160.b030
+        2.single camera
+        3.auto recording
+        4.record to sd card
+        5.add WAKE_LOCK and Logd

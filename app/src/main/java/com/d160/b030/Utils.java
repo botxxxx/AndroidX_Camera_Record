@@ -1,4 +1,4 @@
-package com.d160.thermal;
+package com.d160.b030;
 
 import android.annotation.*;
 import android.hardware.camera2.*;
@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.*;
 
+import com.d160.b030.R;
 import com.d160.view.*;
 
 import java.io.*;
@@ -14,7 +15,7 @@ import java.text.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
-import static com.d160.thermal.CameraFragment.*;
+import static com.d160.b030.CameraFragment.*;
 
 @SuppressLint("StaticFieldLeak")
 public class Utils {

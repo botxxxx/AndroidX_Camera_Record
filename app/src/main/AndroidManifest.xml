@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.d160.thermal"
+    package="com.d160.b030"
     android:sharedUserId="android.uid.system"
     tools:ignore="ProtectedPermissions">
     <!--android:sharedUserId="android.uid.system"-->
@@ -26,7 +26,7 @@
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
 
     <activity
-            android:name=".CameraActivity"
+            android:name="com.d160.b030.CameraActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|keyboard"
             android:screenOrientation="landscape"
             tools:ignore="LockedOrientationActivity">
@@ -36,7 +36,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".RestartActivity"
+            android:name="com.d160.b030.RestartActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleInstance"
