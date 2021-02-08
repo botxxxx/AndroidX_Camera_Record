@@ -19,7 +19,6 @@ import androidx.core.app.*;
 import androidx.core.content.*;
 import androidx.fragment.app.*;
 
-import com.d160.b030.R;
 import com.d160.view.*;
 
 import java.io.*;
@@ -35,6 +34,8 @@ import static com.d160.b030.Utils.*;
 public class CameraFragment extends Fragment {
 
     public static final String TAG = "com.d160.b030";
+    public static final String logName = "CDRB030TestLog.ini";
+    public static final String LOG_TITLE = "[CDRB030_Log]";
     public static final String firstCamera = "0", secondCamera = "1", thirdCamera = "2";
     public static final int delay_3 = 3000, delay_60 = 60600;
     //-------------------------------------------------------------------------------
@@ -193,7 +194,6 @@ public class CameraFragment extends Fragment {
         isRun = 0;
         videoLogList = new ArrayList<>();
         //#onCreateView -> #onViewCreated -> #onActivityCreated -> #onResume
-        //#onPause -> #onResume -> #onPause -> #onResume..
         setProp();
         return inflater.inflate(R.layout.fragment_camera, container, false);
     }
@@ -344,25 +344,21 @@ public class CameraFragment extends Fragment {
         videoLogList.add(new mLogMsg("#showPermission", mLog.v));
         // We don't have permission so prompt the user
         List<String> permissions = new ArrayList<>();
-        permissions.add(Manifest.permission.CAMERA);
-        permissions.add(Manifest.permission.RECORD_AUDIO);
-        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        permissions.add(permission.get(0));
+        permissions.add(permission.get(1));
+        permissions.add(permission.get(2));
         requestPermissions(permissions.toArray(new String[0]), 0);
     }
 
     private boolean checkPermission(@NonNull Context context) {
         videoLogList.add(new mLogMsg("#checkPermission", mLog.v));
-        int CAMERA = ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA);
-        int AUDIO = ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO);
-        int ExSTORAGE = ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        return permission(CAMERA) || permission(AUDIO) || permission(ExSTORAGE);
+        return permission(context,permission.get(0)) || permission(context,permission.get(1)) || permission(context,permission.get(2));
     }
 
-    private boolean permission(int mp) {
-        return mp != PackageManager.PERMISSION_GRANTED;
+    private boolean permission(@NonNull Context context, String mp) {
+        return ActivityCompat.checkSelfPermission(context, mp) != PackageManager.PERMISSION_GRANTED;
     }
 
-    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == 0) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {

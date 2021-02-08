@@ -1,5 +1,6 @@
 package com.d160.b030;
 
+import android.Manifest;
 import android.annotation.*;
 import android.hardware.camera2.*;
 import android.media.*;
@@ -7,7 +8,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.*;
 
-import com.d160.b030.R;
 import com.d160.view.*;
 
 import java.io.*;
@@ -26,8 +26,6 @@ public class Utils {
     public static final String EXTRA_VIDEO_RECORD = "RestartActivity.record";
     public static final String EXTRA_VIDEO_SUCCESS = "RestartActivity.success";
     public static final String NO_SD_CARD = "SD card is not available!";
-    public static final String logName = "ThermalTestLog.ini";
-    public static final String LOG_TITLE = "[CDR9030_Thermal_Test]";
     public static final double sdData = 3;
     public static int isRun = 0, Success = 0, Fail = 0;
     public static ArrayList<mLogMsg> videoLogList = null;
@@ -39,9 +37,10 @@ public class Utils {
     public static AtomicReferenceArray<Boolean> isOpenCamera = new AtomicReferenceArray<>(new Boolean[]{Open_f_Camera, Open_s_Camera, Open_t_Camera});
     public static AtomicIntegerArray id_textView = new AtomicIntegerArray(new int[]{R.id.textureView0});
     public static AtomicReferenceArray<String> threadString = new AtomicReferenceArray<>(new String[]{"CameraPreview0", "CameraPreview1", "CameraPreview2"});
+    public static AtomicReferenceArray<String> permission = new AtomicReferenceArray<>(new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE});
     public static AtomicReferenceArray<String> cameraFile = new AtomicReferenceArray<>(new String[]{"", "", ""});
     public static AtomicReferenceArray<Boolean> isCameraOpened = new AtomicReferenceArray<>(new Boolean[]{false, false, false});
-    public static AtomicReferenceArray<ArrayList<String>> cameraFilePath = new AtomicReferenceArray<>(new ArrayList[3]);
+    public static AtomicReferenceArray<ArrayList<String>> cameraFilePath = new AtomicReferenceArray<ArrayList<String>>(new ArrayList[3]);
     public static AtomicReferenceArray<String> codeDate = new AtomicReferenceArray<>(new String[3]);
     public static AtomicReferenceArray<TextureView> textView = new AtomicReferenceArray<>(new TextureView[3]);
     public static AtomicReferenceArray<CameraDevice> cameraDevice = new AtomicReferenceArray<>(new CameraDevice[3]);
