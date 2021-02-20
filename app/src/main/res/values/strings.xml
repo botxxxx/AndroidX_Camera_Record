@@ -118,6 +118,13 @@
         3.fix camera may crash issues.
         4.add setProp to record logs.
         5.fix stopRecord time out error.
+    [v1.8]
+        1.moving package to com.d160.cdr9020.
+        2.auto recording.
+        3.add WAKE_LOCK.
+        4.add ResetApp.
+        5.fix camera change error.
+        6.code cleanup.
     -->
-    <string name="app_name">CDR9020_QTR(v1.7.7)</string>
+    <string name="app_name">CDR9020_QTR(v1.8)</string>
 </resources>
