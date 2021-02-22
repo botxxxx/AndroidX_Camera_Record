@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!--
-    [CDRB030_QTR_v1.0]
+    [WA034_QTR_v1.0]
         1.moving package to com.d160.b030
         2.single camera
         3.auto recording
@@ -10,5 +10,5 @@
         1.update README.md
         2.add worry text
     -->
-    <string name="app_name">CDRB030_QTR(v1.0)</string>
+    <string name="app_name">WA034_QTR(v1.0)</string>
 </resources>

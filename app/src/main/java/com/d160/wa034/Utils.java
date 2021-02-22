@@ -1,9 +1,10 @@
-package com.d160.b030;
+package com.d160.wa034;
 
 import android.Manifest;
 import android.annotation.*;
-import android.hardware.camera2.*;
+//import android.hardware.camera2.*;
 import android.media.*;
+//import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.*;
@@ -15,7 +16,8 @@ import java.text.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
-import static com.d160.b030.CameraFragment.*;
+import static android.os.Environment.*;
+import static com.d160.wa034.CameraFragment.*;
 
 @SuppressLint("StaticFieldLeak")
 public class Utils {
@@ -29,26 +31,26 @@ public class Utils {
     public static final double sdData = 3;
     public static int isRun = 0, Success = 0, Fail = 0;
     public static ArrayList<mLogMsg> videoLogList = null;
-    public static boolean isInitReady = false, isCameraReady = false, isRecord = false,
+    public static boolean isInitReady = false, isCameraReady = true, isRecord = false,
             isError = false, isSave = false;
     public static String errorMessage = "";
     //-------------------------------------------------------------------------------
     public static List<String> allCamera = Arrays.asList(firstCamera, secondCamera, thirdCamera);
     public static AtomicReferenceArray<Boolean> isOpenCamera = new AtomicReferenceArray<>(new Boolean[]{Open_f_Camera, Open_s_Camera, Open_t_Camera});
-    public static AtomicIntegerArray id_textView = new AtomicIntegerArray(new int[]{R.id.textureView0});
+    public static AtomicIntegerArray id_surfaceView = new AtomicIntegerArray(new int[]{R.id.surfaceView0});
     public static AtomicReferenceArray<String> threadString = new AtomicReferenceArray<>(new String[]{"CameraPreview0", "CameraPreview1", "CameraPreview2"});
     public static AtomicReferenceArray<String> permission = new AtomicReferenceArray<>(new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE});
     public static AtomicReferenceArray<String> cameraFile = new AtomicReferenceArray<>(new String[]{"", "", ""});
     public static AtomicReferenceArray<Boolean> isCameraOpened = new AtomicReferenceArray<>(new Boolean[]{false, false, false});
     public static AtomicReferenceArray<ArrayList<String>> cameraFilePath = new AtomicReferenceArray<ArrayList<String>>(new ArrayList[3]);
     public static AtomicReferenceArray<String> codeDate = new AtomicReferenceArray<>(new String[3]);
-    public static AtomicReferenceArray<TextureView> textView = new AtomicReferenceArray<>(new TextureView[3]);
-    public static AtomicReferenceArray<CameraDevice> cameraDevice = new AtomicReferenceArray<>(new CameraDevice[3]);
-    public static AtomicReferenceArray<CameraCaptureSession> previewSession = new AtomicReferenceArray<>(new CameraCaptureSession[3]);
-    public static AtomicReferenceArray<CameraDevice.StateCallback> stateCallback = new AtomicReferenceArray<>(new CameraDevice.StateCallback[3]);
+    public static AtomicReferenceArray<SurfaceView> surfaceview = new AtomicReferenceArray<>(new SurfaceView[3]);
+//    public static AtomicReferenceArray<CameraDevice> cameraDevice = new AtomicReferenceArray<>(new CameraDevice[3]);
+//    public static AtomicReferenceArray<CameraCaptureSession> previewSession = new AtomicReferenceArray<>(new CameraCaptureSession[3]);
+//    public static AtomicReferenceArray<CameraDevice.StateCallback> stateCallback = new AtomicReferenceArray<>(new CameraDevice.StateCallback[3]);
     public static AtomicReferenceArray<MediaRecorder> mediaRecorder = new AtomicReferenceArray<>(new MediaRecorder[3]);
-    public static AtomicReferenceArray<HandlerThread> thread = new AtomicReferenceArray<>(new HandlerThread[3]);
-    public static AtomicReferenceArray<Handler> backgroundHandler = new AtomicReferenceArray<>(new Handler[3]);
+//    public static AtomicReferenceArray<HandlerThread> thread = new AtomicReferenceArray<>(new HandlerThread[3]);
+//    public static AtomicReferenceArray<Handler> backgroundHandler = new AtomicReferenceArray<>(new Handler[3]);
     public static AtomicReferenceArray<Handler> recordHandler = new AtomicReferenceArray<>(new Handler[3]);
     public static AtomicReferenceArray<Handler> stopRecordHandler = new AtomicReferenceArray<>(new Handler[3]);
     //-------------------------------------------------------------------------------
@@ -65,30 +67,7 @@ public class Utils {
     public static String getSDPath() {
         String path = "";
         if (SD_Mode) {
-            try {
-                long start = (System.currentTimeMillis() / 1000) % 60;
-                long end = start + 10;
-                Runtime run = Runtime.getRuntime();
-                String cmd = "ls /storage";
-                Process pr = run.exec(cmd);
-                InputStreamReader input = new InputStreamReader(pr.getInputStream());
-                BufferedReader buf = new BufferedReader(input);
-                String line;
-                while ((line = buf.readLine()) != null) {
-                    if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
-                        path = "/storage/" + line + "/";
-                        break;
-                    }
-                    if ((System.currentTimeMillis() / 1000) % 60 > end) {
-                        videoLogList.add(new mLogMsg("getSDPath time out.", mLog.d));
-                        break;
-                    }
-                }
-                buf.close();
-                input.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            path = getExternalStorageDirectory().getPath()+"/";
         } else {
             path = getPath();
         }

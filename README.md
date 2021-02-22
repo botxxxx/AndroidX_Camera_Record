@@ -1,8 +1,8 @@
-CDRB030_QTR
+WA034_QTR
 =================
 This sample is single camera video record:
 
-* [Camera2](https://developer.android.com/reference/android/hardware/camera2/package-summary.html)
+* [Camera](https://developer.android.com/reference/android/hardware/Camera.html)
 * [Fragment](https://developer.android.com/reference/android/app/Fragment.html)
 * [RestartApp](https://qiita.com/Shiozawa/items/85f078ed57aed46f6b69.html)
 

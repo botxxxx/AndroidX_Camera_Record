@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package com.d160.b030;
+package com.d160.wa034;
 
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.d160.b030.R;
 
 public class CameraActivity extends AppCompatActivity {
 

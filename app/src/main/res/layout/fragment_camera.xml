@@ -4,8 +4,8 @@
     android:layout_height="match_parent"
     tools:ignore="Autofill,ButtonStyle,ContentDescription,HardcodedText,NestedWeights,RtlHardcoded,UselessParent,SpUsage">
 
-    <TextureView
-        android:id="@+id/textureView0"
+    <SurfaceView
+        android:id="@+id/surfaceView0"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
