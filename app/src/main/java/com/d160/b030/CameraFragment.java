@@ -273,6 +273,7 @@ public class CameraFragment extends Fragment {
                         Fail = 0;
                     }
                     for (String CameraId : allCamera) {
+                        /* this function will error with camera changed. */
                         int id = Integer.parseInt(CameraId);
                         cameraFile.set(id, "");
                         if (isOpenCamera.get(id))
@@ -284,6 +285,7 @@ public class CameraFragment extends Fragment {
                         videoLogList.add(new mLogMsg("#takeRecord FrameRate: default", mLog.v));
                         int delay = 0;
                         for (String CameraId : allCamera) {
+                            /* this function will error with camera changed. */
                             int id = Integer.parseInt(CameraId);
                             if (isOpenCamera.get(id)) {
                                 new Handler().postDelayed(() -> recordHandler.get(id).obtainMessage().sendToTarget(), delay);
@@ -376,6 +378,7 @@ public class CameraFragment extends Fragment {
     }
 
     private void openCamera(String CameraId) {
+        /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
         if (ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()), Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -401,6 +404,7 @@ public class CameraFragment extends Fragment {
 
     private void closeCamera() {
         for (String CameraId : allCamera) {
+            /* this function will error with camera changed. */
             int id = Integer.parseInt(CameraId);
             try {
                 if (isOpenCamera.get(id)) {
@@ -427,6 +431,7 @@ public class CameraFragment extends Fragment {
         else
             Objects.requireNonNull(getActivity()).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         for (String CameraId : allCamera) {
+            /* this function will error with camera changed. */
             int id = Integer.parseInt(CameraId);
             if (isOpenCamera.get(id)) {
                 thread.set(id, new HandlerThread(threadString.get(id)));
@@ -466,6 +471,7 @@ public class CameraFragment extends Fragment {
     private void stopBackgroundThread() {
         Objects.requireNonNull(getActivity()).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         for (String CameraId : allCamera) {
+            /* this function will error with camera changed. */
             int id = Integer.parseInt(CameraId);
             if (isOpenCamera.get(id)) {
                 thread.get(id).quitSafely();
@@ -483,6 +489,7 @@ public class CameraFragment extends Fragment {
     }
 
     private void takePreview(String CameraId) {
+        /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
         Log.e(TAG, "takePreview " + CameraId);
         videoLogList.add(new mLogMsg("Preview " + CameraId + " Camera.", mLog.i));
@@ -541,6 +548,7 @@ public class CameraFragment extends Fragment {
 
     @SuppressLint("SetTextI18n")
     private void startRecord(String CameraId) {
+        /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
         if (!isError) {
             Log.e(TAG, "startRecord " + CameraId);
@@ -651,6 +659,7 @@ public class CameraFragment extends Fragment {
 
     @SuppressLint("SetTextI18n")
     private void stopRecord(String date, String CameraId) {
+        /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
         try {
             if (date.equals(codeDate.get(id))) {
@@ -709,7 +718,9 @@ public class CameraFragment extends Fragment {
 //                    new Handler().postDelayed(() -> showDialogLog(true), delay_3);
 //                }
                 for (String CameraId : allCamera) {    // 遍例Camera
-                    if (isOpenCamera.get(Integer.parseInt(CameraId))) {  // 檢查OpenCamera
+                    /* this function will error with camera changed. */
+                    int id = Integer.parseInt(CameraId);
+                    if (isOpenCamera.get(id)) {  // 檢查OpenCamera
                         videoLogList.add(new mLogMsg("#stopRecord " + CameraId, mLog.v));
                         Log.e(TAG, isRun + " stopRecord " + CameraId);
                         if (isCameraOne(CameraId))
@@ -720,7 +731,7 @@ public class CameraFragment extends Fragment {
                                 }
                                 ((TextView) getActivity().findViewById(R.id.record_status)).setText("Stop");
                             });
-                        codeDate.set(Integer.parseInt(CameraId), getCalendarTime());
+                        codeDate.set(id, getCalendarTime());
                         closeMediaRecorder(CameraId);
                         checkAndClear(CameraId);
                     }
@@ -745,6 +756,7 @@ public class CameraFragment extends Fragment {
     }
 
     private void checkAndClear(String CameraId) {
+        /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
         try {
             if (isRecord)
@@ -794,6 +806,7 @@ public class CameraFragment extends Fragment {
             list.add(errorMessage);
         else {
             for (String CameraId : allCamera) {
+                /* this function will error with camera changed. */
                 int id = Integer.parseInt(CameraId);
                 if (isOpenCamera.get(id) && !isCameraOpened.get(id))
                     list.add("Camera Access error, Please check camera " + CameraId + ". <============ Crash here");
@@ -853,6 +866,7 @@ public class CameraFragment extends Fragment {
 
     @SuppressLint("HandlerLeak")
     private void setCamera(String CameraId) {
+        /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
         textView.set(id, Objects.requireNonNull(getActivity()).findViewById(id_textView.get(id)));
         cameraFilePath.set(id, new ArrayList<>());
@@ -888,6 +902,7 @@ public class CameraFragment extends Fragment {
         CameraDevice.StateCallback callback;
         try {
             callback = new CameraDevice.StateCallback() {
+                /* this function will error with camera changed. */
                 final int id = Integer.parseInt(CameraId);
 
                 public void onOpened(@NonNull CameraDevice cameraDevice) {
@@ -967,20 +982,8 @@ public class CameraFragment extends Fragment {
         context.startActivity(intent);
     }
 
-    private void closeCameraDevice(String CameraId) {
-        int id = Integer.parseInt(CameraId);
-        try {
-            if (null != cameraDevice.get(id)) {
-                cameraDevice.get(id).close();
-                cameraDevice.set(id, null);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            videoLogList.add(new mLogMsg("closeCameraDevice " + CameraId + " is error."));
-        }
-    }
-
     private void closeStateCallback(String CameraId) {
+        /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
         try {
             if (null != stateCallback.get(id)) {
@@ -994,6 +997,7 @@ public class CameraFragment extends Fragment {
     }
 
     private void closePreviewSession(String CameraId) {
+        /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
         try {
             if (null != previewSession.get(id)) {
@@ -1007,6 +1011,7 @@ public class CameraFragment extends Fragment {
     }
 
     private void closeMediaRecorder(String CameraId) {
+        /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
         if (null != mediaRecorder.get(id)) {
             try {
@@ -1026,6 +1031,7 @@ public class CameraFragment extends Fragment {
     }
 
     private MediaRecorder setUpMediaRecorder(String CameraId) {
+        /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
         String file;
         MediaRecorder mediaRecorder = null;

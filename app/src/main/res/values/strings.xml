@@ -5,7 +5,10 @@
         2.single camera
         3.auto recording
         4.record to sd card
-        5.add WAKE_LOCK and Logd
+        5.add WAKE_LOCK
+    [v1.0]
+        1.update README.md
+        2.add worry text
     -->
     <string name="app_name">CDRB030_QTR(v1.0)</string>
 </resources>
