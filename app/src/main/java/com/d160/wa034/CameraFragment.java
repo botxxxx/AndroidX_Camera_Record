@@ -6,10 +6,9 @@ import android.app.AlertDialog;
 import android.content.*;
 import android.content.pm.*;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.text.*;
 
-import android.hardware.Camera;
+import android.hardware.*;
 import android.media.*;
 import android.os.*;
 import android.util.*;
@@ -45,7 +44,7 @@ public class CameraFragment extends Fragment {
     //TODO 是否啟用preview
     public static boolean preview = false;
     //TODO 是否使用SD_Mode
-    public static boolean SD_Mode = true;
+    public static boolean SD_Mode = false;
     //TODO 是否啟用onPause
     public static boolean autoPause = true;
     //TODO 是否啟用重啟功能
@@ -142,11 +141,11 @@ public class CameraFragment extends Fragment {
         if (null != videoLogList)
             if (!getSDPath().equals("")) {
                 String version = context.getString(R.string.app_name);
-                String logString = "";
+                StringBuilder logString = new StringBuilder();
                 assert videoLogList != null;
                 File file = new File(getSDPath(), logName);
                 if (!file.exists()) {
-                    logString = LOG_TITLE + version + "\r\n";
+                    logString = new StringBuilder(LOG_TITLE + version + "\r\n");
                     try {
                         boolean create = file.createNewFile();
                         if (null != videoLogList) {
@@ -167,14 +166,15 @@ public class CameraFragment extends Fragment {
 //                                time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
 //                                        + " run:" + logs.runTime + " -> ";
                             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                            logString = dateFormat.format(logs.time) + " run:" + logs.runTime + " -> " + logs.msg + "\r\n";
+                            logString.append(dateFormat.format(logs.time)).append(" run:")
+                                    .append(logs.runTime).append(" -> ").append(logs.msg).append("\r\n");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 try {
                     FileOutputStream output = new FileOutputStream(new File(getSDPath(), logName), !reFormat);
-                    output.write(logString.getBytes());
+                    output.write(logString.toString().getBytes());
                     output.close();
                     videoLogList.clear();
                 } catch (Exception e) {
@@ -660,7 +660,6 @@ public class CameraFragment extends Fragment {
         return !file.equals(list.get(2));
     }
 
-    @Override
     public void onDestroy() {
         super.onDestroy();
         try {
@@ -763,12 +762,13 @@ public class CameraFragment extends Fragment {
                     mediaRecorder.get(id).release();
                 } catch (RuntimeException stopException) {
                     // handle cleanup here
+                    videoLogList.add(new mLogMsg("stop MediaRecorder " + CameraId + " is error."));
                 }
                 mediaRecorder.set(id, null);
                 videoLogList.add(new mLogMsg("Record " + CameraId + " finish."));
             } catch (Exception e) {
                 e.printStackTrace();
-                videoLogList.add(new mLogMsg("closeMediaRecorder " + CameraId + " is error."));
+                videoLogList.add(new mLogMsg("stop MediaRecorder " + CameraId + " is error."));
             }
         }
     }
@@ -786,10 +786,12 @@ public class CameraFragment extends Fragment {
                 cameraFile.set(id, file + "");
                 cameraFilePath.get(id).add(file);
                 mediaRecorder = new MediaRecorder();
-                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+                CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
                 mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-                mediaRecorder.setProfile(CamcorderProfile
-                        .get(CamcorderProfile.QUALITY_720P));
+                mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+                mediaRecorder.setVideoEncodingBitRate(2000000);
+                mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
                 mediaRecorder.setOutputFile(file);
                 mediaRecorder.setPreviewDisplay(
                         surfaceview.get(id).getHolder().getSurface());
@@ -819,6 +821,7 @@ public class CameraFragment extends Fragment {
                 StatFs stat = new StatFs(getSDPath());
                 long sdAvailSize = stat.getAvailableBlocksLong() * stat.getBlockSizeLong();
                 double gigaAvailable = (sdAvailSize >> 30);
+                Log.e(TAG, "Size:"+ gigaAvailable + " gb");
                 if (gigaAvailable < sdData) {
                     videoLogList.add(new mLogMsg("SD Card is Full."));
                     ArrayList<String> tmp = new ArrayList<>();
