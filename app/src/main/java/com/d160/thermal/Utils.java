@@ -14,6 +14,7 @@ import java.text.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
+import static android.os.Environment.*;
 import static com.d160.thermal.CameraFragment.*;
 
 @SuppressLint("StaticFieldLeak")
@@ -42,7 +43,7 @@ public class Utils {
     public static AtomicReferenceArray<Boolean> isCameraOpened = new AtomicReferenceArray<>(new Boolean[]{false, false, false});
     public static AtomicReferenceArray<ArrayList<String>> cameraFilePath = new AtomicReferenceArray<>(new ArrayList[3]);
     public static AtomicReferenceArray<String> codeDate = new AtomicReferenceArray<>(new String[3]);
-    public static AtomicReferenceArray<TextureView> textView = new AtomicReferenceArray<>(new TextureView[3]);
+    public static AtomicReferenceArray<TextureView> textureView = new AtomicReferenceArray<>(new TextureView[3]);
     public static AtomicReferenceArray<CameraDevice> cameraDevice = new AtomicReferenceArray<>(new CameraDevice[3]);
     public static AtomicReferenceArray<CameraCaptureSession> previewSession = new AtomicReferenceArray<>(new CameraCaptureSession[3]);
     public static AtomicReferenceArray<CameraDevice.StateCallback> stateCallback = new AtomicReferenceArray<>(new CameraDevice.StateCallback[3]);
@@ -54,45 +55,32 @@ public class Utils {
     //-------------------------------------------------------------------------------
 
     public static String getLogPath() {
-        return "/data/misc/logd/";
+        return getStorageDirectory().getPath()+ "/emulated/0/";
     }
 
     //TODO Default Path
     public static String getPath() {
-        return "/storage/emulated/0/DCIM/";
+        return getStorageDirectory().getPath() + "/emulated/0/";
     }
 
     public static String getSDPath() {
         String path = "";
         if (SD_Mode) {
-            try {
-                long start = (System.currentTimeMillis() / 1000) % 60;
-                long end = start + 10;
-                Runtime run = Runtime.getRuntime();
-                String cmd = "ls /storage";
-                Process pr = run.exec(cmd);
-                InputStreamReader input = new InputStreamReader(pr.getInputStream());
-                BufferedReader buf = new BufferedReader(input);
-                String line;
-                while ((line = buf.readLine()) != null) {
-                    if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
-                        path = "/storage/" + line + "/";
-                        break;
-                    }
-                    if ((System.currentTimeMillis() / 1000) % 60 > end) {
-                        videoLogList.add(new mLogMsg("getSDPath time out.", mLog.d));
-                        break;
-                    }
-                }
-                buf.close();
-                input.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            path = getExternalStorageDirectory().getPath() + "/";
         } else {
             path = getPath();
         }
         return path;
+    }
+
+    public static int getOpen(){
+        int OpenCamera = 0;
+        for (int i = 0; i < isOpenCamera.length(); i++) {
+            if (isOpenCamera.get(i)) {
+                OpenCamera++;
+            }
+        }
+        return OpenCamera;
     }
 
     public static int getIsRun() {

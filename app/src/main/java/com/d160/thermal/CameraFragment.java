@@ -38,7 +38,7 @@ public class CameraFragment extends Fragment {
     public static final int delay_3 = 3000, delay_60 = 60600;
     //-------------------------------------------------------------------------------
     public static final boolean Open_f_Camera = true, Open_s_Camera = false, Open_t_Camera = false;
-    public static final boolean Open_Audio = true;
+    public static final boolean Open_Audio = false;
     //TODO 是否啟用keepScreen
     public static boolean keepScreen = true;
     //TODO 是否啟用preview
@@ -193,7 +193,16 @@ public class CameraFragment extends Fragment {
         videoLogList = new ArrayList<>();
         //#onCreateView -> #onViewCreated -> #onActivityCreated -> #onResume
         //#onPause -> #onResume -> #onPause -> #onResume..
-        return inflater.inflate(R.layout.fragment_camera, container, false);
+        int layout = R.layout.fragment_camera;
+        switch (getOpen()) {
+            case 2:
+                layout = R.layout.fragment_camera_2;
+                break;
+            case 3:
+                layout = R.layout.fragment_camera_3;
+                break;
+        }
+        return inflater.inflate(layout, container, false);
     }
 
     // TODO onViewCreated
@@ -230,6 +239,12 @@ public class CameraFragment extends Fragment {
         onSuccess = activity.getIntent().getIntExtra(EXTRA_VIDEO_SUCCESS, 0);
         isInitReady = true;
 //        extraRecordStatus =  activity.getIntent().getBooleanExtra(EXTRA_VIDEO_RECORD, false);
+        if (Open_f_Camera && Open_s_Camera != Open_t_Camera) {
+            if (Open_s_Camera)
+                Objects.requireNonNull(getActivity()).findViewById(R.id.textureView2).setVisibility(View.GONE);
+            if (Open_t_Camera)
+                Objects.requireNonNull(getActivity()).findViewById(R.id.textureView1).setVisibility(View.GONE);
+        }
         if (onReset != 0)
             videoLogList.add(new mLogMsg("#noReset:" + onReset, mLog.v));
     }
@@ -267,7 +282,7 @@ public class CameraFragment extends Fragment {
                         for (String CameraId : allCamera) {
                             int id = Integer.parseInt(CameraId);
                             if (isOpenCamera.get(id)) {
-                                new Handler().postDelayed(() -> recordHandler.get(id).obtainMessage().sendToTarget(), delay);
+                                new Handler(getMainLooper()).postDelayed(() -> recordHandler.get(id).obtainMessage().sendToTarget(), delay);
                                 delay += 500;
                             }
                         }
@@ -281,7 +296,7 @@ public class CameraFragment extends Fragment {
                         videoLogList.add(new mLogMsg("@Stop record", mLog.v));
                     else
                         videoLogList.add(new mLogMsg("#Stop record", mLog.v));
-                    new Handler().post(() -> stopRecord(false));
+                    new Handler(getMainLooper()).post(() -> stopRecord(false));
                 }
             } else {
                 showDialogLog(false);
@@ -414,6 +429,7 @@ public class CameraFragment extends Fragment {
         for (String CameraId : allCamera) {
             int id = Integer.parseInt(CameraId);
             if (isOpenCamera.get(id)) {
+                Log.e(TAG,"isOpenCamera:"+id);
                 thread.set(id, new HandlerThread(threadString.get(id)));
                 thread.get(id).start();
                 backgroundHandler.set(id, new Handler(thread.get(id).getLooper()));
@@ -423,10 +439,10 @@ public class CameraFragment extends Fragment {
                     e.printStackTrace();
                     videoLogList.add(new mLogMsg("setCallback " + CameraId + " is error.", mLog.w));
                 }
-                if (textView.get(id).isAvailable())
+                if (textureView.get(id).isAvailable())
                     openCamera(CameraId);
                 else
-                    textView.get(id).setSurfaceTextureListener(new mSurfaceTextureListener(CameraId));
+                    textureView.get(id).setSurfaceTextureListener(new mSurfaceTextureListener(CameraId));
             }
         }
         getActivity().registerReceiver(mBroadcastReceiver = new BroadcastReceiver() {
@@ -438,14 +454,14 @@ public class CameraFragment extends Fragment {
                 }
             }
         }, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        resetHandler = new Handler() {
+        resetHandler = new Handler(getMainLooper()) {
             public void handleMessage(Message msg) {
                 if (autoPause || extraRecordStatus)
                     isRecordStart(true);
                 saveLog(getContext(), false, false);
             }
         };
-        new Handler().postDelayed(() -> resetHandler.obtainMessage().sendToTarget(), delay_3 / 2);
+        new Handler(getMainLooper()).postDelayed(() -> resetHandler.obtainMessage().sendToTarget(), delay_3 / 2);
     }
 
     private void stopBackgroundThread() {
@@ -474,7 +490,7 @@ public class CameraFragment extends Fragment {
         try {
             SurfaceTexture texture = null;
             try {
-                texture = textView.get(id).getSurfaceTexture();
+                    texture = textureView.get(id).getSurfaceTexture();
             } catch (Exception e) {
                 e.printStackTrace();
                 errorMessage("takePreview " + CameraId + " error. <============ Crash here", true, e);
@@ -557,7 +573,7 @@ public class CameraFragment extends Fragment {
                 }
                 SurfaceTexture texture = null;
                 try {
-                    texture = textView.get(id).getSurfaceTexture();
+                        texture = textureView.get(id).getSurfaceTexture();
                 } catch (Exception e) {
                     e.printStackTrace();
                     videoLogList.add(new mLogMsg("getSurfaceTexture" + CameraId + " is error."));
@@ -629,7 +645,7 @@ public class CameraFragment extends Fragment {
             }
         } else {
             if (autoRestart) {
-                new Handler().postDelayed(this::restartApp, delay_3);
+                new Handler(getMainLooper()).postDelayed(this::restartApp, delay_3);
             }
         }
     }
@@ -691,7 +707,7 @@ public class CameraFragment extends Fragment {
 //                            ((TextView) getActivity().findViewById(R.id.record_status)).setText("Fail " + getFail() + getReset());
 //                        }
 //                    });
-//                    new Handler().postDelayed(() -> showDialogLog(true), delay_3);
+//                    new Handler(getMainLooper()).postDelayed(() -> showDialogLog(true), delay_3);
 //                }
                 for (String CameraId : allCamera) {    // 遍例Camera
                     if (isOpenCamera.get(Integer.parseInt(CameraId))) {  // 檢查OpenCamera
@@ -827,24 +843,27 @@ public class CameraFragment extends Fragment {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        new Handler().post(() -> stopRecordAndSaveLog(false));
+        new Handler(getMainLooper()).post(() -> stopRecordAndSaveLog(false));
     }
 
     private void stopRecordAndSaveLog(boolean kill) {
         if (isRecord)
-            new Handler().post(() -> stopRecord(true));
+            new Handler(getMainLooper()).post(() -> stopRecord(true));
         saveLog(getContext(), false, kill);
     }
 
     @SuppressLint("HandlerLeak")
     private void setCamera(String CameraId) {
         int id = Integer.parseInt(CameraId);
-        textView.set(id, Objects.requireNonNull(getActivity()).findViewById(id_textView.get(id)));
+        if (getOpen() == 1)
+            textureView.set(id, Objects.requireNonNull(getActivity()).findViewById(id_textView.get(0)));
+        else
+            textureView.set(id, Objects.requireNonNull(getActivity()).findViewById(id_textView.get(id)));
         cameraFilePath.set(id, new ArrayList<>());
         codeDate.set(id, getCalendarTime());
         stateCallback.set(id, setCallback(CameraId));
         videoLogList.add(new mLogMsg("setCallback " + CameraId + ".", mLog.w));
-        recordHandler.set(id, new Handler() {
+        recordHandler.set(id, new Handler(getMainLooper()) {
             public void handleMessage(Message msg) {
                 try {
                     startRecord(CameraId);
@@ -855,7 +874,7 @@ public class CameraFragment extends Fragment {
                 }
             }
         });
-        stopRecordHandler.set(id, new Handler() {
+        stopRecordHandler.set(id, new Handler(getMainLooper()) {
             public void handleMessage(Message msg) {
                 if (isRecord)
                     try {
@@ -933,9 +952,9 @@ public class CameraFragment extends Fragment {
         if (null != videoLogList)
             videoLogList.add(new mLogMsg(msg, mLog.e));
         errorMessage = msg;
-        new Handler().post(() -> stopRecordAndSaveLog(false));
+        new Handler(getMainLooper()).post(() -> stopRecordAndSaveLog(false));
         if (reset) {
-            new Handler().postDelayed(this::restartApp, delay_3);
+            new Handler(getMainLooper()).postDelayed(this::restartApp, delay_3);
         }
     }
 
@@ -1016,8 +1035,9 @@ public class CameraFragment extends Fragment {
         MediaRecorder mediaRecorder = null;
         try {
             if (!getSDPath().equals("")) {
-                file = getSDPath() + getCalendarTime(CameraId) + ".mp4";
-                videoLogList.add(new mLogMsg("Create: " + file.split("/")[3], mLog.w));
+                String name = getCalendarTime(CameraId) + ".mp4";
+                file = getSDPath() + name;
+                videoLogList.add(new mLogMsg("Create: " + name, mLog.w));
                 cameraFile.set(id, file + "");
                 cameraFilePath.get(id).add(file);
                 CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
@@ -1071,7 +1091,7 @@ public class CameraFragment extends Fragment {
                     videoLogList.add(new mLogMsg("SD Card is Full."));
                     ArrayList<String> tmp = new ArrayList<>();
                     File[] fileList = new File(getSDPath()).listFiles();
-                    for (File file : fileList) {
+                    for (File file : fileList != null ? fileList : new File[0]) {
                         if (!file.isDirectory() && Utils.getFileExtension(file.toString()).equals("mp4"))
                             if (checkFile(file.toString(), cameraFile))
                                 tmp.add(file.toString());
@@ -1080,7 +1100,7 @@ public class CameraFragment extends Fragment {
                         Object[] list = tmp.toArray();
                         Arrays.sort(list);
                         for (int i = 0; i < 6; i++)
-                            delete((String) (list != null ? list[i] : null), SD_Mode);
+                            delete((String) list[i], SD_Mode);
                         checkSdCardFromFileList();
                     } else {
                         isError = true;
