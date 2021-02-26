@@ -139,6 +139,9 @@
         3.fix camera may crash issues.
         4.add setProp to record logs.
         5.fix stopRecord time out error.
+    [v1.1]
+        1.cleanUp Code.
+        2.change package name.
     -->
-    <string name="app_name">CDR9020_BIT(v1.0.6)</string>
+    <string name="app_name">CDR9020_BIT(v1.1)</string>
 </resources>

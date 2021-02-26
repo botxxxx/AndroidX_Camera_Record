@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.askey.bit"
+    package="com.d160.bit"
     android:sharedUserId="android.uid.system"
     tools:ignore="ProtectedPermissions">
 
@@ -33,7 +33,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity
-            android:name=".VideoRecordActivity"
+            android:name="com.d160.bit.CameraActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|keyboard"
             android:screenOrientation="sensorLandscape"
             tools:ignore="LockedOrientationActivity">
@@ -44,7 +44,7 @@
         </activity>
 
         <activity
-            android:name=".restartActivity"
+            android:name="com.d160.bit.RestartActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleInstance"

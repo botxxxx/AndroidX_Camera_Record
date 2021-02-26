@@ -1,38 +1,27 @@
-package com.askey.bit;
+package com.d160.bit;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.util.Log;
-import android.util.SparseIntArray;
-import android.view.Surface;
-import android.view.View;
-import android.widget.EditText;
+import android.*;
+import android.annotation.*;
+import android.content.*;
+import android.hardware.camera2.*;
+import android.media.*;
+import android.os.*;
+import android.util.*;
+import android.view.*;
+import android.widget.*;
 
-import com.askey.widget.mLogMsg;
-import com.askey.widget.mLog;
+import com.d160.view.*;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Calendar;
+import java.io.*;
+import java.lang.Process;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import static com.askey.bit.VideoRecordActivity.SD_Mode;
-import static com.askey.bit.VideoRecordActivity.onReset;
-import static com.askey.bit.VideoRecordActivity.saveLog;
+import static android.os.Environment.*;
+import static com.d160.bit.CameraActivity.*;
 
 public class Utils {
-    public static final String TAG = "CDR9020_BIT";
-    //-------------------------------------------------------------------------------
-    public static final boolean defaultProp = false;
-    public static final int defaultRun = 480;
-    public static int isFinish = 999, delayTime = 60500;
     //-------------------------------------------------------------------------------
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
@@ -44,42 +33,39 @@ public class Utils {
     public static final String EXTRA_VIDEO_WIFI_SUCCESS = "RestartActivity.wifi.success";
     public static final String EXTRA_VIDEO_BT_SUCCESS = "RestartActivity.bt.success";
     //-------------------------------------------------------------------------------
-    public static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     public static final String NO_SD_CARD = "SD card is not available!";
-    public static final String configName = "BurnInTestConfig.ini";
-    public static final String logName = "BurnInTestLog.ini";
-    public static final String CONFIG_TITLE = "[BurnIn_Test_Config]";
-    public static final String LOG_TITLE = "[BurnIn_Test_Log]";
-    public static final double sdData = 1;
-    public static int isRun = 0, Success = 0, Fail = 0;
+    public static final int defaultRun = 480;
+    public static final double sdData = 3;
+    public static int isFinish = defaultRun, isRun = 0, Success = 0, Fail = 0;
     public static int wifiSuccess = 0, wifiFail = 0;
     public static int btSuccess = 0, btFail = 0;
-    public static String firstCamera = "0";
-    public static String secondCamera = "1";
-    public static String lastfirstCamera = "0";
-    public static String lastsecondCamera = "1";
-    public static String firstFile = "";
-    public static String secondFile = "";
-    public static ArrayList<String> firstFilePath, secondFilePath;
     public static ArrayList<mLogMsg> videoLogList = null;
-    public static boolean isReady = false, isRecord = false, isError = false;
-    public static boolean fCamera = false, sCamera = false, getSdCard = false;
+    public static boolean isCameraReady = false, isRecord = false,
+            isError = false, isSave = false;
     public static String errorMessage = "";
-
-    static {
-        ORIENTATIONS.append(Surface.ROTATION_0, 90);
-        ORIENTATIONS.append(Surface.ROTATION_90, 0);
-        ORIENTATIONS.append(Surface.ROTATION_180, 270);
-        ORIENTATIONS.append(Surface.ROTATION_270, 180);
-    }
-
-    public static String getLogPath(){
-        return "/data/misc/logd/";
-    }
-
+    //-------------------------------------------------------------------------------
+    public static List<String> allCamera = Arrays.asList(firstCamera, secondCamera);
+    public static AtomicIntegerArray id_textView = new AtomicIntegerArray(new int[]{R.id.textureView0, R.id.textureView1});
+    public static AtomicReferenceArray<String> threadString = new AtomicReferenceArray<>(new String[]{"CameraPreview0", "CameraPreview1"});
+    public static AtomicReferenceArray<String> permission = new AtomicReferenceArray<>(new String[]{
+            Manifest.permission.CAMERA, Manifest.permission.INTERNET, Manifest.permission.BLUETOOTH, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE});
+    public static AtomicReferenceArray<String> cameraFile = new AtomicReferenceArray<>(new String[]{"", ""});
+    public static AtomicReferenceArray<Boolean> isCameraOpened = new AtomicReferenceArray<>(new Boolean[]{false, false});
+    public static AtomicReferenceArray<ArrayList<String>> cameraFilePath = new AtomicReferenceArray<ArrayList<String>>(new ArrayList[2]);
+    public static AtomicReferenceArray<String> codeDate = new AtomicReferenceArray<>(new String[2]);
+    public static AtomicReferenceArray<TextureView> textView = new AtomicReferenceArray<>(new TextureView[2]);
+    public static AtomicReferenceArray<CameraDevice> cameraDevice = new AtomicReferenceArray<>(new CameraDevice[2]);
+    public static AtomicReferenceArray<CameraCaptureSession> previewSession = new AtomicReferenceArray<>(new CameraCaptureSession[2]);
+    public static AtomicReferenceArray<CameraDevice.StateCallback> stateCallback = new AtomicReferenceArray<>(new CameraDevice.StateCallback[2]);
+    public static AtomicReferenceArray<MediaRecorder> mediaRecorder = new AtomicReferenceArray<>(new MediaRecorder[2]);
+    public static AtomicReferenceArray<HandlerThread> thread = new AtomicReferenceArray<>(new HandlerThread[2]);
+    public static AtomicReferenceArray<Handler> backgroundHandler = new AtomicReferenceArray<>(new Handler[2]);
+    public static AtomicReferenceArray<Handler> recordHandler = new AtomicReferenceArray<>(new Handler[2]);
+    public static AtomicReferenceArray<Handler> stopRecordHandler = new AtomicReferenceArray<>(new Handler[2]);
+    //-------------------------------------------------------------------------------
     //TODO Default Path
     public static String getPath() {
-        return "/storage/emulated/0/DCIM/";
+        return getStorageDirectory().getPath() + "/emulated/0/DCIM/";
     }
 
     public static String getSDPath() {
@@ -160,40 +146,48 @@ public class Utils {
     }
 
     public static void setTestTime(int min) {
-        Log.e(TAG, "setRecord time: " + min + " min.");
-        videoLogList.add(new mLogMsg("setRecord time: " + min + " min.", mLog.e));
+        if (min == 999) {
+            Log.e(TAG, "setRecord time: 999.");
+            videoLogList.add(new mLogMsg("setRecord time: unlimited times.", mLog.d));
+        } else {
+            Log.e(TAG, "setRecord time: " + min + " min.");
+            videoLogList.add(new mLogMsg("setRecord time: " + min + " min.", mLog.d));
+        }
         isFinish = min == 999 ? min : min * 2;
     }
 
     public static void checkConfigFile(Context context, boolean first) {
         videoLogList.add(new mLogMsg("#checkConfigFile", mLog.v));
         if (!getPath().equals("")) {
-            getSdCard = true;
+            isSave = true;
             File file = new File(getPath(), configName);
             if (!file.exists()) {
                 try {
-                    file.createNewFile();
+                    if (file.createNewFile())
+                        videoLogList.add(new mLogMsg("Create the config.", mLog.w));
+                    else
+                        videoLogList.add(new mLogMsg("Failed to create the config.", mLog.w));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                videoLogList.add(new mLogMsg("Create the config file.", mLog.w));
                 writeConfigFile(context, file, new Config(context).config());
             } else {
-                if (!isReady) {
+                if (!isCameraReady) {
                     videoLogList.add(new mLogMsg("Find the config file.", mLog.e));
                     videoLogList.add(new mLogMsg("#------------------------------", mLog.v));
                 }
                 checkConfigFile(context, new File(getPath(), configName), first);
             }
         } else {
-            getSdCard = false;
+            isSave = false;
         }
     }
 
-    public static boolean[] checkConfigFile(Context context, File file, boolean firstOne) {
+    @SuppressLint("SimpleDateFormat")
+    public static boolean checkConfigFile(Context context, File file, boolean firstOne) {
         try {
             String input = readConfigFile(context, file);
-            boolean reformat = true, isCameraChange = false, isPropChange = false, update = true;
+            boolean reformat = true, isCameraChange = false, update = true;
             if (input.length() > 0) {
                 String[] read = input.split("\r\n");
                 int target = 0, t;
@@ -228,59 +222,68 @@ public class Utils {
                         code = s.substring(t);
                         break;
                     }
-
                 if (target == 4) {
                     reformat = false;
                     if (title.equals(context.getString(R.string.app_name))) {
                         update = false;
                     } else {
+                        Log.e(TAG, "Config is updated.");
                         videoLogList.add(new mLogMsg("Config is updated.", mLog.e));
                         reformat = true;
                     }
                     if (!first.equals(second)) {
                         boolean cdr9020 = (first.equals("1") && second.equals("2")) || (first.equals("2") && second.equals("1"));
                         if (cdr9020) {
+                            Log.e(TAG, "Inner and External can't be used at the same time.");
                             videoLogList.add(new mLogMsg("Inner and External can't be used at the same time.", mLog.e));
                             reformat = true;
                         } else {
                             if (isCameraID(first.split("\n")[0], second.split("\n")[0])) {
-                                lastfirstCamera = firstOne ? first : firstCamera;
-                                lastsecondCamera = firstOne ? second : secondCamera;
-                                firstCamera = first;
-                                secondCamera = second;
+                                lastFirstCamera = firstOne ? first : firstCamera;
+                                lastSecondCamera = firstOne ? second : secondCamera;
+                                allCamera.set(0, firstCamera = first);
+                                allCamera.set(1, secondCamera = second);
                                 if (!firstOne)
-                                    if (!lastfirstCamera.equals(firstCamera) || !lastsecondCamera.equals(secondCamera))
+                                    if (!lastFirstCamera.equals(firstCamera) || !lastSecondCamera.equals(secondCamera)) {
+                                        Log.e(TAG, "isCameraChange:" + lastFirstCamera + "-" + firstCamera + "," + lastSecondCamera + "-" + secondCamera);
                                         isCameraChange = true;
+                                    }
                             } else {
+                                Log.e(TAG, "Unknown Camera ID.");
                                 videoLogList.add(new mLogMsg("Unknown Camera ID.", mLog.e));
                                 reformat = true;
                             }
                         }
                     } else {
+                        Log.e(TAG, "Cannot use the same Camera ID.");
                         videoLogList.add(new mLogMsg("Cannot use the same Camera ID.", mLog.e));
                         reformat = true;
                     }
                     if (isInteger(code.split("\n")[0], true)) {
                         int min = Integer.parseInt(code.split("\n")[0]);
                         if (min <= 0) {
+                            Log.e(TAG, "The test time must be a positive number.");
                             videoLogList.add(new mLogMsg("The test time must be a positive number.", mLog.e));
                             reformat = true;
                         } else {
                             setTestTime(min);
                         }
                     } else {
+                        Log.e(TAG, "Unknown Record Times.");
                         videoLogList.add(new mLogMsg("Unknown Record Times.", mLog.e));
                         reformat = true;
                     }
+                } else {
+                    Log.e(TAG, "target != 4 & Config is reset.");
                 }
             }
             if (update) {
                 StringBuilder logString = new StringBuilder(LOG_TITLE + context.getString(R.string.app_name) + "\r\n");
                 videoLogList.add(new mLogMsg("Reformat the Log file.", mLog.e));
                 for (mLogMsg logs : videoLogList) {
-                    String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                            + " run:" + logs.runTime + " -> ";
-                    logString.append(time).append(logs.msg).append("\r\n");
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    logString.append(dateFormat.format(logs.time)).append(" run:")
+                            .append(logs.runTime).append(" -> ").append(logs.msg).append("\r\n");
                 }
                 try {
                     FileOutputStream output = new FileOutputStream(new File(getPath(), logName), false);
@@ -295,12 +298,12 @@ public class Utils {
             }
             if (reformat) {
                 reformatConfigFile(context, file);
-                return new boolean[]{true, true};
-            } else return new boolean[]{isCameraChange, isPropChange};
+                return true;
+            } else return isCameraChange;
         } catch (Exception e) {
             e.printStackTrace();
             reformatConfigFile(context, file);
-            return new boolean[]{true, true};
+            return true;
         }
     }
 
@@ -362,19 +365,21 @@ public class Utils {
         if (!reset) {
             if (isInteger(editText_3.getText().toString(), false)) {
                 isFinish = Integer.parseInt(editText_3.getText().toString());
-            } else {
-                isFinish = defaultRun;
             }
         }
 
         writeConfigFile(context, file, (
                 !reset ? new Config(context, editText_1.getText().toString(),
-                        editText_2.getText().toString(), isFinish, false) : new Config(context)).config());
+                        editText_2.getText().toString(), isFinish) : new Config(context)).config());
         //toast(context, "Write file is completed.", mLog.i);
     }
 
     public static void reformatConfigFile(Context context, File file) {
         //toast(context, "Config file error.", mLog.e);
+        lastFirstCamera = "0";
+        lastSecondCamera = "1";
+        allCamera.set(0, firstCamera = lastFirstCamera);
+        allCamera.set(1, secondCamera = lastSecondCamera);
         writeConfigFile(context, file, new Config(context).config());
         videoLogList.add(new mLogMsg("Reformat the Config file.", mLog.e));
     }
@@ -397,7 +402,6 @@ public class Utils {
         } catch (Exception e) {
             e.printStackTrace();
             isError = true;
-            getSdCard = !getSDPath().equals("");
             videoLogList.add(new mLogMsg("Read failed. <============ Crash here", mLog.e));
             saveLog(context, false, false);
             errorMessage = "Read failed. <============ Crash here";
@@ -410,26 +414,22 @@ public class Utils {
     }
 
     public static void writeConfigFile(Context context, File file, String[] str) {
-        if (getSdCard) {
-            StringBuilder tmp = new StringBuilder();
-            for (String s : str)
-                tmp.append(s);
-            try {
-                FileOutputStream output = new FileOutputStream(file);
-                output.write(tmp.toString().getBytes());
-                output.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                isError = true;
-                getSdCard = !getSDPath().equals("");
-                videoLogList.add(new mLogMsg("Write failed. <============ Crash here", mLog.e));
-                saveLog(context, false, false);
-                errorMessage = "Write failed. <============ Crash here";
-            }
-        } else {
-            videoLogList.add(new mLogMsg(NO_SD_CARD, mLog.e));
+        StringBuilder tmp = new StringBuilder();
+        for (String s : str)
+            tmp.append(s);
+        try {
+            FileOutputStream output = new FileOutputStream(file);
+            output.write(tmp.toString().getBytes());
+            output.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            isError = true;
+            videoLogList.add(new mLogMsg("Write failed. <============ Crash here", mLog.e));
+            saveLog(context, false, false);
+            errorMessage = "Write failed. <============ Crash here";
         }
     }
+
 
     @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
     public static String getCalendarTime() {
@@ -438,9 +438,14 @@ public class Utils {
     }
 
     @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
-    public static String getCalendarTime(boolean isCameraOne) {
+    public static String getCalendarTime(String cameraId) {
         Calendar calendar = Calendar.getInstance();
-        return "v" + new SimpleDateFormat("yyyyMMddHHmmss").format(calendar.getTime()) + (isCameraOne ? "f" : "s");
+        String cm = "c";
+        if (cameraId.equals(allCamera.get(0)))
+            cm = "f";
+        if (cameraId.equals(allCamera.get(1)))
+            cm = "s";
+        return "v" + new SimpleDateFormat("yyyyMMddHHmmss").format(calendar.getTime()) + cm;
     }
 
     public static String getFileExtension(String fullName) {
@@ -450,6 +455,10 @@ public class Utils {
     }
 
     public static boolean isCameraOne(String cameraId) {
-        return cameraId.equals(firstCamera);
+        return cameraId.equals(allCamera.get(0));
+    }
+
+    public static boolean isLastCamera(String cameraId) {
+        return cameraId.equals(allCamera.get(1));
     }
 }

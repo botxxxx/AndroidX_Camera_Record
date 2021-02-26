@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:gravity="center">
 
-        <com.askey.widget.CustomTextView
+        <com.d160.view.CustomTextView
             android:id="@+id/customTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

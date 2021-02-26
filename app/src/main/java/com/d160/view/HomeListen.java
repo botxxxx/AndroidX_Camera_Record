@@ -1,4 +1,4 @@
-package com.askey.widget;
+package com.d160.view;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

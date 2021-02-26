@@ -1,11 +1,11 @@
-package com.askey.bit;
+package com.d160.bit;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-public class restartActivity extends Activity {
+public class RestartActivity extends Activity {
     public static final String EXTRA_MAIN_PID = "RestartActivity.main_pid";
     public static final String EXTRA_VIDEO_RUN = "RestartActivity.run";
     public static final String EXTRA_VIDEO_FAIL = "RestartActivity.fail";
@@ -19,7 +19,7 @@ public class restartActivity extends Activity {
 
     public static Intent createIntent(Context context) {
         Intent intent = new Intent();
-        intent.setClassName(context.getPackageName(), restartActivity.class.getName());
+        intent.setClassName(context.getPackageName(), RestartActivity.class.getName());
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(EXTRA_MAIN_PID, android.os.Process.myPid());
         return intent;
@@ -43,7 +43,7 @@ public class restartActivity extends Activity {
         // 2. MainActivity を再起動する
         Context context = getApplicationContext();
         Intent restartIntent = new Intent(Intent.ACTION_MAIN);
-        restartIntent.setClassName(context.getPackageName(), VideoRecordActivity.class.getName());
+        restartIntent.setClassName(context.getPackageName(), CameraActivity.class.getName());
         restartIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         restartIntent.putExtra(EXTRA_VIDEO_RUN, EXTRA_RUN);
         restartIntent.putExtra(EXTRA_VIDEO_RESET, EXTRA_RESET);

@@ -1,4 +1,4 @@
-package com.askey.widget;
+package com.d160.view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -7,7 +7,7 @@ import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-import com.askey.bit.R;
+import com.d160.bit.R;
 
 @SuppressLint("AppCompatCustomView")
 public class CustomTextView extends TextView {
