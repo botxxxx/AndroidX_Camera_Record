@@ -31,9 +31,9 @@ import static com.d160.wa034.Utils.*;
 
 public class CameraFragment extends Fragment {
 
-    public static final String TAG = "com.d160.b030";
-    public static final String logName = "CDRB030TestLog.ini";
-    public static final String LOG_TITLE = "[CDRB030_Log]";
+    public static final String TAG = "com.d160.wa034";
+    public static final String logName = "wa034TestLog.ini";
+    public static final String LOG_TITLE = "[wa034_Log]";
     public static final String firstCamera = "0", secondCamera = "1", thirdCamera = "2";
     public static final int delay_3 = 3000, delay_60 = 60000;
     //-------------------------------------------------------------------------------
@@ -44,9 +44,9 @@ public class CameraFragment extends Fragment {
     //TODO 是否啟用preview
     public static boolean preview = false;
     //TODO 是否使用SD_Mode
-    public static boolean SD_Mode = false;
+    public static boolean SD_Mode = true;
     //TODO 是否啟用onPause
-    public static boolean autoPause = true;
+    public static boolean autoPause = false;
     //TODO 是否啟用重啟功能
     public static boolean autoRestart = true;
     //TODO 是否啟用60s停止錄影
@@ -540,7 +540,7 @@ public class CameraFragment extends Fragment {
                     checkAndClear(CameraId);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    videoLogList.add(new mLogMsg("Check file is fail."));
+                    errorMessage("Check file is fail. <============ Crash here", true, e);
                 }
                 startRecord(CameraId);
                 if (isError || !isSave) {
@@ -574,8 +574,13 @@ public class CameraFragment extends Fragment {
                                 ((TextView) getActivity().findViewById(R.id.record_status)).setText("Stop");
                             });
                         codeDate.set(id, getCalendarTime());
-                        closeMediaRecorder(CameraId);
-                        checkAndClear(CameraId);
+                        try {
+                            closeMediaRecorder(CameraId);
+                            checkAndClear(CameraId);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            errorMessage("Check file is fail. <============ Crash here", true, e);
+                        }
                     }
                 }
             }
