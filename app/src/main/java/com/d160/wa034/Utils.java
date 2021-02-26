@@ -40,7 +40,7 @@ public class Utils {
     public static AtomicReferenceArray<Boolean> isCameraOpened = new AtomicReferenceArray<>(new Boolean[]{false, false, false});
     public static AtomicReferenceArray<ArrayList<String>> cameraFilePath = new AtomicReferenceArray<ArrayList<String>>(new ArrayList[3]);
     public static AtomicReferenceArray<String> codeDate = new AtomicReferenceArray<>(new String[3]);
-    public static AtomicReferenceArray<SurfaceView> surfaceview = new AtomicReferenceArray<>(new SurfaceView[3]);
+    public static AtomicReferenceArray<SurfaceView> surfaceView = new AtomicReferenceArray<>(new SurfaceView[3]);
     public static AtomicReferenceArray<MediaRecorder> mediaRecorder = new AtomicReferenceArray<>(new MediaRecorder[3]);
     public static AtomicReferenceArray<Handler> recordHandler = new AtomicReferenceArray<>(new Handler[3]);
     public static AtomicReferenceArray<Handler> stopRecordHandler = new AtomicReferenceArray<>(new Handler[3]);
@@ -58,7 +58,30 @@ public class Utils {
     public static String getSDPath() {
         String path = "";
         if (SD_Mode) {
-            path = getExternalStorageDirectory().getPath() + "/";
+            try {
+                long start = (System.currentTimeMillis() / 1000) % 60;
+                long end = start + 10;
+                Runtime run = Runtime.getRuntime();
+                String cmd = "ls /storage";
+                Process pr = run.exec(cmd);
+                InputStreamReader input = new InputStreamReader(pr.getInputStream());
+                BufferedReader buf = new BufferedReader(input);
+                String line;
+                while ((line = buf.readLine()) != null) {
+                    if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
+                        path = "/storage/" + line + "/";
+                        break;
+                    }
+                    if ((System.currentTimeMillis() / 1000) % 60 > end) {
+                        videoLogList.add(new mLogMsg("getSDPath time out.", mLog.e));
+                        break;
+                    }
+                }
+                buf.close();
+                input.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             path = getPath();
         }

@@ -441,7 +441,7 @@ public class CameraFragment extends Fragment {
                 }
                 SurfaceHolder holder = null;
                 try {
-                    holder = surfaceview.get(id).getHolder();
+                    holder = surfaceView.get(id).getHolder();
                 } catch (Exception e) {
                     e.printStackTrace();
                     videoLogList.add(new mLogMsg("getSurfaceTexture" + CameraId + " is error."));
@@ -697,7 +697,7 @@ public class CameraFragment extends Fragment {
     private void setCamera(String CameraId) {
         /* this function will error with camera changed. */
         int id = Integer.parseInt(CameraId);
-        surfaceview.set(id, Objects.requireNonNull(getActivity()).findViewById(id_surfaceView.get(id)));
+        surfaceView.set(id, Objects.requireNonNull(getActivity()).findViewById(id_surfaceView.get(id)));
         cameraFilePath.set(id, new ArrayList<>());
         codeDate.set(id, getCalendarTime());
         videoLogList.add(new mLogMsg("setCallback " + CameraId + ".", mLog.w));
@@ -799,14 +799,13 @@ public class CameraFragment extends Fragment {
                 mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
                 mediaRecorder.setOutputFile(file);
                 mediaRecorder.setPreviewDisplay(
-                        surfaceview.get(id).getHolder().getSurface());
+                        surfaceView.get(id).getHolder().getSurface());
                 mediaRecorder.prepare();
             } else {
                 errorMessage("MediaRecorder error. " + NO_SD_CARD + " <============ Crash here", false, null);
                 return null;
             }
         } catch (Exception e) {
-            e.printStackTrace();
             errorMessage("MediaRecorder " + CameraId + " error. <============ Crash here", false, e);
         }
         return mediaRecorder;
