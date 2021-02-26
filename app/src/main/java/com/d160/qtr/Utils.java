@@ -13,6 +13,7 @@ import android.widget.*;
 import com.d160.view.*;
 
 import java.io.*;
+import java.lang.Process;
 import java.text.*;
 import java.time.format.*;
 import java.util.*;
@@ -55,11 +56,6 @@ public class Utils {
     public static AtomicReferenceArray<Handler> recordHandler = new AtomicReferenceArray<>(new Handler[2]);
     public static AtomicReferenceArray<Handler> stopRecordHandler = new AtomicReferenceArray<>(new Handler[2]);
     //-------------------------------------------------------------------------------
-
-    public static String getLogPath() {
-        return getStorageDirectory().getPath()+ "/emulated/0/";
-    }
-
     //TODO Default Path
     public static String getPath() {
         return getStorageDirectory().getPath() + "/emulated/0/DCIM/";
@@ -68,7 +64,30 @@ public class Utils {
     public static String getSDPath() {
         String path = "";
         if (SD_Mode) {
-            path = getExternalStorageDirectory().getPath() + "/";
+            try {
+                long start = (System.currentTimeMillis() / 1000) % 60;
+                long end = start + 10;
+                Runtime run = Runtime.getRuntime();
+                String cmd = "ls /storage";
+                Process pr = run.exec(cmd);
+                InputStreamReader input = new InputStreamReader(pr.getInputStream());
+                BufferedReader buf = new BufferedReader(input);
+                String line;
+                while ((line = buf.readLine()) != null) {
+                    if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
+                        path = "/storage/" + line + "/";
+                        break;
+                    }
+                    if ((System.currentTimeMillis() / 1000) % 60 > end) {
+                        videoLogList.add(new mLogMsg("getSDPath time out.", mLog.e));
+                        break;
+                    }
+                }
+                buf.close();
+                input.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             path = getPath();
         }
@@ -238,9 +257,9 @@ public class Utils {
                 StringBuilder logString = new StringBuilder(LOG_TITLE + context.getString(R.string.app_name) + "\r\n");
                 videoLogList.add(new mLogMsg("Reformat the Log file.", mLog.e));
                 for (mLogMsg logs : videoLogList) {
-                    String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                            + " run:" + logs.runTime + " -> ";
-                    logString.append(time).append(logs.msg).append("\r\n");
+                    @SuppressLint("SimpleDateFormat") DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    logString.append(dateFormat.format(logs.time)).append(" run:")
+                            .append(logs.runTime).append(" -> ").append(logs.msg).append("\r\n");
                 }
                 try {
                     FileOutputStream output = new FileOutputStream(new File(getPath(), logName), false);
@@ -359,7 +378,6 @@ public class Utils {
         } catch (Exception e) {
             e.printStackTrace();
             isError = true;
-            isSave = !getSDPath().equals("");
             videoLogList.add(new mLogMsg("Read failed. <============ Crash here", mLog.e));
             saveLog(context, false, false);
             errorMessage = "Read failed. <============ Crash here";
@@ -383,7 +401,6 @@ public class Utils {
             } catch (Exception e) {
                 e.printStackTrace();
                 isError = true;
-                isSave = !getSDPath().equals("");
                 videoLogList.add(new mLogMsg("Write failed. <============ Crash here", mLog.e));
                 saveLog(context, false, false);
                 errorMessage = "Write failed. <============ Crash here";

@@ -22,7 +22,7 @@ import com.d160.view.*;
 
 import java.io.*;
 import java.math.*;
-import java.time.format.*;
+import java.text.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
@@ -64,52 +64,48 @@ public class CameraActivity extends Activity {
     private float value = 0.0f;
 
     public static void saveLog(Context context, boolean reFormat, boolean kill) {
-        if (null != videoLogList)
-            if (!getSDPath().equals("")) {
-                String version = context.getString(R.string.app_name);
-                StringBuilder logString;
-                assert videoLogList != null;
-                File file = new File(getPath(), logName);
-                if (!file.exists()) {
-                    logString = new StringBuilder(LOG_TITLE + version + "\r\n");
-                    try {
-                        boolean create = file.createNewFile();
-                        if (null != videoLogList) {
-                            if (!create)
-                                videoLogList.add(new mLogMsg("Create file failed.", mLog.w));
-                            else
-                                videoLogList.add(new mLogMsg("Create the log file.", mLog.w));
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        if (null != videoLogList)
-                            videoLogList.add(new mLogMsg("Create file failed.", mLog.w));
-                    }
-                } else {
-                    logString = new StringBuilder();
-                }
-                if (null != videoLogList)
-                    try {
-                        for (mLogMsg logs : videoLogList) {
-                            String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                                    + " run:" + logs.runTime + " -> ";
-                            logString.append(time).append(logs.msg).append("\r\n");
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        if (null != videoLogList) {
+            String version = context.getString(R.string.app_name);
+            StringBuilder logString;
+            assert videoLogList != null;
+            File file = new File(getPath(), logName);
+            if (!file.exists()) {
+                logString = new StringBuilder(LOG_TITLE + version + "\r\n");
                 try {
-                    FileOutputStream output = new FileOutputStream(new File(getPath(), logName), !reFormat);
-                    output.write(logString.toString().getBytes());
-                    output.close();
-                    videoLogList.clear();
+                    boolean create = file.createNewFile();
+                    if (null != videoLogList) {
+                        if (!create)
+                            videoLogList.add(new mLogMsg("Create file failed.", mLog.w));
+                        else
+                            videoLogList.add(new mLogMsg("Create the log file.", mLog.w));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (null != videoLogList)
+                        videoLogList.add(new mLogMsg("Create file failed.", mLog.w));
+                }
+            } else {
+                logString = new StringBuilder();
+            }
+            if (null != videoLogList)
+                try {
+                    for (mLogMsg logs : videoLogList) {
+                        @SuppressLint("SimpleDateFormat") DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        logString.append(dateFormat.format(logs.time)).append(" run:")
+                                .append(logs.runTime).append(" -> ").append(logs.msg).append("\r\n");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            } else {
-                isError = true;
-                isSave = !getSDPath().equals("");
+            try {
+                FileOutputStream output = new FileOutputStream(new File(getPath(), logName), !reFormat);
+                output.write(logString.toString().getBytes());
+                output.close();
+                videoLogList.clear();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        }
         if (kill)
             android.os.Process.killProcess(android.os.Process.myPid());
     }
@@ -235,9 +231,9 @@ public class CameraActivity extends Activity {
         videoLogList.add(new mLogMsg("#showPermission", mLog.v));
         // We don't have permission so prompt the user
         List<String> permissions = new ArrayList<>();
-        permissions.add(Manifest.permission.CAMERA);
-        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        permissions.add(Manifest.permission.INTERNET);
+        for (int i = 0; i < permission.length(); i++) {
+            permissions.add(permission.get(i));
+        }
         requestPermissions(permissions.toArray(new String[0]), 0);
     }
 
@@ -451,11 +447,11 @@ public class CameraActivity extends Activity {
                 });
                 view.findViewById(R.id.dialog_button_3).setOnClickListener((View vs) -> { // ok
                     videoLogList.add(new mLogMsg("@setting_ok", mLog.v));
-                    if(!isRecord) {
+                    if (!isRecord) {
                         setConfigFile(this, new File(getPath(), configName), view, false);
                         setSetting(false);
-                    }else{
-                        Toast.makeText(this,"you are recording..",Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "you are recording..", Toast.LENGTH_SHORT).show();
                     }
                     dialog.dismiss();
                 });
@@ -486,6 +482,7 @@ public class CameraActivity extends Activity {
                         videoLogList.add(new mLogMsg("@Start record", mLog.v));
                     else
                         videoLogList.add(new mLogMsg("#Start record", mLog.v));
+                    checkConfigFile(CameraActivity.this, new File(getPath(), configName), false);
                     isRecord = true;
                     if (extraRecordStatus) {
                         isRun = onRun;
@@ -585,7 +582,7 @@ public class CameraActivity extends Activity {
         } else {
             saveLog(getApplicationContext(), false, false);
         }
-        if(reset) {
+        if (reset) {
             Log.e(TAG, "@ResetApp");
             videoLogList.add(new mLogMsg("@ResetApp", mLog.v));
             restartApp();
@@ -787,7 +784,6 @@ public class CameraActivity extends Activity {
                 try {
                     closePreviewSession(CameraId);
                 } catch (Exception e) {
-                    e.printStackTrace();
                     errorMessage("closePreviewSession error.", true, e);
                 }
                 SurfaceTexture texture = null;
