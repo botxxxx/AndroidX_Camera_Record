@@ -4,23 +4,19 @@
     package="com.d160.qtr"
     android:sharedUserId="android.uid.system"
     tools:ignore="ProtectedPermissions">
-
-    <uses-feature android:name="android.hardware.camera" />
-    <uses-feature android:name="android.hardware.camera.autofocus" />
+    <!--android:sharedUserId="android.uid.system"-->
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.WRITE_MEDIA_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
         android:allowBackup="true"
@@ -30,7 +26,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity
-            android:name="com.d160.qtr.CameraActivity"
+            android:name=".CameraActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|keyboard"
             android:screenOrientation="sensorLandscape"
             tools:ignore="LockedOrientationActivity">
@@ -41,7 +37,7 @@
         </activity>
 
         <activity
-            android:name="com.d160.qtr.RestartActivity"
+            android:name=".RestartActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleInstance"

@@ -12,7 +12,7 @@ android {
     compileSdkVersion 30
     defaultConfig {
         applicationId "com.d160.qtr"
-        minSdkVersion 27
+        minSdkVersion 26
         //noinspection ExpiredTargetSdkVersion,OldTargetApi
         targetSdkVersion 30
         versionCode 1
