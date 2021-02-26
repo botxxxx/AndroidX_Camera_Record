@@ -5,7 +5,7 @@ import android.annotation.*;
 import android.app.*;
 import android.content.*;
 import android.content.pm.*;
-import android.content.res.Configuration;
+import android.content.res.*;
 import android.graphics.*;
 import android.hardware.camera2.*;
 import android.media.*;
@@ -210,7 +210,7 @@ public class CameraActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
             videoLogList.add(new mLogMsg("logcatd error.", mLog.e));
-            new Handler().post(() -> saveLog(this, false, false));
+            new Handler(getMainLooper()).post(() -> saveLog(this, false, false));
         }
     }
 
@@ -353,15 +353,15 @@ public class CameraActivity extends Activity {
         if (null != videoLogList)
             videoLogList.add(new mLogMsg(msg, mLog.e));
         errorMessage = msg;
-        new Handler().post(() -> stopRecordAndSaveLog(false));
+        new Handler(getMainLooper()).post(() -> stopRecordAndSaveLog(false));
         if (reset) {
-            new Handler().postDelayed(this::restartApp, delay_3);
+            new Handler(getMainLooper()).postDelayed(this::restartApp, delay_3);
         }
     }
 
     private void stopRecordAndSaveLog(boolean kill) {
         if (isRecord)
-            new Handler().post(() -> stopRecord(true));
+            new Handler(getMainLooper()).post(() -> stopRecord(true));
         saveLog(this, false, kill);
     }
 
@@ -373,7 +373,7 @@ public class CameraActivity extends Activity {
         codeDate.set(id, getCalendarTime());
         stateCallback.set(id, setCallback(CameraId));
         videoLogList.add(new mLogMsg("setCallback " + CameraId + ".", mLog.w));
-        recordHandler.set(id, new Handler() {
+        recordHandler.set(id, new Handler(getMainLooper()) {
             public void handleMessage(Message msg) {
                 try {
                     startRecord(CameraId);
@@ -384,7 +384,7 @@ public class CameraActivity extends Activity {
                 }
             }
         });
-        stopRecordHandler.set(id, new Handler() {
+        stopRecordHandler.set(id, new Handler(getMainLooper()) {
             public void handleMessage(Message msg) {
                 if (isRecord)
                     try {
@@ -508,7 +508,7 @@ public class CameraActivity extends Activity {
                     int delay = 0;
                     for (String CameraId : allCamera) {
                         int id = CameraId.equals(allCamera.get(0)) ? 0 : 1;
-                        new Handler().postDelayed(() -> recordHandler.get(id).obtainMessage().sendToTarget(), delay);
+                        new Handler(getMainLooper()).postDelayed(() -> recordHandler.get(id).obtainMessage().sendToTarget(), delay);
                         delay += 500;
                     }
                     saveLog(this, false, false);
@@ -518,7 +518,7 @@ public class CameraActivity extends Activity {
                     } else {
                         videoLogList.add(new mLogMsg("#Stop record", mLog.v));
                     }
-                    new Handler().post(() -> stopRecord(!auto));
+                    new Handler(getMainLooper()).post(() -> stopRecord(!auto));
                 }
             } else {
                 Log.e(TAG, "isCameraReady is not ready");
@@ -651,7 +651,7 @@ public class CameraActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        new Handler().post(() -> stopRecordAndSaveLog(false));
+        new Handler(getMainLooper()).post(() -> stopRecordAndSaveLog(false));
     }
 
     private void openCamera(String CameraId) {
@@ -732,14 +732,14 @@ public class CameraActivity extends Activity {
                 }
             }
         }, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        resetHandler = new Handler() {
+        resetHandler = new Handler(getMainLooper()) {
             public void handleMessage(Message msg) {
                 if (extraRecordStatus)
                     isRecordStart(true);
                 saveLog(CameraActivity.this, false, false);
             }
         };
-        new Handler().postDelayed(() -> resetHandler.obtainMessage().sendToTarget(), delay_3);
+        new Handler(getMainLooper()).postDelayed(() -> resetHandler.obtainMessage().sendToTarget(), delay_3);
     }
 
     private void stopBackgroundThread() {
@@ -862,7 +862,7 @@ public class CameraActivity extends Activity {
             }
         } else {
             if (autoRestart) {
-                new Handler().postDelayed(this::restartApp, delay_3);
+                new Handler(getMainLooper()).postDelayed(this::restartApp, delay_3);
             }
         }
     }
@@ -924,7 +924,7 @@ public class CameraActivity extends Activity {
                             ((TextView) findViewById(R.id.record_status)).setText("Fail " + getFail() + getReset());
                         }
                     });
-                    new Handler().postDelayed(() -> showDialogLog(true), delay_3 / 3);
+                    new Handler(getMainLooper()).postDelayed(() -> showDialogLog(true), delay_3 / 3);
                 }
                 for (String CameraId : allCamera) {    // 遍例Camera
                     int id = CameraId.equals(allCamera.get(0)) ? 0 : 1;
@@ -1017,6 +1017,7 @@ public class CameraActivity extends Activity {
                     videoLogList.add(new mLogMsg("SD Card is Full."));
                     ArrayList<String> tmp = new ArrayList<>();
                     File[] fileList = new File(getSDPath()).listFiles();
+                    assert fileList != null;
                     for (File file : fileList) {
                         if (!file.isDirectory() && Utils.getFileExtension(file.toString()).equals("mp4"))
                             if (checkFile(file.toString(), cameraFile))
@@ -1026,7 +1027,7 @@ public class CameraActivity extends Activity {
                         Object[] list = tmp.toArray();
                         Arrays.sort(list);
                         for (int i = 0; i < 6; i++)
-                            delete((String) (list != null ? list[i] : null), SD_Mode);
+                            delete((String) list[i], SD_Mode);
                         checkSdCardFromFileList();
                     } else {
                         isError = true;

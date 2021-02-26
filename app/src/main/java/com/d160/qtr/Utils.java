@@ -1,24 +1,24 @@
 package com.d160.qtr;
 
-import android.Manifest;
+import android.*;
 import android.annotation.*;
-import android.content.Context;
+import android.content.*;
 import android.hardware.camera2.*;
 import android.media.*;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.util.Log;
+import android.os.*;
+import android.util.*;
 import android.view.*;
-import android.widget.EditText;
+import android.widget.*;
 
 import com.d160.view.*;
 
 import java.io.*;
 import java.text.*;
-import java.time.format.DateTimeFormatter;
+import java.time.format.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
+import static android.os.Environment.*;
 import static com.d160.qtr.CameraActivity.*;
 
 public class Utils {
@@ -57,41 +57,18 @@ public class Utils {
     //-------------------------------------------------------------------------------
 
     public static String getLogPath() {
-        return "/data/misc/logd/";
+        return getStorageDirectory().getPath()+ "/emulated/0/";
     }
 
     //TODO Default Path
     public static String getPath() {
-        return "/storage/emulated/0/DCIM/";
+        return getStorageDirectory().getPath() + "/emulated/0/DCIM/";
     }
 
     public static String getSDPath() {
         String path = "";
         if (SD_Mode) {
-            try {
-                long start = (System.currentTimeMillis() / 1000) % 60;
-                long end = start + 10;
-                Runtime run = Runtime.getRuntime();
-                String cmd = "ls /storage";
-                Process pr = run.exec(cmd);
-                InputStreamReader input = new InputStreamReader(pr.getInputStream());
-                BufferedReader buf = new BufferedReader(input);
-                String line;
-                while ((line = buf.readLine()) != null) {
-                    if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
-                        path = "/storage/" + line + "/";
-                        break;
-                    }
-                    if ((System.currentTimeMillis() / 1000) % 60 > end) {
-                        videoLogList.add(new mLogMsg("getSDPath time out.", mLog.e));
-                        break;
-                    }
-                }
-                buf.close();
-                input.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            path = getExternalStorageDirectory().getPath() + "/";
         } else {
             path = getPath();
         }
