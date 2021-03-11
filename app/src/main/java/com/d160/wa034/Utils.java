@@ -47,7 +47,7 @@ public class Utils {
     //-------------------------------------------------------------------------------
 
     public static String getLogPath() {
-        return getStorageDirectory().getPath()+ "/emulated/0/";
+        return getPath()+ "DCIM/";
     }
 
     //TODO Default Path

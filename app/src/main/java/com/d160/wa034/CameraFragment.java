@@ -144,6 +144,7 @@ public class CameraFragment extends Fragment {
                 StringBuilder logString = new StringBuilder();
                 assert videoLogList != null;
                 File file = new File(getSDPath(), logName);
+                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 if (!file.exists()) {
                     logString = new StringBuilder(LOG_TITLE + version + "\r\n");
                     try {
@@ -163,17 +164,17 @@ public class CameraFragment extends Fragment {
                 if (null != videoLogList)
                     try {
                         for (mLogMsg logs : videoLogList) {
-//                                time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-//                                        + " run:" + logs.runTime + " -> ";
-                            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                            logString.append(dateFormat.format(logs.time)).append(" run:")
-                                    .append(logs.runTime).append(" -> ").append(logs.msg).append("\r\n");
+                            // ex: 2020-03-25 19:46:55 run:0 -> logs.msg
+                            logString.append(dateFormat.format(logs.date))
+                                    .append(" run:").append(logs.run)
+                                    .append(" -> ").append(logs.msg)
+                                    .append("\r\n");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 try {
-                    FileOutputStream output = new FileOutputStream(new File(getSDPath(), logName), !reFormat);
+                    FileOutputStream output = new FileOutputStream(new File(getLogPath(), logName), !reFormat);
                     output.write(logString.toString().getBytes());
                     output.close();
                     videoLogList.clear();
@@ -780,7 +781,9 @@ public class CameraFragment extends Fragment {
 
     private MediaRecorder setUpMediaRecorder(String CameraId) {
         /* this function will error with camera changed. */
+        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
         int id = Integer.parseInt(CameraId);
+        int kbps = 1000;
         String file;
         MediaRecorder mediaRecorder = null;
         try {
@@ -791,12 +794,20 @@ public class CameraFragment extends Fragment {
                 cameraFile.set(id, file + "");
                 cameraFilePath.get(id).add(file);
                 mediaRecorder = new MediaRecorder();
-                CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
+                if (Open_Audio) videoLogList.add(new mLogMsg("#audio"));
+                if (Open_Audio) mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                 mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
                 mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                if (Open_Audio) mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
                 mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-                mediaRecorder.setVideoEncodingBitRate(2000000);
                 mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
+                if (Open_Audio) mediaRecorder.setAudioEncodingBitRate(96 * kbps);
+                mediaRecorder.setVideoEncodingBitRate(2000 * kbps);
+                if (Open_Audio) {
+                    mediaRecorder.setAudioChannels(2);
+                    mediaRecorder.setAudioSamplingRate(44100);
+                }
+                mediaRecorder.setVideoFrameRate(50);
                 mediaRecorder.setOutputFile(file);
                 mediaRecorder.setPreviewDisplay(
                         surfaceView.get(id).getHolder().getSurface());
@@ -825,7 +836,7 @@ public class CameraFragment extends Fragment {
                 StatFs stat = new StatFs(getSDPath());
                 long sdAvailSize = stat.getAvailableBlocksLong() * stat.getBlockSizeLong();
                 double gigaAvailable = (sdAvailSize >> 30);
-                Log.e(TAG, "Size:"+ gigaAvailable + " gb");
+                Log.e(TAG, "Size:" + gigaAvailable + " gb");
                 if (gigaAvailable < sdData) {
                     videoLogList.add(new mLogMsg("SD Card is Full."));
                     ArrayList<String> tmp = new ArrayList<>();
