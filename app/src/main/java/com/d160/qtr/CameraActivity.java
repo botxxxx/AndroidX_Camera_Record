@@ -364,7 +364,7 @@ public class CameraActivity extends Activity {
     @SuppressLint("HandlerLeak")
     private void setCamera(String CameraId) {
         int id = CameraId.equals(allCamera.get(0)) ? 0 : 1;
-        textView.set(id, this.findViewById(id_textView.get(id)));
+        textureView.set(id, this.findViewById(id_textView.get(id)));
         cameraFilePath.set(id, new ArrayList<>());
         codeDate.set(id, getCalendarTime());
         stateCallback.set(id, setCallback(CameraId));
@@ -715,10 +715,10 @@ public class CameraActivity extends Activity {
                 e.printStackTrace();
                 videoLogList.add(new mLogMsg("setCallback " + CameraId + " is error.", mLog.w));
             }
-            if (textView.get(id).isAvailable())
+            if (textureView.get(id).isAvailable())
                 openCamera(CameraId);
             else
-                textView.get(id).setSurfaceTextureListener(new mSurfaceTextureListener(CameraId));
+                textureView.get(id).setSurfaceTextureListener(new mSurfaceTextureListener(CameraId));
         }
         registerReceiver(mBroadcastReceiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
@@ -741,6 +741,7 @@ public class CameraActivity extends Activity {
 
     private void stopBackgroundThread() {
         this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        this.unregisterReceiver(mBroadcastReceiver);
         for (String CameraId : allCamera) {
             int id = CameraId.equals(allCamera.get(0)) ? 0 : 1;
             thread.get(id).quitSafely();
@@ -753,7 +754,6 @@ public class CameraActivity extends Activity {
             backgroundHandler.get(id).removeCallbacks(thread.get(id));
             backgroundHandler.set(id, null);
         }
-        this.unregisterReceiver(mBroadcastReceiver);
     }
 
     @SuppressLint("SetTextI18n")
@@ -788,7 +788,7 @@ public class CameraActivity extends Activity {
                 }
                 SurfaceTexture texture = null;
                 try {
-                    texture = textView.get(id).getSurfaceTexture();
+                    texture = textureView.get(id).getSurfaceTexture();
                 } catch (Exception e) {
                     e.printStackTrace();
                     videoLogList.add(new mLogMsg("getSurfaceTexture" + CameraId + " is error."));
@@ -1143,7 +1143,7 @@ public class CameraActivity extends Activity {
         try {
             SurfaceTexture texture = null;
             try {
-                texture = textView.get(id).getSurfaceTexture();
+                texture = textureView.get(id).getSurfaceTexture();
             } catch (Exception e) {
                 e.printStackTrace();
                 errorMessage("takePreview " + CameraId + " error. <============ Crash here", true, e);

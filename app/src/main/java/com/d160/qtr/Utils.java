@@ -46,7 +46,7 @@ public class Utils {
     public static AtomicReferenceArray<Boolean> isCameraOpened = new AtomicReferenceArray<>(new Boolean[]{false, false});
     public static AtomicReferenceArray<ArrayList<String>> cameraFilePath = new AtomicReferenceArray<ArrayList<String>>(new ArrayList[2]);
     public static AtomicReferenceArray<String> codeDate = new AtomicReferenceArray<>(new String[2]);
-    public static AtomicReferenceArray<TextureView> textView = new AtomicReferenceArray<>(new TextureView[2]);
+    public static AtomicReferenceArray<TextureView> textureView = new AtomicReferenceArray<>(new TextureView[2]);
     public static AtomicReferenceArray<CameraDevice> cameraDevice = new AtomicReferenceArray<>(new CameraDevice[2]);
     public static AtomicReferenceArray<CameraCaptureSession> previewSession = new AtomicReferenceArray<>(new CameraCaptureSession[2]);
     public static AtomicReferenceArray<CameraDevice.StateCallback> stateCallback = new AtomicReferenceArray<>(new CameraDevice.StateCallback[2]);
