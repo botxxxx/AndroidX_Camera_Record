@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class mListAdapter extends BaseAdapter {
 
-    private ArrayList<View> arrayList;
+    private final ArrayList<View> arrayList;
 
     public mListAdapter(ArrayList<View> arrayList) {
         this.arrayList = arrayList;

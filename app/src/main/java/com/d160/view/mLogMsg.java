@@ -5,7 +5,7 @@ import com.d160.wa034.Utils;
 import java.util.*;
 
 public class mLogMsg {
-    public int run;
+    public long run;
     public Date date;
     public String msg;
     public mLog type;

@@ -10,6 +10,14 @@
         1.update README.md
         2.add worry text
         3.720p success
+    [CDRB030_BurnIn(v1.1)]
+        1.add media play (raw/v_0189.mp3)
+        2.add command Receiver (start/close)
+        3.update to camera2 api (SurfaceTexture)
+        4.record video to sd card
+        5.1080p 27fps success (no audio)
+        6.config: mercury/storage/DCIM/BurnInTestConfig.ini
+        7.log: mercury/storage/DCIM/BurnInTestLog.ini
     -->
-    <string name="app_name">WA034_QTR(v1.0)</string>
+    <string name="app_name">CDRB030_BurnIn(v1.1)</string>
 </resources>

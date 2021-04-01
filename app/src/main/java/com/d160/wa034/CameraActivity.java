@@ -1,8 +1,12 @@
 package com.d160.wa034;
 
-import android.os.Bundle;
+import android.annotation.*;
+import android.content.*;
+import android.os.*;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.Objects;
 
 public class CameraActivity extends AppCompatActivity {
 
@@ -17,4 +21,10 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
+    public static class BootUpReceiver extends BroadcastReceiver {
+        @SuppressLint("UnsafeProtectedBroadcastReceiver")
+        public void onReceive(Context context, Intent intent) {
+            context.startActivity(RestartActivity.createIntent(Objects.requireNonNull(context)));
+        }
+    }
 }
