@@ -5,21 +5,21 @@ import com.d160.thermal.Utils;
 import java.time.LocalDateTime;
 
 public class mLogMsg {
-    public int runTime;
-    public LocalDateTime time;
+    public int run;
+    public LocalDateTime date; //Added in API level 26
     public String msg;
     public mLog type;
 
     public mLogMsg(String msg) {
-        this.runTime = Utils.getIsRun();
-        this.time = LocalDateTime.now();
+        this.run = Utils.getIsRun();
+        this.date = LocalDateTime.now();
         this.msg = msg;
         this.type = mLog.d;
     }
 
     public mLogMsg(String msg, mLog type) {
-        this.runTime = Utils.getIsRun();
-        this.time = LocalDateTime.now();
+        this.run = Utils.getIsRun();
+        this.date = LocalDateTime.now();
         this.msg = msg;
         this.type = type;
     }

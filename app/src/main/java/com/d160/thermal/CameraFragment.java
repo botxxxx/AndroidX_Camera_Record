@@ -164,15 +164,16 @@ public class CameraFragment extends Fragment {
                 if (null != videoLogList)
                     try {
                         for (mLogMsg logs : videoLogList) {
-                            String time = logs.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                                    + " run:" + logs.runTime + " -> ";
+                            // ex: 2020-03-25 19:46:55 run:0 -> logs.msg
+                            String time = logs.date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                                    + " run:" + logs.run + " -> ";
                             logString.append(time).append(logs.msg).append("\r\n");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 try {
-                    FileOutputStream output = new FileOutputStream(new File(getPath(), logName), !reFormat);
+                    FileOutputStream output = new FileOutputStream(new File(getLogPath(), logName), !reFormat);
                     output.write(logString.toString().getBytes());
                     output.close();
                     videoLogList.clear();

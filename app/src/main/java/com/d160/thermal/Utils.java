@@ -55,7 +55,7 @@ public class Utils {
     //-------------------------------------------------------------------------------
 
     public static String getLogPath() {
-        return getStorageDirectory().getPath()+ "/emulated/0/";
+        return getPath()+ "DCIM/";
     }
 
     //TODO Default Path
@@ -66,7 +66,30 @@ public class Utils {
     public static String getSDPath() {
         String path = "";
         if (SD_Mode) {
-            path = getExternalStorageDirectory().getPath() + "/";
+            try {
+                long start = (System.currentTimeMillis() / 1000) % 60;
+                long end = start + 10;
+                Runtime run = Runtime.getRuntime();
+                String cmd = "ls /storage";
+                Process pr = run.exec(cmd);
+                InputStreamReader input = new InputStreamReader(pr.getInputStream());
+                BufferedReader buf = new BufferedReader(input);
+                String line;
+                while ((line = buf.readLine()) != null) {
+                    if (!line.equals("self") && !line.equals("emulated") && !line.equals("enterprise") && !line.contains("sdcard")) {
+                        path = "/storage/" + line + "/";
+                        break;
+                    }
+                    if ((System.currentTimeMillis() / 1000) % 60 > end) {
+                        videoLogList.add(new mLogMsg("getSDPath time out.", mLog.e));
+                        break;
+                    }
+                }
+                buf.close();
+                input.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             path = getPath();
         }
