@@ -62,6 +62,7 @@ public class Utils {
     public static AtomicReferenceArray<Handler> backgroundHandler = new AtomicReferenceArray<>(new Handler[2]);
     public static AtomicReferenceArray<Handler> recordHandler = new AtomicReferenceArray<>(new Handler[2]);
     public static AtomicReferenceArray<Handler> stopRecordHandler = new AtomicReferenceArray<>(new Handler[2]);
+
     //-------------------------------------------------------------------------------
     //TODO Default Path
     public static String getPath() {
@@ -200,23 +201,17 @@ public class Utils {
                         t = s.indexOf(title) + title.length();
                         title = s.substring(t);
                         break;
-                    }
-                for (String s : read)
-                    if (s.contains(first)) {
+                    } else if (s.contains(first)) {
                         target++;
                         t = s.indexOf(first) + first.length();
                         first = s.substring(t);
                         break;
-                    }
-                for (String s : read)
-                    if (s.contains(second)) {
+                    } else if (s.contains(second)) {
                         target++;
                         t = s.indexOf(second) + second.length();
                         second = s.substring(t);
                         break;
-                    }
-                for (String s : read)
-                    if (s.contains(code)) {
+                    } else if (s.contains(code)) {
                         target++;
                         t = s.indexOf(code) + code.length();
                         code = s.substring(t);
@@ -290,7 +285,6 @@ public class Utils {
                     output.write(logString.toString().getBytes());
                     output.close();
                     videoLogList.clear();
-
                 } catch (Exception e) {
                     e.printStackTrace();
                     videoLogList.add(new mLogMsg("Write LOG failed. <============ error here", mLog.e));
@@ -429,7 +423,6 @@ public class Utils {
             errorMessage = "Write failed. <============ Crash here";
         }
     }
-
 
     @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
     public static String getCalendarTime() {

@@ -60,7 +60,6 @@ public class CameraActivity extends Activity {
     public static boolean extraRecordStatus = true, onRestart = false;
     public static int onRun = 0, onSuccess = 0, onFail = 0, onReset = 0;
     public static int onWifiSuccess = 0, onWifiFail = 0, onBtSuccess = 0, onBtFail = 0;
-    private float value = 0.0f;
     //-------------------------------------------------------------------------------
     private BroadcastReceiver mBroadcastReceiver;
     private Handler mainHandler, resetHandler;
@@ -68,6 +67,7 @@ public class CameraActivity extends Activity {
     private HomeListen home;
     private mTimerTask timerTask = null;
     private Timer mTimer = null;
+    private float value = 0.0f;
     private WifiManager wifiManager;
     private BluetoothAdapter mbtAdapter;
 
@@ -106,7 +106,7 @@ public class CameraActivity extends Activity {
                     e.printStackTrace();
                 }
             try {
-                FileOutputStream output = new FileOutputStream(new File(getPath(), logName), !reFormat);
+                FileOutputStream output = new FileOutputStream(file, !reFormat);
                 output.write(logString.toString().getBytes());
                 output.close();
                 videoLogList.clear();
@@ -639,10 +639,8 @@ public class CameraActivity extends Activity {
             dialog.dismiss();
         });
         ArrayList<String> list = new ArrayList<>();
-
         String bit = ") wifi_success/fail:(" + getWifiSuccess() + "/" + getWifiFail() +
                 ") bt_success/fail:(" + getBtSuccess() + "/" + getBtFail();
-
         if (isSave)
             if (end)
                 list.add("CheckFile -> video_success/fail:(" + getSuccess() + "/" + getFail() +
@@ -871,8 +869,13 @@ public class CameraActivity extends Activity {
                             ((TextView) findViewById(R.id.record_status)).setText("Stop");
                         });
                     codeDate.set(id, getCalendarTime());
-                    closeMediaRecorder(CameraId);
-                    checkAndClear(CameraId);
+                    try {
+                        closeMediaRecorder(CameraId);
+                        checkAndClear(CameraId);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        errorMessage("Check file is fail. <============ Crash here", true, e);
+                    }
                 }
             }
             isRun = 0;
@@ -928,6 +931,7 @@ public class CameraActivity extends Activity {
                     mediaRecorder.get(id).release();
                 } catch (RuntimeException stopException) {
                     // handle cleanup here
+                    videoLogList.add(new mLogMsg("stop MediaRecorder " + CameraId + " is error."));
                 }
                 mediaRecorder.set(id, null);
                 videoLogList.add(new mLogMsg("Record " + CameraId + " finish."));
@@ -1135,43 +1139,42 @@ public class CameraActivity extends Activity {
     }
 
     private MediaRecorder setUpMediaRecorder(String CameraId) {
+        /* this function will error with camera changed. */
+        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
         int id = CameraId.equals(allCamera.get(0)) ? 0 : 1;
+        int kbps = 1000;
         String file;
         MediaRecorder mediaRecorder = null;
         try {
             if (!getSDPath().equals("")) {
-                file = getSDPath() + getCalendarTime(CameraId) + ".mp4";
-                videoLogList.add(new mLogMsg("Create: " + file.split("/")[3], mLog.w));
+                String name = getCalendarTime(CameraId) + ".mp4";
+                file = getSDPath() + name;
+                videoLogList.add(new mLogMsg("Create: " + name, mLog.w));
                 cameraFile.set(id, file + "");
                 cameraFilePath.get(id).add(file);
-                CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
-                if (Open_Audio && isCameraOne(CameraId))
-                    videoLogList.add(new mLogMsg("#audio"));
                 mediaRecorder = new MediaRecorder();
-                if (Open_Audio && isCameraOne(CameraId))
-                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+                if (Open_Audio) videoLogList.add(new mLogMsg("#audio"));
+                if (Open_Audio) mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
                 mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                if (Open_Audio && isCameraOne(CameraId))
-                    mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+                if (Open_Audio) mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
                 mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
                 mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
-                if (Open_Audio && isCameraOne(CameraId))
-                    mediaRecorder.setAudioEncodingBitRate(96000);
-                mediaRecorder.setVideoEncodingBitRate(2000000);
-                if (Open_Audio && isCameraOne(CameraId)) {
+                if (Open_Audio) mediaRecorder.setAudioEncodingBitRate(96 * kbps);
+                mediaRecorder.setVideoEncodingBitRate(2000 * kbps);
+                if (Open_Audio) {
                     mediaRecorder.setAudioChannels(2);
                     mediaRecorder.setAudioSamplingRate(44100);
                 }
                 mediaRecorder.setVideoFrameRate(50);
                 mediaRecorder.setOutputFile(file);
+//                mediaRecorder.setPreviewDisplay(surfaceView.get(id).getHolder().getSurface());
                 mediaRecorder.prepare();
             } else {
                 errorMessage("MediaRecorder error. " + NO_SD_CARD + " <============ Crash here", false, null);
                 return null;
             }
         } catch (Exception e) {
-            e.printStackTrace();
             errorMessage("MediaRecorder " + CameraId + " error. <============ Crash here", false, e);
         }
         return mediaRecorder;
