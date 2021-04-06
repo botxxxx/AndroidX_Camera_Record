@@ -1,11 +1,11 @@
 package com.d160.view;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.res.TypedArray;
-import android.graphics.Typeface;
-import android.util.AttributeSet;
-import android.widget.TextView;
+import android.annotation.*;
+import android.content.*;
+import android.content.res.*;
+import android.graphics.*;
+import android.util.*;
+import android.widget.*;
 
 import com.d160.thermal.R;
 

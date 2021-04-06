@@ -59,6 +59,7 @@ public class Utils {
     }
 
     //TODO Default Path
+    @SuppressLint("NewApi")
     public static String getPath() {
         return getStorageDirectory().getPath() + "/emulated/0/";
     }

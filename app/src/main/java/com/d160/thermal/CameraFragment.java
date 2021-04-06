@@ -1,5 +1,9 @@
 package com.d160.thermal;
 
+import static java.lang.System.gc;
+import static android.os.Looper.getMainLooper;
+import static com.d160.thermal.Utils.*;
+
 import android.*;
 import android.annotation.*;
 import android.app.Activity;
@@ -27,18 +31,14 @@ import java.time.format.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
-import static java.lang.System.gc;
-import static android.os.Looper.getMainLooper;
-import static com.d160.thermal.Utils.*;
-
 public class CameraFragment extends Fragment {
 
     public static final String TAG = "com.d160.thermal";
     public static final String firstCamera = "0", secondCamera = "1", thirdCamera = "2";
     public static final int delay_3 = 3000, delay_60 = 60600;
     //-------------------------------------------------------------------------------
-    public static final boolean Open_f_Camera = true, Open_s_Camera = false, Open_t_Camera = false;
-    public static final boolean Open_Audio = false;
+    public static final boolean Open_f_Camera = true, Open_s_Camera = true, Open_t_Camera = false;
+    public static final boolean Open_Audio = true;
     //TODO 是否啟用keepScreen
     public static boolean keepScreen = true;
     //TODO 是否啟用preview
@@ -1046,7 +1046,7 @@ public class CameraFragment extends Fragment {
                     videoLogList.add(new mLogMsg("#audio"));
                 mediaRecorder = new MediaRecorder();
                 if (Open_Audio && isCameraOne(CameraId))
-                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
                 mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
                 mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
                 if (Open_Audio && isCameraOne(CameraId))

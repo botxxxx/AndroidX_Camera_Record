@@ -1,8 +1,8 @@
 package com.d160.view;
 
-import com.d160.thermal.Utils;
+import com.d160.thermal.*;
 
-import java.time.LocalDateTime;
+import java.time.*;
 
 public class mLogMsg {
     public int run;
