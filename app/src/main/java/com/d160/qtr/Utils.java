@@ -15,7 +15,6 @@ import com.d160.view.*;
 import java.io.*;
 import java.lang.Process;
 import java.text.*;
-import java.time.format.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
@@ -57,6 +56,7 @@ public class Utils {
     public static AtomicReferenceArray<Handler> stopRecordHandler = new AtomicReferenceArray<>(new Handler[2]);
     //-------------------------------------------------------------------------------
     //TODO Default Path
+    @SuppressLint("NewApi")
     public static String getPath() {
         return getStorageDirectory().getPath() + "/emulated/0/DCIM/";
     }

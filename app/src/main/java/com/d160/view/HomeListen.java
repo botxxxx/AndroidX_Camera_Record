@@ -1,9 +1,6 @@
 package com.d160.view;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.*;
 
 /**
  * Home按键监听类 使用说明： 1、初始化HomeListen HomeListen homeListen = new HomeListen( this

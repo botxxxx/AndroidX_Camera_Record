@@ -1,5 +1,8 @@
 package com.d160.qtr;
 
+import static com.d160.qtr.Utils.*;
+import static java.lang.System.gc;
+
 import android.*;
 import android.annotation.*;
 import android.app.*;
@@ -26,9 +29,6 @@ import java.text.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
-import static com.d160.qtr.Utils.*;
-import static java.lang.System.gc;
-
 public class CameraActivity extends Activity {
 
     public static final String TAG = "com.d160.cdr9020";
@@ -38,7 +38,7 @@ public class CameraActivity extends Activity {
     public static final String LOG_TITLE = "[QTR_Log]";
     public static final int delay_3 = 3000, delay_60 = 60600;
     //-------------------------------------------------------------------------------
-    public static final boolean Open_Audio = false;
+    public static final boolean Open_Audio = true;
     public static String firstCamera = "0", secondCamera = "1";
     public static String lastFirstCamera = "0", lastSecondCamera = "1";
     //TODO 是否啟用keepScreen
@@ -989,6 +989,7 @@ public class CameraActivity extends Activity {
             try {
                 try {
                     mediaRecorder.get(id).stop();
+                    mediaRecorder.get(id).reset();
                     mediaRecorder.get(id).release();
                 } catch (RuntimeException stopException) {
                     // handle cleanup here
@@ -1092,21 +1093,21 @@ public class CameraActivity extends Activity {
                 cameraFile.set(id, file + "");
                 cameraFilePath.get(id).add(file);
                 CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
-                if (Open_Audio && isCameraOne(CameraId))
+                if (Open_Audio && id == 0)
                     videoLogList.add(new mLogMsg("#audio"));
                 mediaRecorder = new MediaRecorder();
-                if (Open_Audio && isCameraOne(CameraId))
+                if (Open_Audio && id == 0)
                     mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                 mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
                 mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                if (Open_Audio && isCameraOne(CameraId))
+                if (Open_Audio && id == 0)
                     mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
                 mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
                 mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
-                if (Open_Audio && isCameraOne(CameraId))
+                if (Open_Audio && id == 0)
                     mediaRecorder.setAudioEncodingBitRate(96000);
                 mediaRecorder.setVideoEncodingBitRate(2000000);
-                if (Open_Audio && isCameraOne(CameraId)) {
+                if (Open_Audio && id == 0) {
                     mediaRecorder.setAudioChannels(2);
                     mediaRecorder.setAudioSamplingRate(44100);
                 }
